@@ -1,0 +1,10 @@
+asgiref==3.9.2
+Django==5.2.6
+django-allauth==65.11.2
+django-crispy-forms==2.4
+djangorestframework==3.16.1
+pillow==11.3.0
+psycopg2-binary==2.9.10
+python-decouple==3.8
+sqlparse==0.5.3
+tzdata==2025.2
