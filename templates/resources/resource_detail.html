@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ resource.title }} - PaperTrail{% endblock %}
+
+{% block content %}
+<form style="display: none;">{% csrf_token %}</form> 
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">{{ resource.title }}</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="badge bg-primary">{{ resource.resource_type|title }}</span>
+                    {% if resource.verification_status == 'verified' %}
+                        <span class="verification-badge verified">✓ Verified by Professor</span>
+                    {% elif resource.verification_status == 'not_verified' %}
+                        <span class="verification-badge not-verified">Not Verified</span>
+                    {% else %}
+                        <span class="verification-badge pending">Pending Verification</span>
+                    {% endif %}
+                </div>
+                
+                {% if resource.description %}
+                <div class="mb-3">
+                    <h6>Description</h6>
+                    <p>{{ resource.description|linebreaks }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <h6>Resource Information</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Uploaded by:</strong> 
+                            {{ resource.uploader.get_display_name }}
+                            {% if resource.uploader.is_professor %}
+                                <span class="professor-badge">Professor</span>
+                            {% endif %}
+                        </li>
+                        <li><strong>Uploaded on:</strong> {{ resource.created_at|date:"F d, Y \a\t g:i A" }}</li>
+                        {% if resource.original_filename %}
+                        <li><strong>Filename:</strong> {{ resource.original_filename }}</li>
+                        {% endif %}
+                        {% if resource.file_size %}
+                        <li><strong>File size:</strong> {{ resource.file_size|filesizeformat }}</li>
+                        {% endif %}
+                        <li><strong>Views:</strong> {{ resource.views_count }}</li>
+                        <li><strong>Downloads:</strong> {{ resource.download_count }}</li>
+                    </ul>
+                </div>
+                
+                {% if resource.tags.all %}
+                <div class="mb-3">
+                    <h6>Tags</h6>
+                    {% for tag in resource.tags.all %}
+                    <span class="badge bg-light text-dark me-1">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="d-flex gap-2">
+                    {% if resource.file_url %}
+                        <a href="{% url 'resources:resource_download' resource.pk %}" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    {% elif resource.external_url %}
+                        <a href="{{ resource.external_url }}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt"></i> Open Link
+                        </a>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated %}
+                        <button 
+                            class="btn bookmark-toggle {% if is_bookmarked %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+                            data-resource-id="{{ resource.pk }}"
+                            data-is-bookmarked="{{ is_bookmarked|lower }}"
+                        >
+                            <i class="fas fa-star me-2 bookmark-filled-icon {% if not is_bookmarked %}d-none{% endif %}" style="color: white;"></i>
+                            
+                            <i class="far fa-star me-2 bookmark-outline-icon {% if is_bookmarked %}d-none{% endif %}" style="color: var(--c-5);"></i>
+                            
+                            <span class="bookmark-text">{% if is_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}</span>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Uploader</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <span class="text-white h5 mb-0">{{ resource.uploader.get_display_name|first|upper }}</span>
+                    </div>
+                    <h6>{{ resource.uploader.get_display_name }}</h6>
+                    <p class="text-muted">@{{ resource.uploader.username }}</p>
+                    {% if resource.uploader.is_professor %}
+                        <span class="badge bg-primary">Professor</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if resource.related_links.all %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h4 class="mb-0">🔗 Related Links</h4>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for link in resource.related_links.all %}
+                    <li class="list-group-item">
+                        <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-external-link-alt me-2 text-primary"></i>
+                                <strong>{{ link.title }}</strong>
+                            </div>
+                            <span class="badge bg-secondary text-white ms-auto">View Link</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/resource_detail.js' %}"></script>
+{% endblock %}

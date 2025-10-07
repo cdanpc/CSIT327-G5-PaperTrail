@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - PaperTrail{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="hero-section bg-gradient-primary text-white p-5 rounded-4 mb-5 shadow-lg">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-4 fw-bold mb-3">
+                            <i class="fas fa-graduation-cap me-3"></i>Welcome to PaperTrail
+                        </h1>
+                        <p class="lead mb-4">A crowd-powered study hub where students and professors share educational resources, create flashcards, and build quizzes.</p>
+                        {% if not user.is_authenticated %}
+                        <div class="d-flex gap-3">
+                            <a class="btn btn-light btn-lg px-4" href="{% url 'accounts:register' %}" role="button">
+                                <i class="fas fa-rocket me-2"></i>Get Started
+                            </a>
+                            <a class="btn btn-outline-light btn-lg px-4" href="{% url 'accounts:login' %}" role="button">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <i class="fas fa-book-open" style="font-size: 8rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        
+        <!-- Recent Resources -->
+        {% if recent_resources %}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Resources</h5>
+                <a href="{% url 'resources:resource_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% for resource in recent_resources %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">
+                            <a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">
+                                {{ resource.title }}
+                            </a>
+                        </h6>
+                        <small class="text-muted">
+                            by {{ resource.uploader.get_display_name }}
+                            {% if resource.uploader.is_professor %}
+                                <span class="professor-badge">Professor</span>
+                            {% endif %}
+                            • {{ resource.resource_type|title }} • {{ resource.created_at|date:"M d" }}
+                        </small>
+                    </div>
+                    <div>
+                        {% if resource.verification_status == 'verified' %}
+                            <span class="verification-badge verified">✓ Verified</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Popular Resources -->
+        {% if popular_resources %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Popular Resources</h5>
+            </div>
+            <div class="card-body">
+                {% for resource in popular_resources %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">
+                            {{ resource.title }}
+                        </a>
+                        <small class="text-muted d-block">{{ resource.views_count }} views</small>
+                    </div>
+                    <div>
+                        {% if resource.verification_status == 'verified' %}
+                            <span class="verification-badge verified">✓</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Quick Actions -->
+        {% if user.is_authenticated %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'resources:resource_upload' %}" class="btn btn-primary btn-lg">Upload Resource</a>
+                    <a href="{% url 'flashcards:flashcard_create' %}" class="btn btn-outline-primary btn-lg">Create Flashcards</a>
+                    <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-outline-primary btn-lg">Create Quiz</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Features -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Features</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <strong>📚 Resource Sharing</strong><br>
+                        <small class="text-muted">Upload and share study materials</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>🎯 Flashcards</strong><br>
+                        <small class="text-muted">Create and study flashcard sets</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>📝 Quizzes</strong><br>
+                        <small class="text-muted">Build and take practice quizzes</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>🔍 Search</strong><br>
+                        <small class="text-muted">Find resources by tags and content</small>
+                    </li>
+                    <li class="mb-0">
+                        <strong>✅ Verification</strong><br>
+                        <small class="text-muted">Professor-verified content</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - PaperTrail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center mb-0">Login</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p class="mb-0">
+                        Don't have an account? 
+                        <a href="{% url 'accounts:register' %}">Register here</a>
+                    </p>
+                    <p class="mb-0">
+                        <a href="{% url 'accounts:password_reset' %}">Forgot your password?</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6>Login Options</h6>
+                <small class="text-muted">
+                    You can login using any of the following:
+                    <ul class="mt-2">
+                        <li>Username</li>
+                        <li>Student ID (format: ##-####-### or ####-####)</li>
+                        <li>University Email (@cit.edu)</li>
+                    </ul>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
