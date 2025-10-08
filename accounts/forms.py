@@ -44,7 +44,7 @@ class CustomUserCreationForm(UserCreationForm):
     personal_email = forms.EmailField(
         required=True,
         label='Personal Email',
-        help_text='Must must end with @gmail.com)',
+        help_text='Format: Must end with @gmail.com)',
         widget=forms.EmailInput(attrs={
             'class': 'form-control', 
             'placeholder': 'your.name@gmail.com'
@@ -53,7 +53,7 @@ class CustomUserCreationForm(UserCreationForm):
     univ_email = forms.EmailField(
         required=False,
         label='University Email',
-        help_text='Must end with @cit.edu)',
+        help_text='Format: Must end with @cit.edu)',
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'student.id@cit.edu'
@@ -92,7 +92,7 @@ class CustomUserCreationForm(UserCreationForm):
     def clean_stud_id(self):
         stud_id = self.cleaned_data.get('stud_id')
         if stud_id:
-            pattern = r'^(?:\d{2}-\d{4}-\d{3}|\d{4}-\d{4})$'
+            pattern = r'^\d{2}-\d{4}-\d{3}$'
             if not re.fullmatch(pattern, stud_id):
                 raise ValidationError('Student ID must be in format ##-####-###')
         return stud_id

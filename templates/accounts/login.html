@@ -3,7 +3,36 @@
 
 {% block title %}Login - PaperTrail{% endblock %}
 
+{% block extra_js %}
+<script>
+function showResetPasswordMessage(event) {
+    event.preventDefault();
+    const modal = new bootstrap.Modal(document.getElementById('featureInProgressModal'));
+    modal.show();
+}
+</script>
+{% endblock %}
+
 {% block content %}
+<!-- Feature In Progress Modal -->
+<div class="modal fade" id="featureInProgressModal" tabindex="-1" aria-labelledby="featureInProgressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="featureInProgressModalLabel">
+                    <i class="fas fa-tools me-2"></i>Feature in Progress
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">The password reset feature is currently under development. Please contact your administrator for assistance.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-4">
         <div class="card">
@@ -25,7 +54,7 @@
                         <a href="{% url 'accounts:register' %}">Register here</a>
                     </p>
                     <p class="mb-0">
-                        <a href="{% url 'accounts:password_reset' %}">Forgot your password?</a>
+                        <a href="#" onclick="showResetPasswordMessage(event)">Forgot your password?</a>
                     </p>
                 </div>
             </div>
@@ -38,7 +67,7 @@
                     You can login using any of the following:
                     <ul class="mt-2">
                         <li>Username</li>
-                        <li>Student ID (format: ##-####-### or ####-####)</li>
+                        <li>Student ID (format: ##-####-###)</li>
                         <li>University Email (@cit.edu)</li>
                     </ul>
                 </small>
