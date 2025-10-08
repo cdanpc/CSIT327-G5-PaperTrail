@@ -4,14 +4,10 @@ from django.db import OperationalError # Import the error
 
 # --- General Views ---
 
+from django.shortcuts import redirect
+from django.contrib import messages
+
 def home(request):
-    """Home page showing recent resources"""
-    
-    recent_resources = []
-    popular_resources = []
-    
-    context = {
-        'recent_resources': recent_resources,
-        'popular_resources': popular_resources,
-    }
-    return render(request, 'resources/home.html', context)
+    """Temporary redirect to dashboard with feature-in-progress message"""
+    messages.info(request, 'The Resources feature is currently under development. Please check back soon!')
+    return redirect('accounts:dashboard')

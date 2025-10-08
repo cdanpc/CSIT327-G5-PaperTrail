@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile - PaperTrail{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="bg-light border-bottom py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.get_display_name }}" 
+                         class="rounded-circle border shadow-sm" 
+                         style="width: 80px; height: 80px; object-fit: cover;">
+                {% else %}
+                    <div class="rounded-circle border bg-white shadow-sm d-flex align-items-center justify-content-center"
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-user fa-2x text-primary opacity-75"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col">
+                <h1 class="h3 mb-1">{{ user.get_display_name }}</h1>
+                <p class="mb-0 text-muted">
+                    {{ user.get_role_display }}
+                    {% if user.is_professor %}
+                        <span class="badge bg-primary ms-1">Professor</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="tooltip" 
+                        title="Profile editing will be available soon!" disabled>
+                    <i class="fas fa-edit me-1"></i> Edit Profile
+                </button>
+                <a href="{% url 'accounts:password_change' %}" class="btn btn-primary">
+                    <i class="fas fa-key me-1"></i> Change Password
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-4">
+    <!-- Profile Information Card -->
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header border-0 bg-white pt-4 pb-0">
+                    <h5 class="card-title text-primary">
+                        <i class="fas fa-user-circle me-2"></i>Profile Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="profile-info">
+                        {% if user.first_name or user.last_name %}
+                        <div class="mb-3">
+                            <label class="small text-muted d-block">Full Name</label>
+                            <p class="mb-0 fw-medium">{{ user.first_name }} {{ user.last_name }}</p>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="small text-muted d-block">Personal Email</label>
+                            <p class="mb-0 fw-medium">{{ user.personal_email }}</p>
+                        </div>
+                        
+                        {% if user.univ_email %}
+                        <div class="mb-3">
+                            <label class="small text-muted d-block">University Email</label>
+                            <p class="mb-0 fw-medium">{{ user.univ_email }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if user.stud_id %}
+                        <div class="mb-3">
+                            <label class="small text-muted d-block">Student ID</label>
+                            <p class="mb-0 fw-medium">{{ user.stud_id }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if user.dept %}
+                        <div class="mb-3">
+                            <label class="small text-muted d-block">Department</label>
+                            <p class="mb-0 fw-medium">{{ user.dept }}</p>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="small text-muted d-block">Member Since</label>
+                            <p class="mb-0 fw-medium">{{ user.date_joined|date:"F d, Y" }}</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Overview -->
+        <div class="col-lg-8">
+            <div class="row g-4">
+                <!-- Quick Stats -->
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header border-0 bg-white pt-4 pb-0">
+                            <h5 class="card-title text-primary">
+                                <i class="fas fa-chart-bar me-2"></i>Activity Overview
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="p-3 rounded-3 bg-primary bg-opacity-10 text-center h-100" 
+                                         data-bs-toggle="tooltip" title="Resource tracking coming soon!">
+                                        <i class="fas fa-file-alt fa-2x text-primary opacity-75 mb-2"></i>
+                                        <h3 class="h4 mb-0">-</h3>
+                                        <span class="small text-muted">Resources</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 rounded-3 bg-success bg-opacity-10 text-center h-100" 
+                                         data-bs-toggle="tooltip" title="Bookmark tracking coming soon!">
+                                        <i class="fas fa-bookmark fa-2x text-success opacity-75 mb-2"></i>
+                                        <h3 class="h4 mb-0">-</h3>
+                                        <span class="small text-muted">Bookmarks</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 rounded-3 bg-info bg-opacity-10 text-center h-100" 
+                                         data-bs-toggle="tooltip" title="Contribution tracking coming soon!">
+                                        <i class="fas fa-hands-helping fa-2x text-info opacity-75 mb-2"></i>
+                                        <h3 class="h4 mb-0">-</h3>
+                                        <span class="small text-muted">Contributions</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-primary me-2" data-bs-toggle="tooltip" title="Profile editing will be available soon!" disabled>
+                            <i class="fas fa-edit me-1"></i> Edit Profile
+                        </button>
+                        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-key me-1"></i> Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Activity</h5>
+                    <span class="badge bg-warning text-dark">Coming Soon</span>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">Activity tracking is coming soon! Stay tuned for updates.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="row mt-4">
+            <!-- Recent Resources -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Recent Resources</h5>
+                        <span class="badge bg-warning text-dark">Coming Soon</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-4">
+                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">Resource management is coming soon! You'll be able to upload and manage your educational content here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Bookmarks -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Recent Bookmarks</h5>
+                        <span class="badge bg-warning text-dark">Coming Soon</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-4">
+                            <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">Bookmark feature is coming soon! Save and organize your favorite resources here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Profile Picture Preview -->
+                    <div class="text-center mb-4">
+                        <div id="profilePicturePreview" class="mx-auto mb-2">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Profile Preview" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                                    <i class="fas fa-user fa-4x text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {{ form.profile_picture|as_crispy_field }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.last_name|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    {{ form.display_name|as_crispy_field }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.personal_email|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.univ_email|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    {{ form.stud_id|as_crispy_field }}
+                    
+                    <div class="mt-3 text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block extra_css %}
+<style>
+.profile-info label {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.profile-info p {
+    color: #2c3e50;
+}
+
+.fw-medium {
+    font-weight: 500;
+}
+
+.feature-coming-soon {
+    width: 80px;
+    height: 80px;
+    background: #f8f9fa;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        text-align: center;
+    }
+    
+    .profile-actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Profile picture preview
+    const profilePictureInput = document.querySelector('input[name="profile_picture"]');
+    const previewContainer = document.getElementById('profilePicturePreview');
+    
+    if (profilePictureInput) {
+        profilePictureInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewContainer.innerHTML = `
+                        <img src="${e.target.result}" alt="Profile Preview" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                    `;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Add validation for student ID format
+    const studIdInput = document.querySelector('input[name="stud_id"]');
+    if (studIdInput) {
+        studIdInput.addEventListener('input', function(e) {
+            const value = e.target.value;
+            const pattern = /^(?:\d{2}-\d{4}-\d{3}|\d{4}-\d{4})$/;
+            
+            if (value && !pattern.test(value)) {
+                studIdInput.setCustomValidity('Student ID must be in format ##-####-### or ####-####');
+            } else {
+                studIdInput.setCustomValidity('');
+            }
+        });
+    }
+    
+    // Add validation for university email format
+    const univEmailInput = document.querySelector('input[name="univ_email"]');
+    if (univEmailInput) {
+        univEmailInput.addEventListener('input', function(e) {
+            const value = e.target.value;
+            
+            if (value && !value.endsWith('@cit.edu')) {
+                univEmailInput.setCustomValidity('University email must end with @cit.edu');
+            } else {
+                univEmailInput.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
+{% endblock extra_js %}

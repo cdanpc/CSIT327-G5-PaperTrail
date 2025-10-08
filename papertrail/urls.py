@@ -17,13 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
+from django.conf import settings
+from django.conf.urls.static import static
 
-def home_redirect(request):
-    return redirect('resources:home')
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('resources/', include('resources.urls')),
-    path('', home_redirect, name='home'),  # Redirect to resources home
+    path('', TemplateView.as_view(template_name='landing.html'), name='home'),  # Use landing page as home
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

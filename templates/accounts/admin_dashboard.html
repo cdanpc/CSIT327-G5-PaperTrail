@@ -1,0 +1,185 @@
+{% extends 'accounts/dashboard_base.html' %}
+{% load static %}
+
+{% block dashboard_title %}Admin Dashboard{% endblock %}
+
+{% block dashboard_nav %}
+<a href="{% url 'admin:index' %}" class="list-group-item list-group-item-action">
+    <i class="bi bi-gear me-2"></i> Admin Panel
+</a>
+<a href="#" class="list-group-item list-group-item-action" data-feature-in-progress="resources">
+    <i class="bi bi-book me-2"></i> Resources
+</a>
+<a href="#" class="list-group-item list-group-item-action" data-feature-in-progress="users">
+    <i class="bi bi-people me-2"></i> User Management
+</a>
+<a href="#" class="list-group-item list-group-item-action" data-feature-in-progress="analytics">
+    <i class="bi bi-bar-chart me-2"></i> Analytics
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Welcome Section -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h2>Admin Dashboard</h2>
+        <p class="text-muted">Platform overview and management tools.</p>
+        
+        <!-- Quick Stats -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="profile-stat-item">
+                    <div class="stat-number" data-target="{{ total_users }}">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="profile-stat-item">
+                    <div class="stat-number" data-target="{{ total_students }}">0</div>
+                    <div class="stat-label">Students</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="profile-stat-item">
+                    <div class="stat-number" data-target="{{ total_professors }}">0</div>
+                    <div class="stat-label">Professors</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="profile-stat-item">
+                    <div class="stat-number text-danger" data-target="{{ banned_users }}">0</div>
+                    <div class="stat-label">Banned Users</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">Add Professor</h5>
+                <p class="card-text flex-grow-1">Create new professor accounts</p>
+                <a href="#" class="btn btn-primary" data-feature="in-progress">Add</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">Manage Users</h5>
+                <p class="card-text flex-grow-1">View and manage user accounts</p>
+                <a href="#" class="btn btn-primary" data-feature="in-progress">Manage</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">View Reports</h5>
+                <p class="card-text flex-grow-1">Access analytics and reports</p>
+                <a href="#" class="btn btn-primary" data-feature="in-progress">View</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Pending Resources -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Pending Resources</h5>
+                <a href="#" class="btn btn-sm btn-outline-primary" data-feature="in-progress">View All</a>
+            </div>
+            <div class="card-body">
+                {% if pending_resources %}
+                    {% for resource in pending_resources %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <a href="#" class="text-decoration-none" data-feature-in-progress="resource-detail">
+                                {{ resource.title }}
+                            </a>
+                            <small class="text-muted d-block">
+                                by {{ resource.uploader.get_display_name }}
+                                <span class="ms-2">{{ resource.created_at|date:"M d, Y" }}</span>
+                            </small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-success" data-feature-in-progress="approve-resource">
+                                <i class="bi bi-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" data-feature-in-progress="reject-resource">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted my-3">No pending resources to review.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Users</h5>
+                <a href="#" class="btn btn-sm btn-outline-primary" data-feature="in-progress">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                    {% for user in recent_users %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <strong>{{ user.get_display_name }}</strong>
+                            <small class="text-muted d-block">
+                                {% if user.is_professor %}
+                                    <span class="badge bg-primary">Professor</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Student</span>
+                                {% endif %}
+                                <span class="ms-2">{{ user.date_joined|date:"M d, Y" }}</span>
+                            </small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-danger" data-feature="in-progress">
+                                <i class="bi bi-shield-x"></i> Ban
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted my-3">No recent user registrations.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Status -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">System Status</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Storage Usage</h6>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 25%;" 
+                         aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6>Server Status</h6>
+                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Operational</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

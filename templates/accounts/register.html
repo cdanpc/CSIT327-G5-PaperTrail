@@ -1,7 +1,121 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Register - PaperTrail{% endblock %}
+{% block title %}Register - PaperTrail{% endblock title %}
+
+{% block extra_css %}
+<style>
+.suggestion-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    color: #495057;
+}
+
+.suggestion-chip:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    transform: translateY(-1px);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: none;
+    padding-top: 1.5rem;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(139, 44, 44, 0.15);
+    border-color: #8B2C2C;
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+</style>
+{% endblock extra_css %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const firstNameInput = document.querySelector('[data-display-name-source="true"][placeholder="First Name"]');
+    const lastNameInput = document.querySelector('[data-display-name-source="true"][placeholder="Last Name"]');
+    const displayNameInput = document.querySelector('[data-display-name-target="true"]');
+    const suggestionsDiv = document.getElementById('displayNameSuggestions');
+    const suggestionsList = document.getElementById('suggestionsList');
+    
+    function generateSuggestions(firstName, lastName) {
+        const suggestions = [];
+        if (firstName && lastName) {
+            // Full name
+            suggestions.push(`${firstName} ${lastName}`);
+            
+            // First name + Last initial
+            suggestions.push(`${firstName} ${lastName.charAt(0)}.`);
+            
+            // First initial + Last name
+            suggestions.push(`${firstName.charAt(0)}. ${lastName}`);
+            
+            // Concatenated with year
+            const year = new Date().getFullYear().toString().substr(-2);
+            suggestions.push(`${firstName}${lastName}${year}`);
+            
+            // First name + Random number
+            const randomNum = Math.floor(Math.random() * 999) + 1;
+            suggestions.push(`${firstName}${randomNum}`);
+        }
+        return [...new Set(suggestions)]; // Remove duplicates
+    }
+    
+    function updateSuggestions() {
+        const firstName = firstNameInput.value.trim();
+        const lastName = lastNameInput.value.trim();
+        
+        if (firstName || lastName) {
+            const suggestions = generateSuggestions(firstName, lastName);
+            
+            if (suggestions.length > 0) {
+                suggestionsList.innerHTML = suggestions.map(suggestion => `
+                    <span class="suggestion-chip" role="button" onclick="selectDisplayName(this)">
+                        ${suggestion}
+                    </span>
+                `).join('');
+                suggestionsDiv.classList.remove('d-none');
+            }
+        } else {
+            suggestionsDiv.classList.add('d-none');
+        }
+    }
+    
+    if (firstNameInput && lastNameInput && displayNameInput) {
+        firstNameInput.addEventListener('input', updateSuggestions);
+        lastNameInput.addEventListener('input', updateSuggestions);
+    }
+    
+    // Make function available globally
+    window.selectDisplayName = function(element) {
+        if (displayNameInput) {
+            displayNameInput.value = element.textContent.trim();
+            displayNameInput.focus();
+        }
+    };
+});
+</script>
+{% endblock extra_js %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -11,9 +125,58 @@
                 <h3 class="text-center mb-0">Create Account</h3>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" class="needs-validation" novalidate>
                     {% csrf_token %}
-                    {{ form|crispy }}
+                    
+                    <!-- Name Section -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.last_name|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <!-- Display Name with Suggestions -->
+                    <div class="mb-3">
+                        {{ form.display_name|as_crispy_field }}
+                        <div id="displayNameSuggestions" class="mt-2 d-none">
+                            <label class="form-label text-muted small">Suggestions:</label>
+                            <div class="d-flex flex-wrap gap-2" id="suggestionsList"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Details -->
+                    <div class="mb-3">
+                        {{ form.username|as_crispy_field }}
+                    </div>
+                    
+                    <!-- Email Section -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.personal_email|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.univ_email|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <!-- Student ID -->
+                    <div class="mb-3">
+                        {{ form.stud_id|as_crispy_field }}
+                    </div>
+                    
+                    <!-- Password Section -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.password1|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.password2|as_crispy_field }}
+                        </div>
+                    </div>
+                    
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">Create Account</button>
                     </div>
@@ -44,4 +207,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock content %}
