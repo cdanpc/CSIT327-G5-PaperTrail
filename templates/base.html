@@ -12,12 +12,36 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     
-    {% block extra_css %}{% endblock %}
+    <!-- Base Styles -->
+<style>
+.navbar-brand {
+    font-size: 1.5rem;
+    transition: transform 0.2s ease;
+}
+
+.navbar-brand:hover {
+    transform: translateY(-1px);
+}
+
+.navbar-brand i {
+    font-size: 1.25rem;
+}
+
+.navbar-brand strong {
+    background: linear-gradient(45deg, #8B2C2C, #b44);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #8B2C2C; /* Fallback */
+}
+</style>
+{% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column h-100">
     <nav class="navbar navbar-expand-lg navbar-light bg-light **sticky-top**" style="z-index: 1060;">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <i class="fas fa-book-reader me-2 text-primary"></i>
                 <strong>PaperTrail</strong>
             </a>
             
@@ -31,13 +55,13 @@
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Resources</a>
+                        <a class="nav-link" href="{% url 'accounts:dashboard' %}" data-feature-in-progress="resources" data-bs-toggle="tooltip" title="Coming Soon!">Resources</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Flashcards</a>
+                        <a class="nav-link" href="{% url 'accounts:dashboard' %}" data-feature-in-progress="flashcards" data-bs-toggle="tooltip" title="Coming Soon!">Flashcards</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Quizzes</a>
+                        <a class="nav-link" href="{% url 'accounts:dashboard' %}" data-feature-in-progress="quizzes" data-bs-toggle="tooltip" title="Coming Soon!">Quizzes</a>
                     </li>
                 </ul>
                 
@@ -55,10 +79,10 @@
                                     Admin
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#">Dashboard</a></li>
-                                    <li><a class="dropdown-item" href="#">Resources</a></li>
-                                    <li><a class="dropdown-item" href="#">Users</a></li>
-                                    <li><a class="dropdown-item" href="#">Audit Log</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:admin_dashboard' %}">Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:admin_dashboard' %}" data-feature-in-progress="admin-resources">Resources</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:admin_dashboard' %}" data-feature-in-progress="admin-users">Users</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:admin_dashboard' %}" data-feature-in-progress="admin-audit">Audit Log</a></li>
                                 </ul>
                             </li>
                         {% elif user.is_professor %}
@@ -73,19 +97,25 @@
                         {% endif %}
                         
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+                                {% else %}
+                                    <i class="fas fa-user-circle me-2"></i>
+                                {% endif %}
                                 {{ user.get_display_name }}
                                 {% if user.is_professor %}
                                     <span class="badge bg-primary ms-1">Professor</span>
                                 {% endif %}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'accounts:student_dashboard' %}">Dashboard</a></li>
-                                <li><a class="dropdown-item" href="#">Profile</a></li>
-                                <li><a class="dropdown-item" href="#">Settings</a></li>
-                                <li><a class="dropdown-item" href="#">Bookmarks</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}">Change Password</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}" data-feature-in-progress="settings">Settings</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}" data-feature-in-progress="bookmarks">Bookmarks</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#">Logout</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
                             </ul>
                         </li>
                     {% else %}
@@ -101,6 +131,21 @@
         </div>
     </nav>
     
+    <!-- Toast Container for Feature-in-Progress notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1070;">
+        <div id="featureToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-warning text-dark">
+                <i class="fas fa-tools me-2"></i>
+                <strong class="me-auto">Feature in Progress</strong>
+                <small class="text-muted">just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                This feature is currently under development and will be available soon!
+            </div>
+        </div>
+    </div>
+
     {% if messages %}
         <div class="container mt-3">
             {% for message in messages %}
@@ -131,6 +176,35 @@
     </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle feature-in-progress elements
+            const inProgressSelectors = [
+                '[data-feature-in-progress]',
+                '[data-feature="in-progress"]'
+            ];
+            
+            inProgressSelectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach(element => {
+                    element.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const toast = new bootstrap.Toast(document.getElementById('featureToast'));
+                        toast.show();
+                    });
+                    
+                    // Add hover effect
+                    element.style.cursor = 'pointer';
+                });
+            });
+
+            // Initialize all tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
     
     {% block extra_js %}{% endblock %}
 </body>

@@ -29,68 +29,7 @@
                     </div>
                 </div>
             </div>
-        
-        <!-- Recent Resources -->
-        {% if recent_resources %}
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Resources</h5>
-                <a href="{% url 'resources:resource_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
-            </div>
-            <div class="card-body">
-                {% for resource in recent_resources %}
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">
-                            <a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">
-                                {{ resource.title }}
-                            </a>
-                        </h6>
-                        <small class="text-muted">
-                            by {{ resource.uploader.get_display_name }}
-                            {% if resource.uploader.is_professor %}
-                                <span class="professor-badge">Professor</span>
-                            {% endif %}
-                            • {{ resource.resource_type|title }} • {{ resource.created_at|date:"M d" }}
-                        </small>
-                    </div>
-                    <div>
-                        {% if resource.verification_status == 'verified' %}
-                            <span class="verification-badge verified">✓ Verified</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
         </div>
-        {% endif %}
-        
-        <!-- Popular Resources -->
-        {% if popular_resources %}
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Popular Resources</h5>
-            </div>
-            <div class="card-body">
-                {% for resource in popular_resources %}
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">
-                            {{ resource.title }}
-                        </a>
-                        <small class="text-muted d-block">{{ resource.views_count }} views</small>
-                    </div>
-                    <div>
-                        {% if resource.verification_status == 'verified' %}
-                            <span class="verification-badge verified">✓</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-    </div>
     
     <div class="col-md-4">
         <!-- Quick Actions -->
