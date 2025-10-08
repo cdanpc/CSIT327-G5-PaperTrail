@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Upload Resource - PaperTrail{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-header text-center">
+                    <h2 class="mb-0">📚 Upload Resource</h2>
+                    <p class="text-muted mt-2 mb-0">Share your knowledge with the community</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <h4 class="mb-4"><i class="fas fa-upload me-2"></i> Submit New Resource</h4>
+                    
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        {# -------------------------------------------------------------------------------- #}
+                        {# 1. Main Form Fields (Title, Description, Tags) #}
+                        {# -------------------------------------------------------------------------------- #}
+                        <fieldset class="mb-4 p-3 border rounded">
+                            <legend class="float-none w-auto px-2">Basic Details</legend>
+                            
+                            {{ form.title|as_crispy_field }}
+                            {{ form.description|as_crispy_field }}
+                            {{ form.tags_input|as_crispy_field }}
+                        </fieldset>
+
+                        {# -------------------------------------------------------------------------------- #}
+                        {# 2. Type Choice (Conditional Selector) #}
+                        {# -------------------------------------------------------------------------------- #}
+                        <fieldset class="mb-4 p-3 border rounded">
+                            <legend class="float-none w-auto px-2">Resource Type</legend>
+                            {{ form.resource_type|as_crispy_field }}
+
+                            {# INITIAL GUIDANCE (Visible until a choice is made) #}
+                            <div id="initial-guidelines" class="alert alert-info small mt-3 mb-0" style="display: none;">
+                                Please select whether you are uploading a file or an external link above.
+                            </div>
+                        </fieldset>
+
+                        {# -------------------------------------------------------------------------------- #}
+                        {# 3. Conditional Fields (Controlled by JS) #}
+                        {# -------------------------------------------------------------------------------- #}
+                        
+                        {# --- File Upload Field --- #}
+                        <div id="file-upload-container" class="mb-4 p-3 border rounded" style="background-color: #f8f9fa; display: none;">
+                            <h6 class="text-primary mb-3"><i class="fas fa-file-alt me-2"></i> File Upload</h6>
+                            {{ form.file_upload|as_crispy_field }}
+                            
+                            {# GUIDANCE FOR FILE #}
+                            <div id="file-guidelines" class="alert alert-warning small mb-0 mt-3">
+                                Supported formats: **PDF, PPT, DOCX, TXT, JPG, PNG**. Max size: **25MB**.
+                            </div>
+                        </div>
+
+                        {# --- External URL Field --- #}
+                        <div id="link-upload-container" class="mb-4 p-3 border rounded" style="background-color: #f8f9fa; display: none;">
+                            <h6 class="text-primary mb-3"><i class="fas fa-globe me-2"></i> External Link</h6>
+                            {{ form.external_url|as_crispy_field }}
+                            
+                            {# GUIDANCE FOR LINK #}
+                            <div id="link-guidelines" class="alert alert-warning small mb-0 mt-3">
+                                Enter a full URL starting with **http:// or https://**.
+                            </div>
+                        </div>
+                        
+                        {# -------------------------------------------------------------------------------- #}
+                        {# 4. RELATED RESOURCES (Formset - Managed by External JS) #}
+                        {# -------------------------------------------------------------------------------- #}
+            
+                        <fieldset class="mb-4 p-3 border rounded">
+                            <legend class="float-none w-auto px-2">
+                                Related Links 🔗 
+                                <small class="text-muted" style="font-size: 0.85rem;">
+                                    (Optional external resources)
+                                </small>
+                            </legend>
+                            
+                            <p class="text-muted small mb-3">
+                                Add external links that support or complement your resource (e.g., official docs, source code).
+                            </p>
+                        
+                            {# CRITICAL: MANAGEMENT FORM #}
+                            {{ formset.management_form }}
+                            
+                            <div id="formset-container">
+                                {% for related_form in formset %}
+                                <div class="related-link-form mb-3 p-3 border rounded bg-light" id="related-form-{{ forloop.counter0 }}" style="display: none;">
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        {# JS will set this content to Link #1, #2, etc. #}
+                                        <h6 class="text-primary mb-0">Link #{{ forloop.counter }}</h6>
+                                        
+                                        {# Description removed as requested #}
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">{{ related_form.title|as_crispy_field }}</div>
+                                        <div class="col-md-6">{{ related_form.url|as_crispy_field }}</div>
+                                    </div>
+                            
+                                    {# CRITICAL: HIDDEN FIELDS #}
+                                    {% for hidden in related_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                    
+                                    {# Ensure the DELETE checkbox is visually hidden #}
+                                    <div style="display: none;">
+                                        {{ related_form.id }}
+                                        {{ related_form.DELETE }}
+                                    </div>
+                                    
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-form-btn mt-2">
+                                            <i class="fas fa-trash-alt"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        
+                            {# The ADD button #}
+                            <button type="button" id="add-form-btn" class="btn btn-success btn-sm mt-3">
+                                <i class="fas fa-plus"></i> Add Another Related Resource
+                            </button>
+                        </fieldset>
+                        
+                        {# Global Non-field errors and Submit Button #}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors.0 }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" style="background-color: var(--c-5); border-color: var(--c-5);">
+                                <i class="fas fa-upload me-2"></i>Submit for Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {# GUIDELINES CARD (Removed content that was moved into the conditional containers) #}
+            <div class="card mt-4 shadow-lg">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>General Upload Info
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Pro Tip:</strong> All uploads are reviewed by administrators before being published.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{# CRITICAL: Link to external JS file #}
+<script src="{% static 'js/resource_upload.js' %}"></script> 
+
+{% endblock %}

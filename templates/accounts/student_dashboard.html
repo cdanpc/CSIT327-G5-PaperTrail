@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - PaperTrail{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Welcome back, {{ user.get_display_name }}!</h2>
+        <p class="text-muted">Here's what's happening in your study hub.</p>
+        
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Upload Resource</h5>
+                        <p class="card-text">Share study materials with the community</p>
+                        <a href="{% url 'resources:resource_upload' %}" class="btn btn-primary">Upload</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Create Flashcards</h5>
+                        <p class="card-text">Build your own flashcard sets</p>
+                        <a href="{% url 'flashcards:flashcard_create' %}" class="btn btn-primary">Create</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Create Quiz</h5>
+                        <p class="card-text">Make quizzes for self-testing</p>
+                        <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-primary">Create</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Resources -->
+        {% if recent_resources %}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Your Recent Resources</h5>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% for resource in recent_resources %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">
+                            {{ resource.title }}
+                        </a>
+                        <small class="text-muted d-block">{{ resource.resource_type|title }}</small>
+                    </div>
+                    <div>
+                        {% if resource.approved %}
+                            <span class="badge bg-success">Approved</span>
+                        {% else %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Recent Bookmarks -->
+        {% if recent_bookmarks %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Your Recent Bookmarks</h5>
+                <a href="{% url 'accounts:manage_bookmarks' %}" class="btn btn-sm btn-outline-primary">Manage</a>
+            </div>
+            <div class="card-body">
+                {% for bookmark in recent_bookmarks %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <a href="{% url 'resources:resource_detail' bookmark.resource.pk %}" class="text-decoration-none">
+                            {{ bookmark.resource.title }}
+                        </a>
+                        <small class="text-muted d-block">
+                            by {{ bookmark.resource.uploader.get_display_name }}
+                            {% if bookmark.resource.uploader.is_professor %}
+                                <span class="badge bg-primary ms-1">Professor</span>
+                            {% endif %}
+                        </small>
+                    </div>
+                    <small class="text-muted">{{ bookmark.created_at|date:"M d" }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Quick Stats -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Your Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ user.uploaded_resources.count }}</h4>
+                        <small class="text-muted">Resources</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ user.bookmarks.count }}</h4>
+                        <small class="text-muted">Bookmarks</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'resources:resource_list' %}" class="btn btn-outline-primary">Browse Resources</a>
+                    <a href="{% url 'flashcards:flashcard_list' %}" class="btn btn-outline-primary">Browse Flashcards</a>
+                    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary">Browse Quizzes</a>
+                    <a href="{% url 'accounts:settings' %}" class="btn btn-outline-secondary">Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

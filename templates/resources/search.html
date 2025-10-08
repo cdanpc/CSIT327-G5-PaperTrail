@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Search - PaperTrail{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-pale-cream p-4 rounded mb-4">
+            <h1 class="display-6">Search PaperTrail</h1>
+            <p class="lead">Find resources, flashcards, and quizzes across the platform.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <!-- Search Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Search</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    {{ form|crispy }}
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <!-- Search Results -->
+        {% if results %}
+            <h5>Search Results</h5>
+            <div class="row">
+                {% for result in results %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <a href="{% url 'resources:resource_detail' result.pk %}" class="text-decoration-none">
+                                    {{ result.title }}
+                                </a>
+                            </h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    by {{ result.uploader.get_display_name }}
+                                    {% if result.uploader.is_professor %}
+                                        <span class="professor-badge">Professor</span>
+                                    {% endif %}
+                                </small>
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    {{ result.resource_type|title }} • 
+                                    {{ result.created_at|date:"M d, Y" }}
+                                </small>
+                            </p>
+                            {% if result.description %}
+                            <p class="card-text">
+                                <small>{{ result.description|truncatewords:15 }}</small>
+                            </p>
+                            {% endif %}
+                            
+                            {% if result.verification_status == 'verified' %}
+                                <span class="verification-badge verified">✓ Verified</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <a href="{% url 'resources:resource_detail' result.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% elif request.GET.q %}
+            <div class="text-center py-5">
+                <h5 class="text-muted">No results found</h5>
+                <p class="text-muted">Try adjusting your search terms or browse all resources.</p>
+                <a href="{% url 'resources:resource_list' %}" class="btn btn-primary">Browse All Resources</a>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <h5 class="text-muted">Start your search</h5>
+                <p class="text-muted">Enter a search term to find resources, flashcards, and quizzes.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

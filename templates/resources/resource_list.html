@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Resources - PaperTrail{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Study Resources</h2>
+            {% if user.is_authenticated %}
+                <a href="{% url 'resources:resource_upload' %}" class="btn btn-primary">Upload Resource</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <!-- Search and Filters -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Search & Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    {{ form|crispy }}
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Popular Tags -->
+        {% if popular_tags %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Popular Tags</h5>
+            </div>
+            <div class="card-body">
+                {% for tag in popular_tags %}
+                <a href="?tag={{ tag.name }}" class="badge bg-secondary text-decoration-none me-1 mb-1">
+                    {{ tag.name }} ({{ tag.resource_count }})
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-9">
+        <!-- Resources List -->
+        {% if page_obj %}
+            <div class="row">
+                {% for resource in page_obj %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 resource-card">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">
+                                    {{ resource.title }}
+                                </a>
+                            </h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    by {{ resource.uploader.get_display_name }}
+                                    {% if resource.uploader.is_professor %}
+                                        <span class="professor-badge">Professor</span>
+                                    {% endif %}
+                                </small>
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    {{ resource.resource_type|title }} • 
+                                    {{ resource.created_at|date:"M d, Y" }}
+                                </small>
+                            </p>
+                            {% if resource.description %}
+                            <p class="card-text">
+                                <small>{{ resource.description|truncatewords:20 }}</small>
+                            </p>
+                            {% endif %}
+                            
+                            <!-- Tags -->
+                            {% if resource.tags.all %}
+                            <div class="mb-2">
+                                {% for tag in resource.tags.all|slice:":3" %}
+                                <span class="badge bg-light text-dark">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Verification Badge -->
+                            {% if resource.verification_status == 'verified' %}
+                                <span class="verification-badge verified">✓ Verified</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    {{ resource.views_count }} views • {{ resource.download_count }} downloads
+                                </small>
+                                <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Resource pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <h5 class="text-muted">No resources found</h5>
+                <p class="text-muted">Try adjusting your search criteria or upload the first resource!</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'resources:resource_upload' %}" class="btn btn-primary">Upload Resource</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

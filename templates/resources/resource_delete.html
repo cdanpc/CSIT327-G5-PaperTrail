@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Resource - PaperTrail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center mb-0">Delete Resource</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> This action cannot be undone. The resource will be permanently deleted.
+                </div>
+                
+                <h6>Resource Details:</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Title:</strong> {{ resource.title }}</li>
+                    <li><strong>Type:</strong> {{ resource.resource_type|title }}</li>
+                    <li><strong>Uploaded:</strong> {{ resource.created_at|date:"F d, Y" }}</li>
+                </ul>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">Delete Resource</button>
+                        <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

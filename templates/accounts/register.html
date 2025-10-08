@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Register - PaperTrail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center mb-0">Create Account</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p class="mb-0">
+                        Already have an account? 
+                        <a href="{% url 'accounts:login' %}">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6>Account Information</h6>
+                <small class="text-muted">
+                    <ul class="mt-2">
+                        <li><strong>Username:</strong> Choose a unique username</li>
+                        <li><strong>Personal Email:</strong> Your primary email address (required)</li>
+                        <li><strong>Student ID:</strong> Optional - Format: ##-####-### or ####-####</li>
+                        <li><strong>University Email:</strong> Optional - Must end with @cit.edu</li>
+                        <li><strong>Password:</strong> At least 8 characters with letters and numbers</li>
+                    </ul>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
