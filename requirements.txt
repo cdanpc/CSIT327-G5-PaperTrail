@@ -1,4 +1,4 @@
-Django==4.2.7
+Django==4.2.16
 psycopg2-binary==2.9.10
 python-decouple==3.8
 Pillow==10.0.1
@@ -8,4 +8,5 @@ django-crispy-forms==2.0
 crispy-bootstrap5==0.7
 gunicorn==21.2.0
 supabase==2.3.0
-storage3==0.8.1
+# storage3 must be <0.8.0 to be compatible with supabase 2.3.0
+storage3==0.7.6
