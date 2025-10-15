@@ -13,7 +13,6 @@ class CustomUserCreationForm(UserCreationForm):
         max_length=30,
         required=True,
         label='First Name',
-        help_text='Enter your given name',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Enter your first name',
@@ -24,7 +23,6 @@ class CustomUserCreationForm(UserCreationForm):
         max_length=30,
         required=True,
         label='Last Name',
-        help_text='Enter your family name',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Enter your last name',
@@ -35,7 +33,6 @@ class CustomUserCreationForm(UserCreationForm):
         max_length=100,
         required=True,
         label='Display Name',
-        help_text='Choose how your name appears to classmates and professors.',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Choose a display name',
@@ -45,7 +42,6 @@ class CustomUserCreationForm(UserCreationForm):
     personal_email = forms.EmailField(
         required=True,
         label='Personal Email',
-        help_text='Use your personal Gmail address (must end with @gmail.com).',
         widget=forms.EmailInput(attrs={
             'class': 'form-control', 
             'placeholder': 'your.name@gmail.com'
@@ -54,7 +50,6 @@ class CustomUserCreationForm(UserCreationForm):
     univ_email = forms.EmailField(
         required=False,
         label='University Email',
-        help_text='Optional: Use your CIT email address (must end with @cit.edu).',
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'student.id@cit.edu'
@@ -64,7 +59,6 @@ class CustomUserCreationForm(UserCreationForm):
         max_length=11,
         required=False,
         label='Student ID',
-        help_text='Optional: Format ##-####-### (e.g., 20-1234-567).',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Example: 20-1234-567'
@@ -272,8 +266,7 @@ class CustomPasswordChangeForm(DjangoPasswordChangeForm):
     )
     new_password1 = forms.CharField(
         label='New Password',
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter new password'}),
-        help_text='Password must be at least 8 characters long and contain both letters and numbers.'
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter new password'})
     )
     new_password2 = forms.CharField(
         label='Confirm New Password',
