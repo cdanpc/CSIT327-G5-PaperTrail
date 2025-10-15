@@ -57,7 +57,7 @@ class CustomUserCreationForm(UserCreationForm):
     )
     stud_id = forms.CharField(
         max_length=11,
-        required=False,
+        required=True,
         label='Student ID',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
