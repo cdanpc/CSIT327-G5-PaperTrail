@@ -22,11 +22,37 @@
 .auth-form-panel {
     padding: 2rem 4rem;
     justify-content: flex-start;
+    max-height: 650px;
+    overflow-y: auto;
 }
 
 .auth-card {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: auto 0;
+}
+
+.auth-card .card-body {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+
+.auth-card .card-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.auth-card .card-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.auth-card .card-body::-webkit-scrollbar-thumb {
+    background: #8B2C2C;
+    border-radius: 10px;
+}
+
+.auth-card .card-body::-webkit-scrollbar-thumb:hover {
+    background: #6d2222;
 }
 
 .mb-3 {
