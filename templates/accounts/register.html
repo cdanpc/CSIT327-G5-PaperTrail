@@ -299,27 +299,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (strength < 30) {
                 level = 'Very Weak';
-                message = 'Add more characters and variety';
                 className = 'strength-very-weak';
             } else if (strength < 50) {
                 level = 'Weak';
-                message = 'Try adding uppercase, numbers, or symbols';
                 className = 'strength-weak';
             } else if (strength < 70) {
                 level = 'Medium';
-                message = 'Getting better! Add special characters';
                 className = 'strength-medium';
             } else if (strength < 90) {
                 level = 'Strong';
-                message = 'Good password! Consider making it longer';
                 className = 'strength-strong';
             } else {
                 level = 'Very Strong';
-                message = 'Excellent! Your password is very secure';
                 className = 'strength-very-strong';
             }
             
-            return { level, message, className };
+            return { level, className };
         }
         
         function updatePasswordStrength() {
@@ -331,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (password) {
                 strengthContainer.classList.add(result.className);
-                strengthText.textContent = `${result.level}: ${result.message}`;
+                strengthText.textContent = result.level;
             } else {
                 strengthText.textContent = '';
             }
