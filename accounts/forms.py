@@ -48,7 +48,7 @@ class CustomUserCreationForm(UserCreationForm):
         })
     )
     univ_email = forms.EmailField(
-        required=False,
+        required=True,
         label='University Email',
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
