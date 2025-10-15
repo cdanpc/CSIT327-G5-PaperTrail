@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}Login - PaperTrail{% endblock %}
 
@@ -33,44 +34,57 @@ function showResetPasswordMessage(event) {
         </div>
     </div>
 </div>
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="text-center mb-0">Login</h3>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-                
-                <div class="text-center mt-3">
-                    <p class="mb-0">
-                        Don't have an account? 
-                        <a href="{% url 'accounts:register' %}">Register here</a>
-                    </p>
-                    <p class="mb-0">
-                        <a href="#" onclick="showResetPasswordMessage(event)">Forgot your password?</a>
-                    </p>
+
+<div class="auth-page-wrapper">
+    <div class="container auth-container">
+        <div class="auth-layout">
+            <!-- Left Side: Image Panel -->
+            <div class="auth-image-panel">
+                <div class="branding-overlay">
+                    <h1>PaperTrail</h1>
+                    <p>A Crowd-Powered Study Hub</p>
                 </div>
             </div>
-        </div>
-        
-        <div class="card mt-3">
-            <div class="card-body">
-                <h6>Login Options</h6>
-                <small class="text-muted">
-                    You can login using any of the following:
-                    <ul class="mt-2">
-                        <li>Username</li>
-                        <li>Student ID (format: ##-####-### for students or #### for professors)</li>
-                        <li>University Email (@cit.edu)</li>
-                    </ul>
-                </small>
+            
+            <!-- Right Side: Form Panel -->
+            <div class="auth-form-panel">
+                <div class="card auth-card">
+                    <div class="card-header">
+                        <h3 class="text-center mb-0">Welcome Back</h3>
+                        <p class="text-center text-muted mb-0">Login to PaperTrail</p>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Login</button>
+                            </div>
+                        </form>
+                        
+                        <div class="auth-links text-center">
+                            <p class="mb-2">
+                                Don't have an account? 
+                                <a href="{% url 'accounts:register' %}">Register here</a>
+                            </p>
+                            <p class="mb-0">
+                                <a href="#" onclick="showResetPasswordMessage(event)">Forgot your password?</a>
+                            </p>
+                        </div>
+                        
+                        <div class="info-card">
+                            <h6>Login Options</h6>
+                            <small class="text-muted">
+                                You can login using:
+                                <ul class="mt-2 mb-0">
+                                    <li>Username</li>
+                                    <li>Student ID (##-####-### or ####)</li>
+                                    <li>University Email (@cit.edu)</li>
+                                </ul>
+                            </small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

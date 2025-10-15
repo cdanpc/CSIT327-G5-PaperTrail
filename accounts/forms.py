@@ -136,7 +136,7 @@ class CustomAuthenticationForm(AuthenticationForm):
     
     username = forms.CharField(
         max_length=254,
-        label='Username / Student ID / University Email',
+        label='',
         widget=forms.TextInput(attrs={
             'autofocus': True,
             'class': 'form-control',
@@ -144,7 +144,7 @@ class CustomAuthenticationForm(AuthenticationForm):
         })
     )
     password = forms.CharField(
-        label='Password',
+        label='',
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'placeholder': 'Password'

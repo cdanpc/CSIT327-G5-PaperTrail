@@ -1,10 +1,77 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}Register - PaperTrail{% endblock title %}
 
 {% block extra_css %}
 <style>
+/* Register-specific overrides */
+.auth-container {
+    max-width: 2000px;
+}
+
+.auth-layout {
+    min-height: 650px;
+}
+
+.auth-image-panel {
+    min-height: 650px;
+}
+
+.auth-form-panel {
+    padding: 2rem 4rem;
+    justify-content: flex-start;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+.auth-card {
+    max-width: 1200px;
+    margin: auto 0;
+}
+
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.row {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+}
+
+.row > [class*='col-'] {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.auth-links {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+}
+
+.info-card {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.info-card h6 {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+}
+
+.info-card ul {
+    margin-bottom: 0;
+    padding-left: 1.25rem;
+}
+
+.info-card li {
+    font-size: 0.875rem;
+}
+
 .suggestion-chip {
     display: inline-block;
     padding: 4px 12px;
@@ -25,7 +92,9 @@
 
 .card {
     border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    box-shadow: none;
+    background: transparent;
+    border-radius: 8px;
 }
 
 .card-header {
@@ -41,10 +110,36 @@
 
 .form-label {
     font-weight: 500;
+    color: #495057;
 }
 
 .text-muted {
     color: #6c757d !important;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .auth-layout {
+        flex-direction: column;
+    }
+    
+    .auth-image-panel {
+        min-height: 300px;
+    }
+    
+    .auth-form-panel {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .auth-form-panel {
+        padding: 1.5rem;
+    }
+    
+    .auth-card .card-header h3 {
+        font-size: 1.5rem;
+    }
 }
 </style>
 {% endblock extra_css %}
@@ -118,14 +213,26 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endblock extra_js %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="text-center mb-0">Create Account</h3>
+<div class="auth-page-wrapper">
+    <div class="container auth-container">
+        <div class="auth-layout">
+            <!-- Left Side: Image Panel -->
+            <div class="auth-image-panel">
+                <div class="branding-overlay">
+                    <h1>PaperTrail</h1>
+                    <p>A Crowd-Powered Study Hub</p>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="post" class="needs-validation" novalidate>
+            
+            <!-- Right Side: Form Panel -->
+            <div class="auth-form-panel">
+                <div class="card auth-card">
+                    <div class="card-header">
+                        <h3 class="text-center mb-0">Join PaperTrail</h3>
+                        <p class="text-center text-muted mb-0">Create your account</p>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" class="needs-validation" novalidate>
                     {% csrf_token %}
                     
                     <!-- Name Section -->
@@ -182,28 +289,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </form>
                 
-                <div class="text-center mt-3">
+                <div class="auth-links text-center">
                     <p class="mb-0">
                         Already have an account? 
                         <a href="{% url 'accounts:login' %}">Login here</a>
                     </p>
                 </div>
+                
+                <div class="info-card">
+                    <h6>Account Information</h6>
+                    <small class="text-muted">
+                        <ul class="mb-0">
+                            <li><strong>Username:</strong> Choose a unique username</li>
+                            <li><strong>Personal Email:</strong> Required Gmail address</li>
+                            <li><strong>Student ID:</strong> Optional (##-####-###)</li>
+                            <li><strong>University Email:</strong> Optional (@cit.edu)</li>
+                            <li><strong>Password:</strong> 8+ characters with letters and numbers</li>
+                        </ul>
+                    </small>
+                </div>
             </div>
         </div>
-        
-        <div class="card mt-3">
-            <div class="card-body">
-                <h6>Account Information</h6>
-                <small class="text-muted">
-                    <ul class="mt-2">
-                        <li><strong>Username:</strong> Choose a unique username</li>
-                        <li><strong>Personal Email:</strong> Required Gmail address (e.g., your.name@gmail.com)</li>
-                        <li><strong>Student ID:</strong> Optional - Format: ##-####-### (e.g., 20-1234-567)</li>
-                        <li><strong>University Email:</strong> Optional - Must end with @cit.edu</li>
-                        <li><strong>Password:</strong> At least 8 characters with letters and numbers</li>
-                    </ul>
-                </small>
-            </div>
+    </div>
+</div>
         </div>
     </div>
 </div>
