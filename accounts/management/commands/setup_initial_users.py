@@ -26,6 +26,7 @@ class Command(BaseCommand):
                 {
                     'username': 'jamparo',
                     'password': '123456',
+                    'stud_id': '2152',  # Professor ID
                     'first_name': 'Joe Marie',
                     'last_name': 'Amparo',
                     'display_name': 'Prof. Amparo',
@@ -35,6 +36,7 @@ class Command(BaseCommand):
                 {
                     'username': 'frevilleza',
                     'password': '123456',
+                    'stud_id': '2050',  # Professor ID
                     'first_name': 'Frederick',
                     'last_name': 'Revilleza',
                     'display_name': 'Prof. Revilleza',
@@ -47,6 +49,7 @@ class Command(BaseCommand):
                 professor = User.objects.create_user(
                     username=prof_data['username'],
                     password=prof_data['password'],
+                    stud_id=prof_data['stud_id'],
                     first_name=prof_data['first_name'],
                     last_name=prof_data['last_name'],
                     display_name=prof_data['display_name'],
@@ -55,4 +58,4 @@ class Command(BaseCommand):
                     is_professor=True,
                     must_change_password=True  # Force password change for professors
                 )
-                self.stdout.write(self.style.SUCCESS(f'Created professor user: {professor.username}'))
+                self.stdout.write(self.style.SUCCESS(f'Created professor user: {professor.username} (ID: {professor.stud_id})'))
