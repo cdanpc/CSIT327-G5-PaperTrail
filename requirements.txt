@@ -7,6 +7,8 @@ requests==2.31.0
 django-crispy-forms==2.0
 crispy-bootstrap5==0.7
 gunicorn==21.2.0
-supabase==2.3.0
-# storage3 must be <0.8.0 to be compatible with supabase 2.3.0
-storage3==0.7.6
+# Supabase and dependencies - use compatible versions
+supabase==2.9.0
+storage3==0.8.1
+httpx==0.27.0
+gotrue==2.9.1
