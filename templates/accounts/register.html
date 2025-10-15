@@ -114,6 +114,78 @@
     transform: translateY(-1px);
 }
 
+/* Password Strength Indicator */
+.password-strength-container {
+    margin-top: 0.5rem;
+}
+
+.password-strength-bar {
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.password-strength-progress {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.password-strength-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Strength levels */
+.strength-very-weak .password-strength-progress {
+    width: 20%;
+    background-color: #dc3545;
+}
+
+.strength-very-weak .password-strength-text {
+    color: #dc3545;
+}
+
+.strength-weak .password-strength-progress {
+    width: 40%;
+    background-color: #fd7e14;
+}
+
+.strength-weak .password-strength-text {
+    color: #fd7e14;
+}
+
+.strength-medium .password-strength-progress {
+    width: 60%;
+    background-color: #ffc107;
+}
+
+.strength-medium .password-strength-text {
+    color: #ffc107;
+}
+
+.strength-strong .password-strength-progress {
+    width: 80%;
+    background-color: #20c997;
+}
+
+.strength-strong .password-strength-text {
+    color: #20c997;
+}
+
+.strength-very-strong .password-strength-progress {
+    width: 100%;
+    background-color: #28a745;
+}
+
+.strength-very-strong .password-strength-text {
+    color: #28a745;
+}
+
 .card {
     border: none;
     box-shadow: none;
@@ -171,11 +243,102 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const firstNameInput = document.querySelector('[data-display-name-source="true"][placeholder="First Name"]');
-    const lastNameInput = document.querySelector('[data-display-name-source="true"][placeholder="Last Name"]');
+    const firstNameInput = document.querySelector('[data-display-name-source="true"][placeholder*="first"]');
+    const lastNameInput = document.querySelector('[data-display-name-source="true"][placeholder*="last"]');
     const displayNameInput = document.querySelector('[data-display-name-target="true"]');
     const suggestionsDiv = document.getElementById('displayNameSuggestions');
     const suggestionsList = document.getElementById('suggestionsList');
+    
+    // Password strength checker
+    const password1Input = document.querySelector('input[name="password1"]');
+    const password2Input = document.querySelector('input[name="password2"]');
+    
+    if (password1Input) {
+        // Create password strength indicator
+        const strengthContainer = document.createElement('div');
+        strengthContainer.className = 'password-strength-container';
+        strengthContainer.innerHTML = `
+            <div class="password-strength-bar">
+                <div class="password-strength-progress"></div>
+            </div>
+            <div class="password-strength-text"></div>
+        `;
+        
+        // Insert after password1 field
+        const password1Wrapper = password1Input.closest('.mb-3') || password1Input.parentElement;
+        password1Wrapper.appendChild(strengthContainer);
+        
+        const strengthBar = strengthContainer.querySelector('.password-strength-progress');
+        const strengthText = strengthContainer.querySelector('.password-strength-text');
+        
+        function calculatePasswordStrength(password) {
+            if (!password) {
+                return { strength: 0, label: '', className: '' };
+            }
+            
+            let strength = 0;
+            const checks = {
+                length: password.length >= 8,
+                lowercase: /[a-z]/.test(password),
+                uppercase: /[A-Z]/.test(password),
+                numbers: /\d/.test(password),
+                special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+                longLength: password.length >= 12
+            };
+            
+            // Calculate strength score
+            if (checks.length) strength += 20;
+            if (checks.lowercase) strength += 15;
+            if (checks.uppercase) strength += 15;
+            if (checks.numbers) strength += 15;
+            if (checks.special) strength += 20;
+            if (checks.longLength) strength += 15;
+            
+            // Determine level and message
+            let level, message, className;
+            
+            if (strength < 30) {
+                level = 'Very Weak';
+                message = 'Add more characters and variety';
+                className = 'strength-very-weak';
+            } else if (strength < 50) {
+                level = 'Weak';
+                message = 'Try adding uppercase, numbers, or symbols';
+                className = 'strength-weak';
+            } else if (strength < 70) {
+                level = 'Medium';
+                message = 'Getting better! Add special characters';
+                className = 'strength-medium';
+            } else if (strength < 90) {
+                level = 'Strong';
+                message = 'Good password! Consider making it longer';
+                className = 'strength-strong';
+            } else {
+                level = 'Very Strong';
+                message = 'Excellent! Your password is very secure';
+                className = 'strength-very-strong';
+            }
+            
+            return { level, message, className };
+        }
+        
+        function updatePasswordStrength() {
+            const password = password1Input.value;
+            const result = calculatePasswordStrength(password);
+            
+            // Remove all strength classes
+            strengthContainer.className = 'password-strength-container';
+            
+            if (password) {
+                strengthContainer.classList.add(result.className);
+                strengthText.textContent = `${result.level}: ${result.message}`;
+            } else {
+                strengthText.textContent = '';
+            }
+        }
+        
+        password1Input.addEventListener('input', updatePasswordStrength);
+    }
     
     function generateSuggestions(firstName, lastName) {
         const suggestions = [];
