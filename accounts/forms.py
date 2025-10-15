@@ -77,6 +77,10 @@ class CustomUserCreationForm(UserCreationForm):
         super().__init__(*args, **kwargs)
         self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm Password'})
+        
+        # Remove Django's default password help text
+        self.fields['password1'].help_text = None
+        self.fields['password2'].help_text = None
     
     def clean_univ_email(self):
         univ_email = self.cleaned_data.get('univ_email')
