@@ -40,15 +40,6 @@ class Command(BaseCommand):
                     'display_name': 'Prof. Revilleza',
                     'personal_email': 'frederick.revilleza@gmail.com',
                     'univ_email': 'frederick.revilleza@cit.edu',
-                },
-                {
-                    'username': 'daniel',
-                    'password': '123456',
-                    'first_name': 'Daniel',
-                    'last_name': 'Smith',
-                    'display_name': 'Prof. Smith',
-                    'personal_email': 'daniel.smith@gmail.com',
-                    'univ_email': 'daniel.smith@cit.edu',
                 }
             ]
 

@@ -19,13 +19,13 @@
                 {% endif %}
             </div>
             <div class="col">
-                <h1 class="h3 mb-1">Welcome, {{ user.get_display_name }}!</h1>
-                <p class="mb-0 text-muted">
-                    {{ user.get_role_display }}
+                <h1 class="h3 mb-1">{% block dashboard_heading %}{{ user.get_role_display }} Dashboard{% endblock %}</h1>
+                <p class="mb-0 text-muted d-flex align-items-center gap-2 flex-wrap">
+                    <span>{% block dashboard_subheading %}Signed in as {{ user.get_display_name }}{% endblock %}</span>
                     {% if user.is_professor %}
-                        <span class="badge bg-primary ms-1">Professor</span>
+                        <span class="badge bg-primary">Professor</span>
                     {% elif user.is_staff %}
-                        <span class="badge bg-danger ms-1">Admin</span>
+                        <span class="badge bg-danger">Admin</span>
                     {% endif %}
                 </p>
             </div>

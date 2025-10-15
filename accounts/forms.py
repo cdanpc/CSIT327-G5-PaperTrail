@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm as DjangoPasswordChangeForm
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 from .models import User
 import re
 
@@ -34,7 +35,7 @@ class CustomUserCreationForm(UserCreationForm):
         max_length=100,
         required=True,
         label='Display Name',
-        help_text='This is how others will see your name.',
+        help_text='Choose how your name appears to classmates and professors.',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Choose a display name',
@@ -44,7 +45,7 @@ class CustomUserCreationForm(UserCreationForm):
     personal_email = forms.EmailField(
         required=True,
         label='Personal Email',
-        help_text='Format: Must end with @gmail.com)',
+        help_text='Use your personal Gmail address (must end with @gmail.com).',
         widget=forms.EmailInput(attrs={
             'class': 'form-control', 
             'placeholder': 'your.name@gmail.com'
@@ -53,7 +54,7 @@ class CustomUserCreationForm(UserCreationForm):
     univ_email = forms.EmailField(
         required=False,
         label='University Email',
-        help_text='Format: Must end with @cit.edu)',
+        help_text='Optional: Use your CIT email address (must end with @cit.edu).',
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'student.id@cit.edu'
@@ -63,7 +64,7 @@ class CustomUserCreationForm(UserCreationForm):
         max_length=11,
         required=False,
         label='Student ID',
-        help_text='Format: ##-####-### (e.g., 20-1234-567)',
+        help_text='Optional: Format ##-####-### (e.g., 20-1234-567).',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Example: 20-1234-567'
@@ -123,10 +124,19 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomAuthenticationForm(AuthenticationForm):
-    """Custom login form supporting student ID and university email"""
+    """Custom login form supporting username, student ID, and university email"""
+
+    error_messages = {
+        'invalid_login': _(
+            "Please enter a correct %(username)s and password. Note that they are case-sensitive."
+        ),
+        'inactive': _("This account is inactive."),
+        'banned': _("This account has been banned. Please contact support."),
+    }
     
     username = forms.CharField(
         max_length=254,
+        label='Username / Student ID / University Email',
         widget=forms.TextInput(attrs={
             'autofocus': True,
             'class': 'form-control',
@@ -134,55 +144,89 @@ class CustomAuthenticationForm(AuthenticationForm):
         })
     )
     password = forms.CharField(
+        label='Password',
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'placeholder': 'Password'
         })
     )
     
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        return username
-    
     def clean(self):
-        username = self.cleaned_data.get('username')
+        username_input = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
         
-        if username and password:
+        if username_input and password:
             # Try to find user by different identifiers
             user = None
+            identifier_type = None
             
-            # Try username
-            try:
-                user = User.objects.get(username=username)
-            except User.DoesNotExist:
-                pass
-            
-            # Try student ID
-            if not user and username:
+            # Check if input matches student ID format (supports both formats: ##-####-### or ####)
+            stud_id_pattern = r'^(?:\d{2}-\d{4}-\d{3}|\d{4})$'
+            if re.fullmatch(stud_id_pattern, username_input):
+                identifier_type = 'student_id'
                 try:
-                    user = User.objects.get(stud_id=username)
+                    user = User.objects.get(stud_id=username_input)
                 except User.DoesNotExist:
-                    pass
+                    raise ValidationError(
+                        'Student ID not found. This Student ID is not registered in the system. Please check your Student ID or register for a new account.',
+                        code='invalid_student_id'
+                    )
             
-            # Try university email
-            if not user and username:
-                try:
-                    user = User.objects.get(univ_email=username.lower())
-                except User.DoesNotExist:
-                    pass
+            # Check if input looks like an email (contains @)
+            elif '@' in username_input:
+                identifier_type = 'email'
+                # Check if it's a university email
+                if username_input.lower().endswith('@cit.edu'):
+                    try:
+                        user = User.objects.get(univ_email=username_input.lower())
+                    except User.DoesNotExist:
+                        raise ValidationError(
+                            'University Email not found. This email is not registered in the system. Please check your email or register for a new account.',
+                            code='invalid_email'
+                        )
+                else:
+                    raise ValidationError(
+                        'Invalid University Email. University email must end with @cit.edu',
+                        code='invalid_email_format'
+                    )
             
-            if user:
-                if user.is_banned:
-                    raise ValidationError('This account has been banned')
-                
-                # Set username for authentication
-                self.cleaned_data['username'] = user.username
-                
-                # Call parent's clean to handle authentication
-                super().clean()
+            # Otherwise, treat as username
             else:
-                raise ValidationError('Invalid username, student ID, or university email')
+                identifier_type = 'username'
+                try:
+                    user = User.objects.get(username=username_input)
+                except User.DoesNotExist:
+                    raise ValidationError(
+                        'Username not found. This username is not registered in the system. Please check your username or register for a new account.',
+                        code='invalid_username'
+                    )
+            
+            # If user found, check if banned
+            if user and user.is_banned:
+                raise ValidationError(
+                    'This account has been banned. Please contact support.',
+                    code='banned'
+                )
+            
+            # If user found, verify password
+            if user:
+                # Check if password is correct
+                if not user.check_password(password):
+                    raise ValidationError(
+                        'Invalid Password. Please check your password and try again. Note that passwords are case-sensitive.',
+                        code='invalid_password'
+                    )
+                
+                # Check if user is active
+                if not user.is_active:
+                    raise ValidationError(
+                        self.error_messages['inactive'],
+                        code='inactive'
+                    )
+                
+                # Set the actual username for Django's authentication
+                self.user_cache = user
+                self.cleaned_data['username'] = user.username
         
         return self.cleaned_data
 
@@ -213,35 +257,100 @@ class ProfileUpdateForm(forms.ModelForm):
     def clean_stud_id(self):
         stud_id = self.cleaned_data.get('stud_id')
         if stud_id:
-            pattern = r'^(?:\d{2}-\d{4}-\d{3}|\d{4}-\d{4})$'
+            pattern = r'^(?:\d{2}-\d{4}-\d{3}|\d{4})$'
             if not re.fullmatch(pattern, stud_id):
-                raise ValidationError('Student ID must be in format ##-####-###')
+                raise ValidationError('Student ID must be in format ##-####-### (students) or #### (professors)')
         return stud_id
 
 
 class CustomPasswordChangeForm(DjangoPasswordChangeForm):
-    """Custom password change form with validation"""
+    """Custom password change form with enhanced validation and specific error messages"""
     
     old_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Current Password'})
+        label='Current Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter current password'})
     )
     new_password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'New Password'})
+        label='New Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter new password'}),
+        help_text='Password must be at least 8 characters long and contain both letters and numbers.'
     )
     new_password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm New Password'})
+        label='Confirm New Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Re-enter new password'})
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Override error messages for old password
+        self.fields['old_password'].error_messages = {
+            'required': 'Please enter your current password.',
+        }
+        self.fields['new_password1'].error_messages = {
+            'required': 'Please enter a new password.',
+        }
+        self.fields['new_password2'].error_messages = {
+            'required': 'Please confirm your new password.',
+        }
+    
+    def clean_old_password(self):
+        """Validate the old password with specific error message"""
+        old_password = self.cleaned_data.get('old_password')
+        if not self.user.check_password(old_password):
+            raise ValidationError(
+                'Your current password is incorrect. Please try again.',
+                code='password_incorrect'
+            )
+        return old_password
     
     def clean_new_password1(self):
+        """Validate new password strength"""
         new_password1 = self.cleaned_data.get('new_password1')
+        old_password = self.data.get('old_password')
+        
         if new_password1:
+            # Check length
             if len(new_password1) < 8:
-                raise ValidationError('Password must be at least 8 characters long')
+                raise ValidationError(
+                    'Password must be at least 8 characters long.',
+                    code='password_too_short'
+                )
+            
+            # Check for letters
             if not re.search(r'[A-Za-z]', new_password1):
-                raise ValidationError('Password must contain at least one letter')
+                raise ValidationError(
+                    'Password must contain at least one letter (A-Z or a-z).',
+                    code='password_no_letters'
+                )
+            
+            # Check for numbers
             if not re.search(r'\d', new_password1):
-                raise ValidationError('Password must contain at least one number')
+                raise ValidationError(
+                    'Password must contain at least one number (0-9).',
+                    code='password_no_numbers'
+                )
+            
+            # Check if new password is same as old password
+            if old_password and new_password1 == old_password:
+                raise ValidationError(
+                    'Your new password cannot be the same as your current password.',
+                    code='password_same_as_old'
+                )
+        
         return new_password1
+    
+    def clean_new_password2(self):
+        """Validate password confirmation"""
+        password1 = self.cleaned_data.get('new_password1')
+        password2 = self.cleaned_data.get('new_password2')
+        
+        if password1 and password2:
+            if password1 != password2:
+                raise ValidationError(
+                    'The two password fields do not match. Please make sure you enter the same password twice.',
+                    code='password_mismatch'
+                )
+        return password2
     
     def save(self, commit=True):
         user = super().save(commit=commit)

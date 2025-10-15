@@ -38,7 +38,7 @@
 {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column h-100">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light **sticky-top**" style="z-index: 1060;">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top" style="z-index: 1060;">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
                 <i class="fas fa-book-reader me-2 text-primary"></i>
@@ -50,7 +50,7 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav me-auto align-items-lg-center">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
                     </li>
@@ -65,10 +65,13 @@
                     </li>
                 </ul>
                 
-                <form class="d-flex me-3" method="get" action="#">
-                    <input class="form-control me-2" type="search" name="q" placeholder="Search..." 
+                <form class="search-form d-none d-lg-block me-lg-3" method="get" action="#" role="search">
+                    <div class="input-group input-group-sm search-input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input class="form-control border-start-0" type="search" name="q" placeholder="Search resources" 
                                value="{{ request.GET.q }}" aria-label="Search">
-                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                        <button class="btn btn-primary search-btn" type="submit">Search</button>
+                    </div>
                 </form>
                 
                 <ul class="navbar-nav">
@@ -99,17 +102,16 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
                                 {% if user.profile_picture %}
-                                    <img src="{{ user.profile_picture.url }}" alt="" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+                                    <img src="{{ user.profile_picture.url }}" alt="" class="rounded-circle nav-profile-img me-2">
                                 {% else %}
-                                    <i class="fas fa-user-circle me-2"></i>
+                                    <span class="nav-profile-placeholder me-2"><i class="fas fa-user"></i></span>
                                 {% endif %}
-                                {{ user.get_display_name }}
+                                <span class="nav-profile-name">{{ user.get_display_name }}</span>
                                 {% if user.is_professor %}
                                     <span class="badge bg-primary ms-1">Professor</span>
                                 {% endif %}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
                                 <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
                                 <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}">Change Password</a></li>
                                 <li><a class="dropdown-item" href="{% url 'accounts:profile' %}" data-feature-in-progress="settings">Settings</a></li>
@@ -131,31 +133,40 @@
         </div>
     </nav>
     
-    <!-- Toast Container for Feature-in-Progress notifications -->
+    <!-- Toast Container for all notifications -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1070;">
+        <!-- Feature in Progress Toast -->
         <div id="featureToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header bg-warning text-dark">
-                <i class="fas fa-tools me-2"></i>
-                <strong class="me-auto">Feature in Progress</strong>
-                <small class="text-muted">just now</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            <div class="toast-header toast-info">
+                <span class="toast-icon"><i class="fas fa-tools"></i></span>
+                <strong class="me-auto" id="featureToastTitle">Feature in Progress</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
-            <div class="toast-body">
-                This feature is currently under development and will be available soon!
+            <div class="toast-body" id="featureToastBody">
+                This feature is currently under development.
             </div>
         </div>
-    </div>
 
-    {% if messages %}
-        <div class="container mt-3">
+        <!-- Django Messages Toasts -->
+        {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="toast toast-message" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header {% if message.tags == 'success' %}toast-success{% elif message.tags == 'error' %}toast-error{% elif message.tags == 'warning' %}toast-warning{% else %}toast-info{% endif %}">
+                        <span class="toast-icon">
+                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                        </span>
+                        <strong class="me-auto">
+                            {% if message.tags == 'success' %}Success{% elif message.tags == 'error' %}Error{% elif message.tags == 'warning' %}Warning{% else %}Info{% endif %}
+                        </strong>
+                        <button type="button" class="btn-close{% if message.tags == 'success' or message.tags == 'error' or message.tags == 'info' %} btn-close-white{% endif %}" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        {{ message }}
+                    </div>
                 </div>
             {% endfor %}
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
     
     <main class="container my-4 flex-grow-1">
         {% block content %}{% endblock %}
@@ -179,29 +190,113 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle feature-in-progress elements
             const inProgressSelectors = [
                 '[data-feature-in-progress]',
                 '[data-feature="in-progress"]'
             ];
-            
+
+            const featureToastEl = document.getElementById('featureToast');
+            const featureToastTitle = document.getElementById('featureToastTitle');
+            const featureToastBody = document.getElementById('featureToastBody');
+
+            const formatLabel = (rawValue, fallback) => {
+                if (!rawValue) {
+                    return fallback || 'This';
+                }
+                return rawValue
+                    .trim()
+                    .replace(/[-_]+/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .replace(/\b\w/g, char => char.toUpperCase());
+            };
+
+            const showFeatureToast = (sourceEl) => {
+                const explicitLabel = sourceEl.getAttribute('data-feature-label');
+                const progressLabel = sourceEl.getAttribute('data-feature-in-progress');
+                const textLabel = sourceEl.textContent;
+                const chosenLabel = explicitLabel || progressLabel || textLabel || 'This';
+                const formatted = formatLabel(chosenLabel, 'This');
+
+                featureToastTitle.textContent = `${formatted} Feature`;
+                featureToastBody.textContent = `${formatted} is currently in progress. Thanks for checking in!`;
+
+                const toast = new bootstrap.Toast(featureToastEl, {
+                    autohide: true,
+                    delay: 4000
+                });
+                toast.show();
+            };
+
             inProgressSelectors.forEach(selector => {
                 document.querySelectorAll(selector).forEach(element => {
-                    element.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const toast = new bootstrap.Toast(document.getElementById('featureToast'));
-                        toast.show();
+                    element.addEventListener('click', event => {
+                        event.preventDefault();
+                        showFeatureToast(element);
                     });
-                    
-                    // Add hover effect
-                    element.style.cursor = 'pointer';
+                    element.classList.add('feature-link');
                 });
             });
 
             // Initialize all tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(trigger => {
+                new bootstrap.Tooltip(trigger);
+            });
+
+            // Show Django message toasts
+            document.querySelectorAll('.toast-message').forEach(toastElement => {
+                const toast = new bootstrap.Toast(toastElement, {
+                    animation: true,
+                    autohide: true,
+                    delay: 5000
+                });
+                toast.show();
+            });
+
+            // Password visibility toggles
+            document.querySelectorAll('input[type="password"]').forEach(input => {
+                if (input.closest('.password-toggle-wrapper')) {
+                    return;
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'password-toggle-wrapper position-relative';
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.type = 'button';
+                toggleBtn.className = 'password-toggle-btn';
+                toggleBtn.setAttribute('aria-label', 'Toggle password visibility');
+                toggleBtn.innerHTML = '<i class="fas fa-eye"></i>';
+
+                // Toggle password visibility
+                toggleBtn.addEventListener('click', () => {
+                    const isPassword = input.getAttribute('type') === 'password';
+                    input.setAttribute('type', isPassword ? 'text' : 'password');
+                    toggleBtn.innerHTML = isPassword
+                        ? '<i class="fas fa-eye-slash"></i>'
+                        : '<i class="fas fa-eye"></i>';
+                });
+
+                // Show/hide toggle button based on input value
+                const updateToggleVisibility = () => {
+                    if (input.value.length > 0) {
+                        toggleBtn.classList.add('show');
+                    } else {
+                        toggleBtn.classList.remove('show');
+                    }
+                };
+
+                // Check on input event
+                input.addEventListener('input', updateToggleVisibility);
+                
+                // Check on page load (for autofilled passwords)
+                updateToggleVisibility();
+                
+                // Check after a delay for browser autofill
+                setTimeout(updateToggleVisibility, 100);
+
+                wrapper.appendChild(toggleBtn);
             });
         });
     </script>

@@ -14,7 +14,7 @@ class User(AbstractUser):
         blank=True, 
         null=True,
         unique=True,
-        help_text='Format: ##-####-### or ####-####'
+        help_text='Format: ##-####-### (students) or #### (professors)'
     )
     personal_email = models.EmailField(blank=False, unique=True)
     univ_email = models.EmailField(
@@ -50,9 +50,9 @@ class User(AbstractUser):
         
         # Validate student ID format
         if self.stud_id:
-            pattern = r'^(?:\d{2}-\d{4}-\d{3}|\d{4}-\d{4})$'
+            pattern = r'^(?:\d{2}-\d{4}-\d{3}|\d{4})$'
             if not re.fullmatch(pattern, self.stud_id):
-                raise ValidationError({'stud_id': 'Student ID must be in format ##-####-### or ####-####'})
+                raise ValidationError({'stud_id': 'Student ID must be in format ##-####-### (students) or #### (professors)'})
     
     def get_display_name(self):
         """Return the display name or username if display_name is empty"""

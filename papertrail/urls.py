@@ -16,17 +16,26 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 from django.conf import settings
 from django.conf.urls.static import static
 
-from django.views.generic import TemplateView
+
+def home_view(request):
+    """
+    Home view that redirects authenticated users to dashboard,
+    and shows landing page to anonymous users.
+    """
+    if request.user.is_authenticated:
+        return redirect('accounts:dashboard')
+    return render(request, 'landing.html')
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('resources/', include('resources.urls')),
-    path('', TemplateView.as_view(template_name='landing.html'), name='home'),  # Use landing page as home
+    path('', home_view, name='home'),  # Custom home view with authentication check
 ]
 
 # Serve media files in development

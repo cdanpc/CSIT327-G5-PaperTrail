@@ -13,11 +13,11 @@
 {% endblock %}
 
 {% block dashboard_content %}
-<!-- Welcome Section -->
+<!-- Overview Section -->
 <div class="card mb-4">
     <div class="card-body">
-        <h2>Welcome back, {{ user.get_display_name }}!</h2>
-        <p class="text-muted">Here's what's happening in your study hub.</p>
+        <h2 class="h4 mb-1">Study Hub Snapshot</h2>
+        <p class="text-muted mb-0">Here’s what’s happening across your resources this week.</p>
         
         <!-- Quick Stats -->
         <div class="row mt-4">
@@ -107,4 +107,32 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stat numbers
+    const statNumbers = document.querySelectorAll('.stat-number');
+    
+    statNumbers.forEach(stat => {
+        const target = parseInt(stat.getAttribute('data-target')) || 0;
+        const duration = 1500; // 1.5 seconds
+        const increment = target / (duration / 16); // 60fps
+        let current = 0;
+        
+        const updateCount = () => {
+            current += increment;
+            if (current < target) {
+                stat.textContent = Math.floor(current);
+                requestAnimationFrame(updateCount);
+            } else {
+                stat.textContent = target;
+            }
+        };
+        
+        updateCount();
+    });
+});
+</script>
 {% endblock %}

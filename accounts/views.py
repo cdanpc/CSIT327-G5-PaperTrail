@@ -42,9 +42,7 @@ def login_view(request):
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+            user = form.user_cache
             
             if user is not None:
                 login(request, user)
@@ -66,10 +64,10 @@ def login_view(request):
 # Logout View
 @login_required
 def logout_view(request):
-    """Logout user"""
+    """Logout user and redirect to landing page"""
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
-    return redirect('accounts:login')
+    return redirect('home')  # Redirect to landing page
 
 
 # Student Dashboard
@@ -133,9 +131,24 @@ def admin_dashboard(request):
         return redirect(request.user.get_dashboard_url())
     
     # Get statistics
-    total_users = User.objects.count()
-    total_students = User.objects.filter(is_professor=False, is_staff=False).count()
-    total_professors = User.objects.filter(is_professor=True).count()
+    # Total users (excluding superusers/staff from count)
+    total_users = User.objects.filter(is_staff=False, is_superuser=False).count()
+    
+    # Students: Self-registered users (not professors, not staff)
+    total_students = User.objects.filter(
+        is_professor=False, 
+        is_staff=False, 
+        is_superuser=False
+    ).count()
+    
+    # Professors: Users with professor flag (admin-created accounts)
+    total_professors = User.objects.filter(
+        is_professor=True,
+        is_staff=False,
+        is_superuser=False
+    ).count()
+    
+    # Banned users (any role)
     banned_users = User.objects.filter(is_banned=True).count()
     
     # Get pending resources for approval
@@ -185,7 +198,9 @@ def profile(request):
 # Password Change View
 @login_required
 def password_change(request):
-    """Password change view"""
+    """Password change view with enhanced error handling"""
+    must_change = request.user.must_change_password
+    
     if request.method == 'POST':
         form = CustomPasswordChangeForm(request.user, request.POST)
         if form.is_valid():
@@ -194,10 +209,19 @@ def password_change(request):
             update_session_auth_hash(request, user)
             messages.success(request, 'Your password has been changed successfully!')
             return redirect('accounts:profile')
+        else:
+            # Add error messages for better feedback
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
     else:
         form = CustomPasswordChangeForm(request.user)
     
-    return render(request, 'accounts/password_change.html', {'form': form})
+    context = {
+        'form': form,
+        'must_change': must_change,
+    }
+    return render(request, 'accounts/password_change.html', context)
 
 
 # Default dashboard redirect
