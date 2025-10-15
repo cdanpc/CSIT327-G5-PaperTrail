@@ -79,14 +79,27 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Buttons */
-.btn {
-    border-radius: 10px;
+.btn, button,
+.btn-primary, .btn-secondary, .btn-outline-primary, .btn-outline-secondary,
+.btn-success, .btn-danger, .btn-warning, .btn-info, .btn-light, .btn-dark,
+.btn-sm, .btn-lg {
+    border-radius: 8px !important;
     font-weight: 600;
     padding: 0.7rem 1.4rem;
     transition: all 0.25s ease;
     border: none;
     position: relative;
     overflow: hidden;
+}
+
+/* Exception for circular buttons */
+.btn.rounded-circle, .rounded-circle {
+    border-radius: 50% !important;
+}
+
+/* Exception for pill-shaped buttons */
+.btn.rounded-pill, .rounded-pill {
+    border-radius: 50px !important;
 }
 
 .btn-primary {

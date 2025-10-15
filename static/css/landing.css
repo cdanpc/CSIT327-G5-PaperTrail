@@ -1,0 +1,206 @@
+/* ====================================
+   LANDING PAGE STYLES
+   ==================================== */
+
+/* Hero Section with Gradient */
+.landing-hero {
+    min-height: 75vh;
+    background: linear-gradient(135deg, rgba(212, 224, 155, 0.1) 0%, rgba(203, 223, 189, 0.15) 100%);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.landing-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(139, 44, 44, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+    animation: float 20s linear infinite;
+}
+
+@keyframes float {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(-50px, -50px) rotate(360deg); }
+}
+
+.landing-hero .display-4 {
+    font-weight: 700;
+    color: #2c3e50;
+    animation: fadeInDown 0.8s ease-out;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.landing-hero .lead {
+    color: #5d6d7e;
+    animation: fadeIn 1s ease-out 0.3s both;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Enhanced Cards with Hover Effects */
+.landing-card {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: none;
+    background: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.landing-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(139, 44, 44, 0.05), transparent);
+    transition: left 0.5s;
+}
+
+.landing-card:hover::before {
+    left: 100%;
+}
+
+.landing-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.landing-card .fa-file-alt {
+    color: #8B2C2C;
+    transition: all 0.3s ease;
+}
+
+.landing-card:hover .fa-file-alt {
+    transform: scale(1.2) rotate(5deg);
+}
+
+.landing-card .fa-users {
+    color: #28a745;
+    transition: all 0.3s ease;
+}
+
+.landing-card:hover .fa-users {
+    transform: scale(1.2) rotate(-5deg);
+}
+
+.landing-card .fa-graduation-cap {
+    color: #17a2b8;
+    transition: all 0.3s ease;
+}
+
+.landing-card:hover .fa-graduation-cap {
+    transform: scale(1.2) rotate(5deg);
+}
+
+/* Get Started Button with Enhanced Animation */
+.landing-btn-primary {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    box-shadow: 0 4px 15px rgba(139, 44, 44, 0.3);
+}
+
+.landing-btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.landing-btn-primary:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.landing-btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(139, 44, 44, 0.4);
+}
+
+.landing-btn-primary i {
+    transition: transform 0.3s ease;
+}
+
+.landing-btn-primary:hover i {
+    transform: translateX(5px);
+}
+
+/* Link Hover Effect */
+.landing-link {
+    text-decoration: none;
+    position: relative;
+    font-weight: 500;
+}
+
+.landing-link::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background: linear-gradient(90deg, #8B2C2C, #b44);
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease;
+}
+
+.landing-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+
+/* Feature Section Enhancement */
+.landing-features {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-radius: 20px;
+    position: relative;
+}
+
+.landing-features h4 {
+    position: relative;
+    display: inline-block;
+}
+
+.landing-features h4 i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.landing-features:hover h4 i {
+    transform: rotate(360deg) scale(1.1);
+}
