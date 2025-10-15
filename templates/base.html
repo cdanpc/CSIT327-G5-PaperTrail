@@ -139,9 +139,6 @@ h4 {
                 </ul>
                 {% endif %}
                 
-                {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'landing' %}
-                                </ul>
-                
                 {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'home' %}
                 <form class="search-form d-none d-lg-block me-lg-3" method="get" action="{% url 'resources:resource_list' %}">
                     <div class="input-group input-group-sm search-input-group">
