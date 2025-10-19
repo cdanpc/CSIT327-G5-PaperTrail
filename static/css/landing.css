@@ -27,7 +27,7 @@
 .hero-title {
     font-size: var(--font-size-4xl);
     font-weight: 700;
-    color: var(--primary-navy);
+    color: var(--color-accent-10);
     line-height: 1.2;
     margin-bottom: var(--spacing-md);
 }
@@ -51,25 +51,25 @@
 }
 
 .hero-cta .btn-primary {
-    background: var(--secondary-teal);
+    background: var(--color-accent-10);
     border: none;
     box-shadow: var(--shadow-md);
 }
 
 .hero-cta .btn-primary:hover {
-    background: var(--secondary-teal-dark);
+    background: var(--color-accent-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
 
 .hero-cta .btn-outline-primary {
-    border: 2px solid var(--primary-navy);
-    color: var(--primary-navy);
+    border: 2px solid var(--color-accent-10);
+    color: var(--color-accent-10);
     background: transparent;
 }
 
 .hero-cta .btn-outline-primary:hover {
-    background: var(--primary-navy);
+    background: var(--color-accent-10);
     color: var(--text-white);
     transform: translateY(-2px);
 }
@@ -78,7 +78,7 @@
 .stat-card {
     background: var(--bg-white);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    padding: var(--spacing-lg);
     text-align: center;
     box-shadow: var(--shadow-md);
     transition: all 0.3s ease;
@@ -90,33 +90,33 @@
 }
 
 .stat-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto var(--spacing-md);
-    border-radius: var(--radius-lg);
+    width: 48px;
+    height: 48px;
+    margin: 0 auto var(--spacing-sm);
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 1.25rem;
     color: var(--bg-white);
 }
 
 .stat-icon-red {
-    background: var(--primary-navy);
+    background: var(--color-accent-10);
 }
 
 .stat-icon-green {
-    background: var(--secondary-teal);
+    background: var(--color-ui-30);
 }
 
 .stat-icon-sage {
-    background: var(--accent-coral);
+    background: var(--color-subtle-accent);
 }
 
 .stat-number {
     font-size: var(--font-size-3xl);
     font-weight: 700;
-    color: var(--primary-navy);
+    color: var(--color-accent-10);
     margin-bottom: var(--spacing-xs);
 }
 
@@ -141,12 +141,12 @@
 
 .section-badge {
     display: inline-block;
-    background: var(--accent-light-teal);
+    background: var(--color-ui-30);
     padding: var(--spacing-xs) var(--spacing-md);
     border-radius: var(--radius-full);
     font-size: var(--font-size-xs);
     font-weight: 600;
-    color: var(--primary-navy);
+    color: var(--color-accent-10);
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
@@ -154,7 +154,7 @@
 .section-title {
     font-size: var(--font-size-3xl);
     font-weight: 700;
-    color: var(--primary-navy);
+    color: var(--color-accent-10);
     margin-bottom: var(--spacing-sm);
 }
 
@@ -177,7 +177,7 @@
 .feature-card:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-lg);
-    border-color: var(--secondary-teal-light);
+    border-color: var(--color-accent-10);
 }
 
 .feature-icon {
@@ -193,21 +193,21 @@
 }
 
 .feature-icon-red {
-    background: var(--primary-navy);
+    background: var(--color-accent-10);
 }
 
 .feature-icon-green {
-    background: var(--secondary-teal);
+    background: var(--color-ui-30);
 }
 
 .feature-icon-sage {
-    background: var(--accent-coral);
+    background: var(--color-subtle-accent);
 }
 
 .feature-title {
     font-size: var(--font-size-xl);
     font-weight: 600;
-    color: var(--primary-navy);
+    color: var(--color-accent-10);
     margin-bottom: var(--spacing-sm);
 }
 
@@ -220,14 +220,14 @@
 
 .feature-link {
     font-size: var(--font-size-sm);
-    color: var(--secondary-teal);
+    color: var(--color-accent-10);
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
 }
 
 .feature-link:hover {
-    color: var(--secondary-teal-dark);
+    color: var(--color-accent-dark);
     text-decoration: none;
 }
 
@@ -256,7 +256,7 @@
     height: 120px;
     margin: 0 auto var(--spacing-md);
     border-radius: 50%;
-    background: var(--primary-navy);
+    background: var(--color-accent-10);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -276,40 +276,40 @@
     right: -8px;
     width: 36px;
     height: 36px;
-    background: var(--secondary-teal);
+    background: var(--color-ui-30);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--bg-white);
+    color: var(--color-text-primary);
     font-size: var(--font-size-sm);
     box-shadow: var(--shadow-sm);
 }
 
 .step-number-green {
-    background: var(--secondary-teal);
+    background: var(--color-ui-30);
 }
 
 .step-number-sage {
-    background: var(--accent-coral);
+    background: var(--color-subtle-accent);
 }
 
 .step-divider {
     width: 100%;
     height: 4px;
-    background: var(--primary-navy);
+    background: var(--color-accent-10);
     margin: 0 auto var(--spacing-md);
     max-width: 120px;
 }
 
 .step-divider-green {
-    background: var(--secondary-teal);
+    background: var(--color-ui-30);
 }
 
 .step-title {
     font-size: var(--font-size-xl);
     font-weight: 600;
-    color: var(--primary-navy);
+    color: var(--color-accent-10);
     margin-bottom: var(--spacing-sm);
 }
 
@@ -332,11 +332,11 @@
 .team-category-title {
     font-size: var(--font-size-xl);
     font-weight: 600;
-    color: var(--primary-navy);
+    color: var(--color-accent-10);
     text-align: center;
     margin-bottom: var(--spacing-lg);
     padding-bottom: var(--spacing-sm);
-    border-bottom: 3px solid var(--accent-light-teal);
+    border-bottom: 3px solid var(--color-ui-30);
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
@@ -356,7 +356,7 @@
 .team-card:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-lg);
-    border-color: var(--secondary-teal);
+    border-color: var(--color-accent-10);
 }
 
 /* Team Avatar */
@@ -365,7 +365,7 @@
     height: 120px;
     margin: 0 auto var(--spacing-md);
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-teal) 100%);
+    background: linear-gradient(135deg, var(--color-accent-10) 0%, var(--color-accent-dark) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -390,7 +390,7 @@
 
 .team-role {
     font-size: var(--font-size-base);
-    color: var(--secondary-teal);
+    color: var(--color-accent-10);
     font-weight: 600;
     margin-bottom: var(--spacing-md);
     text-transform: uppercase;
@@ -410,7 +410,7 @@
 }
 
 .team-email:hover {
-    background: var(--secondary-teal);
+    background: var(--color-accent-10);
     color: var(--text-white);
     text-decoration: none;
 }
@@ -475,7 +475,7 @@ section {
 
 /* Active Nav Link Styles */
 .navbar-nav .nav-link.active {
-    color: var(--secondary-teal) !important;
+    color: var(--color-accent-10) !important;
     font-weight: 600;
 }
 

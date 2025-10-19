@@ -1,34 +1,37 @@
-/* PaperTrail Professional Design System */
+/* PaperTrail Professional Design System - 60-30-10 Rule */
 :root {
-    /* Primary Brand Colors - Professional Academic Palette */
-    --primary-navy: #1e3a5f;
-    --primary-navy-dark: #162d47;
-    --primary-navy-light: #2c5282;
+    /* 10% - Accent/Action Colors (Primary Brand) */
+    --color-accent-10: #A44A3F;           /* Terracotta Red - Primary accent */
+    --color-accent-dark: #8B3935;         /* Darker terracotta */
+    --color-accent-light: #C55A4F;        /* Lighter terracotta */
     
-    /* Secondary Colors */
-    --secondary-teal: #0891b2;
-    --secondary-teal-light: #06b6d4;
-    --secondary-teal-dark: #0e7490;
+    /* 30% - Secondary/Supporting Colors */
+    --color-ui-30: #CBDFBD;               /* Sage Green - Secondary UI */
+    --color-subtle-accent: #D4E09B;       /* Yellow-Green - Subtle accent */
     
-    /* Accent Colors */
-    --accent-coral: #fb923c;
-    --accent-light-teal: #a5f3fc;
-    --accent-sky: #38bdf8;
+    /* 60% - Dominant/Background Colors */
+    --color-bg-60: #F0F0F0;               /* Light Gray - Main background */
+    --color-bg-70: #FAFAFA;               /* Lighter variant */
+    --color-bg-80: #FFFFFF;               /* White variant */
+    --color-card-bg: #FFFFFF;             /* Card background */
     
-    /* Background Colors */
-    --bg-cream: #f8fafc;
-    --bg-light-cream: #ffffff;
+    /* Text Colors (30%) */
+    --color-text-primary: #333333;        /* Primary text */
+    --color-text-secondary: #6b7280;      /* Secondary text */
+    --color-text-muted: #9ca3af;          /* Muted text */
+    --color-text-white: #FFFFFF;          /* White text */
+    
+    /* Border Colors (30%) */
+    --color-border: #e5e7eb;              /* Default border */
+    
+    /* Legacy aliases for compatibility */
+    --bg-cream: #F0F0F0;
+    --bg-light-cream: #FFFFFF;
     --bg-white: #FFFFFF;
     --bg-card: #FFFFFF;
-    
-    /* Footer Colors */
-    --footer-dark-navy: #0f172a;
-    --footer-medium-navy: #1e293b;
-    
-    /* Text Colors */
-    --text-primary: #1e293b;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
+    --text-primary: #333333;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
     --text-white: #FFFFFF;
     
     /* Border & Shadow */
