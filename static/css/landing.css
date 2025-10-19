@@ -4,7 +4,7 @@
 
 /* Hero Section */
 .hero-section {
-    background: var(--bg-light-cream);
+    background: var(--color-ui-30);
     padding: var(--spacing-2xl) 0 var(--spacing-xl);
     min-height: 85vh;
     display: flex;
@@ -135,9 +135,9 @@
 
 /* Features Section */
 .features-section {
-    padding: var(--spacing-2xl) 0;
+    padding: 10px;
     background: var(--bg-white);
-    min-height: 85vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
 }
