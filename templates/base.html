@@ -155,72 +155,241 @@
         {% endif %}
     </div>
     
-    <main class="container my-4 flex-grow-1">
+    <main class="flex-grow-1">
         {% block content %}
         <!-- Landing page content (shown only on home page for non-authenticated users) -->
         {% if request.resolver_match.url_name == 'home' and not user.is_authenticated %}
-        <div class="row justify-content-center align-items-center landing-hero">
-            <div class="col-md-8 text-center">
-                <h1 class="display-4 mb-4">Welcome to PaperTrail</h1>
-                <p class="lead mb-4">Your crowd-powered study hub for sharing and discovering academic resources.</p>
-                
-                <div class="row justify-content-center g-3 mb-5">
-                    <div class="col-md-4">
-                        <div class="card landing-card h-100 border-0 shadow-sm">
-                            <div class="card-body text-center">
-                                <i class="fas fa-file-alt fa-2x text-primary mb-3"></i>
-                                <h5>Share Resources</h5>
-                                <p class="text-muted mb-0">Upload and share your study materials with others.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card landing-card h-100 border-0 shadow-sm">
-                            <div class="card-body text-center">
-                                <i class="fas fa-users fa-2x text-success mb-3"></i>
-                                <h5>Collaborate</h5>
-                                <p class="text-muted mb-0">Work together with peers and professors.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card landing-card h-100 border-0 shadow-sm">
-                            <div class="card-body text-center">
-                                <i class="fas fa-graduation-cap fa-2x text-info mb-3"></i>
-                                <h5>Learn Better</h5>
-                                <p class="text-muted mb-0">Access quality study materials and improve your learning.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
+        
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="container">
                 <div class="text-center">
-                    <a href="{% url 'accounts:register' %}" class="btn btn-primary landing-btn-primary btn-lg px-5 py-3">
-                        <i class="fas fa-rocket me-2"></i>Get Started
-                    </a>
-                    <p class="mt-3 text-muted">
-                        Already have an account? <a href="{% url 'accounts:login' %}" class="text-primary landing-link">Sign in</a>
+                    <!-- Trust Badge -->
+                    <div class="trust-badge mb-4">
+                        <i class="fas fa-star text-warning me-2"></i>
+                        Trusted by 10,000+ Students Worldwide
+                    </div>
+                    
+                    <!-- Main Headline -->
+                    <h1 class="hero-title mb-4">Your Academic<br>Success Hub</h1>
+                    
+                    <!-- Subtitle -->
+                    <p class="hero-subtitle mb-5">
+                        Organize, share, and discover educational resources. Create quizzes, flashcards, and collaborate<br>
+                        with peers—all in one place.
                     </p>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="hero-cta mb-5">
+                        <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-rocket me-2"></i>Get Started Free
+                        </a>
+                        <a href="#" class="btn btn-outline-primary btn-lg" data-feature-in-progress="demo">
+                            <i class="fas fa-play-circle me-2"></i>Watch Demo
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Statistics Cards -->
+                <div class="row g-4 justify-content-center mt-5">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-red">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <h3 class="stat-number">50K+</h3>
+                            <p class="stat-label">Resources Shared</p>
+                            <p class="stat-sublabel">Growing every day</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-green">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h3 class="stat-number">1M+</h3>
+                            <p class="stat-label">Quizzes Taken</p>
+                            <p class="stat-sublabel">Test your knowledge</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-sage">
+                                <i class="fas fa-smile"></i>
+                            </div>
+                            <h3 class="stat-number">95%</h3>
+                            <p class="stat-label">Student Satisfaction</p>
+                            <p class="stat-sublabel">Independently verified</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="landing-features py-5 mt-5">
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <h4><i class="fas fa-shield-alt text-primary me-2"></i>Verified Content</h4>
-                    <p class="text-muted">All resources are verified by professors to ensure quality and accuracy.</p>
+        </section>
+        
+        <!-- Powerful Features Section -->
+        <section class="features-section">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="section-title">Powerful Features</h2>
+                    <p class="section-subtitle">Everything you need to excel in your academic journey</p>
                 </div>
-                <div class="col-md-4">
-                    <h4><i class="fas fa-sync text-success me-2"></i>Always Updated</h4>
-                    <p class="text-muted">Content is regularly updated to match current academic standards.</p>
-                </div>
-                <div class="col-md-4">
-                    <h4><i class="fas fa-hand-holding-heart text-info me-2"></i>Community Driven</h4>
-                    <p class="text-muted">Built by students, for students, with professor guidance.</p>
+                
+                <div class="row g-4">
+                    <!-- Feature 1: Resource Library -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card">
+                            <div class="feature-icon feature-icon-red">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <h4 class="feature-title">Resource Library</h4>
+                            <p class="feature-description">
+                                Access thousands of PDFs, notes, and study materials shared by students and educators worldwide.
+                            </p>
+                            <a href="#" class="feature-link" data-feature-in-progress="resources">
+                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 2: Interactive Quizzes -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card">
+                            <div class="feature-icon feature-icon-green">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <h4 class="feature-title">Interactive Quizzes</h4>
+                            <p class="feature-description">
+                                Create and take quizzes with instant feedback. Track your progress and identify areas for improvement.
+                            </p>
+                            <a href="#" class="feature-link" data-feature-in-progress="quizzes">
+                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 3: Smart Flashcards -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card">
+                            <div class="feature-icon feature-icon-sage">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <h4 class="feature-title">Smart Flashcards</h4>
+                            <p class="feature-description">
+                                Build custom flashcard decks with spaced repetition algorithms to enhance memory retention.
+                            </p>
+                            <a href="#" class="feature-link" data-feature-in-progress="flashcards">
+                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 4: Peer Collaboration -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card">
+                            <div class="feature-icon feature-icon-red">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h4 class="feature-title">Peer Collaboration</h4>
+                            <p class="feature-description">
+                                Review and discuss resources with classmates. Share insights and learn together in a community.
+                            </p>
+                            <a href="#" class="feature-link" data-feature-in-progress="collaboration">
+                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 5: Progress Tracking -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card">
+                            <div class="feature-icon feature-icon-green">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4 class="feature-title">Progress Tracking</h4>
+                            <p class="feature-description">
+                                Monitor your learning journey with detailed analytics and personalized recommendations.
+                            </p>
+                            <a href="#" class="feature-link" data-feature-in-progress="tracking">
+                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 6: Privacy Controls -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card">
+                            <div class="feature-icon feature-icon-sage">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h4 class="feature-title">Privacy Controls</h4>
+                            <p class="feature-description">
+                                Keep your resources private, share with specific people, or make them public—you're in control.
+                            </p>
+                            <a href="#" class="feature-link" data-feature-in-progress="privacy">
+                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
+        
+        <!-- How It Works Section -->
+        <section class="how-it-works-section">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <div class="section-badge mb-3">
+                        <i class="fas fa-rocket me-2"></i>GET STARTED
+                    </div>
+                    <h2 class="section-title">How It Works</h2>
+                    <p class="section-subtitle">Get started in three simple steps</p>
+                </div>
+                
+                <div class="row g-5 justify-content-center">
+                    <div class="col-md-4">
+                        <div class="step-card">
+                            <div class="step-number">
+                                <span class="number">1</span>
+                                <span class="checkmark"><i class="fas fa-check"></i></span>
+                            </div>
+                            <div class="step-divider"></div>
+                            <h4 class="step-title">Sign Up Free</h4>
+                            <p class="step-description">
+                                Create your account in seconds. No credit card required. Start your journey today.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="step-card">
+                            <div class="step-number step-number-green">
+                                <span class="number">2</span>
+                                <span class="checkmark"><i class="fas fa-check"></i></span>
+                            </div>
+                            <div class="step-divider step-divider-green"></div>
+                            <h4 class="step-title">Upload & Create</h4>
+                            <p class="step-description">
+                                Add your study materials, create engaging quizzes, and build effective flashcard decks.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="step-card">
+                            <div class="step-number step-number-sage">
+                                <span class="number">3</span>
+                                <span class="checkmark"><i class="fas fa-check"></i></span>
+                            </div>
+                            <h4 class="step-title">Learn & Collaborate</h4>
+                            <p class="step-description">
+                                Access resources, study with peers, track progress, and ace your exams.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
         {% endif %}
         {% endblock %}
     </main>
