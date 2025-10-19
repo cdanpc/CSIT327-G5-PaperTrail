@@ -479,7 +479,19 @@ html {
 
 /* Scroll Offset for Fixed Navbar */
 section {
+    scroll-margin-top: 0;
+}
+
+/* Only offset the first section (home) for navbar */
+.hero-section {
     scroll-margin-top: 70px;
+}
+
+/* Other sections start right after previous section */
+.features-section,
+.how-it-works-section,
+.team-section {
+    scroll-margin-top: 0;
 }
 
 /* Prevent section overlap */
