@@ -135,14 +135,14 @@
 
 /* Features Section */
 .features-section {
-    padding: var(--spacing-2xl) 0;
+    padding: var(--spacing-xl) 0;
     background: var(--bg-white);
 }
 
 .section-badge {
     display: inline-block;
     background: var(--color-ui-30);
-    padding: var(--spacing-xs) var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-full);
     font-size: var(--font-size-xs);
     font-weight: 600;
@@ -152,44 +152,44 @@
 }
 
 .section-title {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-2xl);
     font-weight: 700;
     color: var(--color-accent-10);
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
 }
 
 .section-subtitle {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-base);
     color: var(--text-secondary);
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
 }
 
 /* Feature Cards */
 .feature-card {
     background: var(--bg-white);
     border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
     height: 100%;
     transition: all 0.3s ease;
 }
 
 .feature-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
     border-color: var(--color-accent-10);
 }
 
 .feature-icon {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-lg);
     color: var(--bg-white);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
 }
 
 .feature-icon-red {
@@ -205,21 +205,21 @@
 }
 
 .feature-title {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-lg);
     font-weight: 600;
     color: var(--color-accent-10);
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
 }
 
 .feature-description {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
     color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: var(--spacing-md);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-sm);
 }
 
 .feature-link {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--color-accent-10);
     font-weight: 600;
     text-decoration: none;
