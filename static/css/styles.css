@@ -1,29 +1,34 @@
 /* PaperTrail Professional Design System */
 :root {
-    /* Primary Brand Colors (From Reference) */
-    --primary-maroon: #A44A3F;
-    --primary-maroon-dark: #8B2C2C;
-    --primary-maroon-light: #B85C54;
+    /* Primary Brand Colors - Professional Academic Palette */
+    --primary-navy: #1e3a5f;
+    --primary-navy-dark: #162d47;
+    --primary-navy-light: #2c5282;
+    
+    /* Secondary Colors */
+    --secondary-teal: #0891b2;
+    --secondary-teal-light: #06b6d4;
+    --secondary-teal-dark: #0e7490;
     
     /* Accent Colors */
-    --accent-green: #7FA87F;
-    --accent-sage: #9BB09B;
-    --accent-cream: #E8E5D5;
+    --accent-coral: #fb923c;
+    --accent-light-teal: #a5f3fc;
+    --accent-sky: #38bdf8;
     
     /* Background Colors */
-    --bg-cream: #F5F3E8;
-    --bg-light-cream: #FAF9F3;
+    --bg-cream: #f8fafc;
+    --bg-light-cream: #ffffff;
     --bg-white: #FFFFFF;
     --bg-card: #FFFFFF;
     
-    /* Footer Colors (From Reference) */
-    --footer-dark-green: #3D5A3D;
-    --footer-medium-green: #4A6B4A;
+    /* Footer Colors */
+    --footer-dark-navy: #0f172a;
+    --footer-medium-navy: #1e293b;
     
     /* Text Colors */
-    --text-primary: #2C2C2C;
-    --text-secondary: #5A5A5A;
-    --text-muted: #8A8A8A;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
     --text-white: #FFFFFF;
     
     /* Border & Shadow */

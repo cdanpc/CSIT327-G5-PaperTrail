@@ -31,7 +31,22 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
-                {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'home' %}
+                {% if request.resolver_match.url_name == 'home' and not user.is_authenticated %}
+                <ul class="navbar-nav me-auto align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#team">Team</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                </ul>
+                {% elif request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'home' %}
                 <ul class="navbar-nav me-auto align-items-lg-center">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
@@ -106,7 +121,14 @@
                             </ul>
                         </li>
                     {% else %}
-                        {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'home' %}
+                        {% if request.resolver_match.url_name == 'home' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:login' %}">Sign In</a>
+                        </li>
+                        <li class="nav-item ms-2">
+                            <a class="btn btn-primary btn-sm px-4" href="{% url 'accounts:register' %}">Get Started</a>
+                        </li>
+                        {% elif request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
                         </li>
@@ -161,7 +183,7 @@
         {% if request.resolver_match.url_name == 'home' and not user.is_authenticated %}
         
         <!-- Hero Section -->
-        <section class="hero-section">
+        <section id="home" class="hero-section">
             <div class="container">
                 <div class="text-center">
                     <!-- Trust Badge -->
@@ -227,7 +249,7 @@
         </section>
         
         <!-- Powerful Features Section -->
-        <section class="features-section">
+        <section id="features" class="features-section">
             <div class="container">
                 <div class="text-center mb-5">
                     <h2 class="section-title">Powerful Features</h2>
@@ -391,7 +413,7 @@
         </section>
         
         <!-- Meet the Team Section -->
-        <section class="team-section">
+        <section id="team" class="team-section">
             <div class="container">
                 <div class="text-center mb-5">
                     <div class="section-badge mb-3">
@@ -517,7 +539,7 @@
         {% endblock %}
     </main>
     
-    <footer class="bg-light py-4 border-top mt-auto">
+    <footer id="contact" class="bg-light py-4 border-top mt-auto">
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-4">
@@ -710,6 +732,55 @@
 
                 wrapper.appendChild(toggleBtn);
             });
+        });
+
+        // Smooth Scroll for Landing Page Navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.navbar-nav .nav-link[href^="#"]');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    
+                    if (targetSection) {
+                        targetSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                        
+                        // Update active state
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                    }
+                });
+            });
+
+            // Highlight active section on scroll
+            const sections = document.querySelectorAll('section[id]');
+            
+            function highlightNavOnScroll() {
+                const scrollY = window.pageYOffset;
+                
+                sections.forEach(section => {
+                    const sectionHeight = section.offsetHeight;
+                    const sectionTop = section.offsetTop - 100;
+                    const sectionId = section.getAttribute('id');
+                    
+                    if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === `#${sectionId}`) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }
+            
+            window.addEventListener('scroll', highlightNavOnScroll);
         });
     </script>
     

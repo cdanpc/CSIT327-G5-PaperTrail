@@ -27,7 +27,7 @@
 .hero-title {
     font-size: var(--font-size-4xl);
     font-weight: 700;
-    color: var(--primary-maroon);
+    color: var(--primary-navy);
     line-height: 1.2;
     margin-bottom: var(--spacing-md);
 }
@@ -51,25 +51,25 @@
 }
 
 .hero-cta .btn-primary {
-    background: var(--primary-maroon);
+    background: var(--secondary-teal);
     border: none;
     box-shadow: var(--shadow-md);
 }
 
 .hero-cta .btn-primary:hover {
-    background: var(--primary-maroon-dark);
+    background: var(--secondary-teal-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
 
 .hero-cta .btn-outline-primary {
-    border: 2px solid var(--primary-maroon);
-    color: var(--primary-maroon);
+    border: 2px solid var(--primary-navy);
+    color: var(--primary-navy);
     background: transparent;
 }
 
 .hero-cta .btn-outline-primary:hover {
-    background: var(--primary-maroon);
+    background: var(--primary-navy);
     color: var(--text-white);
     transform: translateY(-2px);
 }
@@ -102,21 +102,21 @@
 }
 
 .stat-icon-red {
-    background: var(--primary-maroon);
+    background: var(--primary-navy);
 }
 
 .stat-icon-green {
-    background: var(--accent-green);
+    background: var(--secondary-teal);
 }
 
 .stat-icon-sage {
-    background: var(--accent-sage);
+    background: var(--accent-coral);
 }
 
 .stat-number {
     font-size: var(--font-size-3xl);
     font-weight: 700;
-    color: var(--primary-maroon);
+    color: var(--primary-navy);
     margin-bottom: var(--spacing-xs);
 }
 
@@ -141,12 +141,12 @@
 
 .section-badge {
     display: inline-block;
-    background: var(--accent-cream);
+    background: var(--accent-light-teal);
     padding: var(--spacing-xs) var(--spacing-md);
     border-radius: var(--radius-full);
     font-size: var(--font-size-xs);
     font-weight: 600;
-    color: var(--primary-maroon);
+    color: var(--primary-navy);
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
@@ -154,7 +154,7 @@
 .section-title {
     font-size: var(--font-size-3xl);
     font-weight: 700;
-    color: var(--primary-maroon);
+    color: var(--primary-navy);
     margin-bottom: var(--spacing-sm);
 }
 
@@ -177,7 +177,7 @@
 .feature-card:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-lg);
-    border-color: transparent;
+    border-color: var(--secondary-teal-light);
 }
 
 .feature-icon {
@@ -193,21 +193,21 @@
 }
 
 .feature-icon-red {
-    background: var(--primary-maroon);
+    background: var(--primary-navy);
 }
 
 .feature-icon-green {
-    background: var(--accent-green);
+    background: var(--secondary-teal);
 }
 
 .feature-icon-sage {
-    background: var(--accent-sage);
+    background: var(--accent-coral);
 }
 
 .feature-title {
     font-size: var(--font-size-xl);
     font-weight: 600;
-    color: var(--primary-maroon);
+    color: var(--primary-navy);
     margin-bottom: var(--spacing-sm);
 }
 
@@ -220,14 +220,14 @@
 
 .feature-link {
     font-size: var(--font-size-sm);
-    color: var(--primary-maroon);
+    color: var(--secondary-teal);
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
 }
 
 .feature-link:hover {
-    color: var(--primary-maroon-dark);
+    color: var(--secondary-teal-dark);
     text-decoration: none;
 }
 
@@ -256,7 +256,7 @@
     height: 120px;
     margin: 0 auto var(--spacing-md);
     border-radius: 50%;
-    background: var(--primary-maroon);
+    background: var(--primary-navy);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -276,7 +276,7 @@
     right: -8px;
     width: 36px;
     height: 36px;
-    background: var(--accent-sage);
+    background: var(--secondary-teal);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -287,29 +287,29 @@
 }
 
 .step-number-green {
-    background: var(--accent-green);
+    background: var(--secondary-teal);
 }
 
 .step-number-sage {
-    background: var(--accent-sage);
+    background: var(--accent-coral);
 }
 
 .step-divider {
     width: 100%;
     height: 4px;
-    background: var(--primary-maroon);
+    background: var(--primary-navy);
     margin: 0 auto var(--spacing-md);
     max-width: 120px;
 }
 
 .step-divider-green {
-    background: var(--accent-green);
+    background: var(--secondary-teal);
 }
 
 .step-title {
     font-size: var(--font-size-xl);
     font-weight: 600;
-    color: var(--primary-maroon);
+    color: var(--primary-navy);
     margin-bottom: var(--spacing-sm);
 }
 
@@ -332,11 +332,11 @@
 .team-category-title {
     font-size: var(--font-size-xl);
     font-weight: 600;
-    color: var(--primary-maroon);
+    color: var(--primary-navy);
     text-align: center;
     margin-bottom: var(--spacing-lg);
     padding-bottom: var(--spacing-sm);
-    border-bottom: 3px solid var(--accent-cream);
+    border-bottom: 3px solid var(--accent-light-teal);
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
@@ -356,7 +356,7 @@
 .team-card:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-lg);
-    border-color: var(--primary-maroon);
+    border-color: var(--secondary-teal);
 }
 
 /* Team Avatar */
@@ -365,7 +365,7 @@
     height: 120px;
     margin: 0 auto var(--spacing-md);
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-maroon) 0%, var(--primary-maroon-dark) 100%);
+    background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-teal) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -390,7 +390,7 @@
 
 .team-role {
     font-size: var(--font-size-base);
-    color: var(--primary-maroon);
+    color: var(--secondary-teal);
     font-weight: 600;
     margin-bottom: var(--spacing-md);
     text-transform: uppercase;
@@ -410,7 +410,7 @@
 }
 
 .team-email:hover {
-    background: var(--primary-maroon);
+    background: var(--secondary-teal);
     color: var(--text-white);
     text-decoration: none;
 }
@@ -461,5 +461,21 @@
     .team-card {
         margin-bottom: var(--spacing-md);
     }
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Scroll Offset for Fixed Navbar */
+section {
+    scroll-margin-top: 80px;
+}
+
+/* Active Nav Link Styles */
+.navbar-nav .nav-link.active {
+    color: var(--secondary-teal) !important;
+    font-weight: 600;
 }
 

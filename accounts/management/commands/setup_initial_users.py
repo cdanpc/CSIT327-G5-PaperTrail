@@ -21,12 +21,11 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS(f'Created admin user: {admin_user.username}'))
 
-            # Create professor users
             professors_data = [
                 {
                     'username': 'jamparo',
                     'password': '123456',
-                    'stud_id': '2152',  # Professor ID
+                    'stud_id': '2152',  
                     'first_name': 'Joe Marie',
                     'last_name': 'Amparo',
                     'display_name': 'Prof. Amparo',
@@ -36,7 +35,7 @@ class Command(BaseCommand):
                 {
                     'username': 'frevilleza',
                     'password': '123456',
-                    'stud_id': '2050',  # Professor ID
+                    'stud_id': '2050', 
                     'first_name': 'Frederick',
                     'last_name': 'Revilleza',
                     'display_name': 'Prof. Revilleza',
@@ -56,6 +55,6 @@ class Command(BaseCommand):
                     personal_email=prof_data['personal_email'],
                     univ_email=prof_data['univ_email'],
                     is_professor=True,
-                    must_change_password=True  # Force password change for professors
+                    must_change_password=True
                 )
                 self.stdout.write(self.style.SUCCESS(f'Created professor user: {professor.username} (ID: {professor.stud_id})'))
