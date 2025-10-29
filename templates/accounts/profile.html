@@ -112,18 +112,23 @@
                         <div class="card-body">
                             <div class="row g-4">
                                 <div class="col-md-4">
-                                    <div class="p-3 rounded-3 bg-primary bg-opacity-10 text-center h-100" 
-                                         data-bs-toggle="tooltip" title="Resource tracking coming soon!">
+                                    <div class="p-3 rounded-3 bg-primary bg-opacity-10 text-center h-100">
                                         <i class="fas fa-file-alt fa-2x text-primary opacity-75 mb-2"></i>
-                                        <h3 class="h4 mb-0">-</h3>
-                                        <span class="small text-muted">Resources</span>
+                                        <h3 class="h4 mb-0">{{ total_resources }}</h3>
+                                        <span class="small text-muted">Total Resources</span>
+                                        <div class="mt-2">
+                                            <small class="text-success d-block"><i class="fas fa-check-circle"></i> {{ verified_resources }} Verified</small>
+                                            {% if pending_resources > 0 %}
+                                            <small class="text-warning d-block"><i class="fas fa-clock"></i> {{ pending_resources }} Pending</small>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="p-3 rounded-3 bg-success bg-opacity-10 text-center h-100" 
                                          data-bs-toggle="tooltip" title="Bookmark tracking coming soon!">
                                         <i class="fas fa-bookmark fa-2x text-success opacity-75 mb-2"></i>
-                                        <h3 class="h4 mb-0">-</h3>
+                                        <h3 class="h4 mb-0">{{ total_bookmarks }}</h3>
                                         <span class="small text-muted">Bookmarks</span>
                                     </div>
                                 </div>
@@ -131,8 +136,11 @@
                                     <div class="p-3 rounded-3 bg-info bg-opacity-10 text-center h-100" 
                                          data-bs-toggle="tooltip" title="Contribution tracking coming soon!">
                                         <i class="fas fa-hands-helping fa-2x text-info opacity-75 mb-2"></i>
-                                        <h3 class="h4 mb-0">-</h3>
+                                        <h3 class="h4 mb-0">{{ verified_resources }}</h3>
                                         <span class="small text-muted">Contributions</span>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block">Verified uploads</small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -143,14 +151,75 @@
             <!-- Recent Activity -->
             <div class="card mt-4">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Recent Activity</h5>
-                    <span class="badge bg-warning text-dark">Coming Soon</span>
+                    <h5 class="card-title mb-0"><i class="fas fa-clock me-2"></i>Recent Activity</h5>
                 </div>
                 <div class="card-body">
-                    <div class="text-center py-4">
-                        <i class="fas fa-clock fa-3x text-muted mb-3"></i>
-                        <p class="text-muted mb-0">Activity tracking is coming soon! Stay tuned for updates.</p>
+                    {% if recent_activities %}
+                    <div class="activity-timeline">
+                        {% for activity in recent_activities %}
+                        <div class="activity-item mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-start">
+                                <div class="activity-icon me-3">
+                                    {% if activity.type == 'upload' %}
+                                        <div class="rounded-circle bg-primary bg-opacity-10 p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-upload text-primary"></i>
+                                        </div>
+                                    {% elif activity.type == 'verified' %}
+                                        <div class="rounded-circle bg-success bg-opacity-10 p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-check-circle text-success"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    {% if activity.type == 'upload' %}
+                                        <p class="mb-1">
+                                            <strong>Uploaded resource:</strong> 
+                                            <a href="{% url 'resources:resource_detail' activity.resource.pk %}" class="text-decoration-none">
+                                                {{ activity.resource.title }}
+                                            </a>
+                                        </p>
+                                        <div class="d-flex align-items-center">
+                                            <small class="text-muted me-3">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                {{ activity.timestamp|date:"M d, Y \a\t g:i A" }}
+                                            </small>
+                                            {% if activity.status == 'pending' %}
+                                                <span class="badge bg-warning text-dark">Pending Review</span>
+                                            {% elif activity.status == 'verified' %}
+                                                <span class="badge bg-success">Verified</span>
+                                            {% elif activity.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% endif %}
+                                        </div>
+                                    {% elif activity.type == 'verified' %}
+                                        <p class="mb-1">
+                                            <strong class="text-success">Resource approved:</strong> 
+                                            <a href="{% url 'resources:resource_detail' activity.resource.pk %}" class="text-decoration-none">
+                                                {{ activity.resource.title }}
+                                            </a>
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            {{ activity.timestamp|date:"M d, Y \a\t g:i A" }}
+                                            {% if activity.resource.verification_by %}
+                                                by {{ activity.resource.verification_by.get_display_name }}
+                                            {% endif %}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No recent activity yet. Start by uploading a resource!</p>
+                        <a href="{% url 'resources:resource_upload' %}" class="btn btn-primary btn-sm mt-3">
+                            <i class="fas fa-upload me-1"></i> Upload Resource
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

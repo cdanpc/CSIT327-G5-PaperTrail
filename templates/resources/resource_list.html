@@ -7,7 +7,7 @@
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Study Resources</h2>
+            <h2>{% if is_my_resources %}My Resources{% else %}Study Resources{% endif %}</h2>
             {% if user.is_authenticated %}
                 <a href="{% url 'resources:resource_upload' %}" class="btn btn-primary">Upload Resource</a>
             {% endif %}
@@ -16,6 +16,7 @@
 </div>
 
 <div class="row">
+    {% if not is_my_resources %}
     <div class="col-md-3">
         <!-- Search and Filters -->
         <div class="card">
@@ -48,14 +49,15 @@
         </div>
         {% endif %}
     </div>
+    {% endif %}
     
-    <div class="col-md-9">
+    <div class="{% if is_my_resources %}col-12{% else %}col-md-9{% endif %}">
         <!-- Resources List -->
-        {% if page_obj %}
+        {% if resources %}
             <div class="row">
-                {% for resource in page_obj %}
+                {% for resource in resources %}
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 resource-card">
+                    <div class="card h-100">
                         <div class="card-body">
                             <h6 class="card-title">
                                 <a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">
@@ -93,7 +95,11 @@
                             
                             <!-- Verification Badge -->
                             {% if resource.verification_status == 'verified' %}
-                                <span class="verification-badge verified">✓ Verified</span>
+                                <span class="badge bg-success">✓ Verified</span>
+                            {% elif resource.verification_status == 'pending' %}
+                                <span class="badge bg-warning text-dark">⏳ Pending</span>
+                            {% else %}
+                                <span class="badge bg-danger">✗ Not Verified</span>
                             {% endif %}
                         </div>
                         <div class="card-footer">
@@ -110,30 +116,30 @@
             </div>
             
             <!-- Pagination -->
-            {% if page_obj.has_other_pages %}
+            {% if resources.has_other_pages %}
             <nav aria-label="Resource pagination">
                 <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
+                    {% if resources.has_previous %}
                         <li class="page-item">
                             <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">First</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">Previous</a>
+                            <a class="page-link" href="?page={{ resources.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">Previous</a>
                         </li>
                     {% endif %}
                     
                     <li class="page-item active">
                         <span class="page-link">
-                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            Page {{ resources.number }} of {{ resources.paginator.num_pages }}
                         </span>
                     </li>
                     
-                    {% if page_obj.has_next %}
+                    {% if resources.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">Next</a>
+                            <a class="page-link" href="?page={{ resources.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">Next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">Last</a>
+                            <a class="page-link" href="?page={{ resources.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.uploader_type %}&uploader_type={{ request.GET.uploader_type }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}">Last</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -141,11 +147,9 @@
             {% endif %}
         {% else %}
             <div class="text-center py-5">
-                <h5 class="text-muted">No resources found</h5>
-                <p class="text-muted">Try adjusting your search criteria or upload the first resource!</p>
-                {% if user.is_authenticated %}
-                <a href="{% url 'resources:resource_upload' %}" class="btn btn-primary">Upload Resource</a>
-                {% endif %}
+                <i class="bi bi-folder-x" style="font-size: 4rem; color: #ccc;"></i>
+                <h5 class="text-muted mt-3">{% if is_my_resources %}You haven't uploaded any resources yet{% else %}No resources found{% endif %}</h5>
+                <p class="text-muted">{% if is_my_resources %}Share your knowledge with the community by uploading your first resource.{% else %}Try adjusting your search criteria.{% endif %}</p>
             </div>
         {% endif %}
     </div>

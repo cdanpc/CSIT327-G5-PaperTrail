@@ -3,14 +3,59 @@
 
 {% block title %}{{ resource.title }} - PaperTrail{% endblock %}
 
+{% block extra_css %}
+<style>
+.star-label {
+    cursor: pointer;
+    display: inline-block;
+}
+.star-icon {
+    transition: all 0.2s;
+}
+.star-icon:hover,
+.star-label:hover ~ .star-label .star-icon {
+    transform: scale(1.2);
+}
+.comment-item:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <form style="display: none;">{% csrf_token %}</form> 
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-start">
                 <h2 class="mb-0">{{ resource.title }}</h2>
+                {% if resource.verification_status == 'verified' %}
+                <div class="text-end">
+                    <div class="d-flex align-items-center">
+                        {% with avg_rating=resource.get_average_rating rating_count=resource.get_rating_count %}
+                        {% if rating_count > 0 %}
+                            <div class="me-2">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= avg_rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% elif forloop.counter|add:"-0.5" <= avg_rating %}
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">{{ avg_rating }} ({{ rating_count }} rating{{ rating_count|pluralize }})</small>
+                        {% else %}
+                            <small class="text-muted">No ratings yet</small>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="card-body">
                 <div class="mb-3">
@@ -88,6 +133,87 @@
                 </div>
             </div>
         </div>
+        
+        {% if resource.verification_status == 'verified' %}
+        <!-- Rating Section -->
+        <div class="mt-4 p-3 bg-light rounded">
+            <h5 class="mb-3"><i class="fas fa-star"></i> Rate this Resource</h5>
+            <form method="post" action="{% url 'resources:rate_resource' resource.pk %}" id="ratingForm">
+                {% csrf_token %}
+                <div class="rating-selector mb-3 d-flex align-items-center">
+                    <div class="star-rating-container me-3">
+                        {% for i in "12345" %}
+                        <label class="star-label m-0">
+                            <input type="radio" name="stars" value="{{ i }}" {% if user_rating and user_rating.stars|stringformat:"s" == i %}checked{% endif %} class="d-none star-input" required>
+                            <i class="{% if user_rating and user_rating.stars >= i|add:"0" %}fas{% else %}far{% endif %} fa-star text-warning star-icon" data-value="{{ i }}" style="font-size: 2rem; cursor: pointer;"></i>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-check"></i> {% if user_rating %}Update Rating{% else %}Submit Rating{% endif %}
+                    </button>
+                </div>
+                {% if user_rating %}
+                <p class="text-muted small mb-0"><i class="fas fa-info-circle"></i> Your current rating: {{ user_rating.stars }} star{{ user_rating.stars|pluralize }}</p>
+                {% endif %}
+            </form>
+        </div>
+        
+        <!-- Comments Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-comments"></i> Comments ({{ comments.count }})</h5>
+            </div>
+            <div class="card-body">
+                <!-- Add Comment Form -->
+                <form method="post" action="{% url 'resources:add_comment' resource.pk %}" class="mb-4">
+                    {% csrf_token %}
+                    {{ comment_form.text }}
+                    <button type="submit" class="btn btn-primary btn-sm mt-2">
+                        <i class="fas fa-paper-plane"></i> Post Comment
+                    </button>
+                </form>
+                
+                <!-- Comments List -->
+                {% if comments %}
+                <div class="comments-list">
+                    {% for comment in comments %}
+                    <div class="comment-item border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <span class="text-white small">{{ comment.user.get_display_name|first|upper }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <strong>{{ comment.user.get_display_name }}</strong>
+                                    {% if comment.user.is_professor %}
+                                        <span class="badge bg-primary badge-sm">Professor</span>
+                                    {% endif %}
+                                    <br>
+                                    <small class="text-muted">{{ comment.created_at|date:"M d, Y \a\t g:i A" }}</small>
+                                    <p class="mt-2 mb-0">{{ comment.text|linebreaks }}</p>
+                                </div>
+                            </div>
+                            {% if comment.user == user %}
+                            <form method="post" action="{% url 'resources:delete_comment' comment.pk %}" onsubmit="return confirm('Delete this comment?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No comments yet. Be the first to comment!</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
     
     <div class="col-md-4">
@@ -139,4 +265,66 @@
 
 {% block extra_js %}
 <script src="{% static 'js/resource_detail.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Star rating interaction
+    const starLabels = document.querySelectorAll('.star-label');
+    const starIcons = document.querySelectorAll('.star-icon');
+    
+    starLabels.forEach((label, index) => {
+        label.addEventListener('click', function() {
+            const input = this.querySelector('input[type="radio"]');
+            const value = input.value;
+            
+            // Update all stars based on selection
+            starIcons.forEach((icon, i) => {
+                if (i < value) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                }
+            });
+        });
+        
+        // Hover effect
+        label.addEventListener('mouseenter', function() {
+            const value = this.querySelector('input[type="radio"]').value;
+            starIcons.forEach((icon, i) => {
+                if (i < value) {
+                    icon.style.opacity = '1';
+                    icon.classList.add('fas');
+                    icon.classList.remove('far');
+                }
+            });
+        });
+    });
+    
+    // Reset stars on mouse leave
+    const starContainer = document.querySelector('.star-rating-container');
+    if (starContainer) {
+        starContainer.addEventListener('mouseleave', function() {
+            const checkedInput = document.querySelector('input[name="stars"]:checked');
+            if (checkedInput) {
+                const value = checkedInput.value;
+                starIcons.forEach((icon, i) => {
+                    if (i < value) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                    }
+                });
+            } else {
+                starIcons.forEach(icon => {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                });
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

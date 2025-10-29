@@ -67,19 +67,27 @@
                     <div class="row text-center">
                         <div class="col-md-4 mb-3">
                             <div class="bg-light rounded p-3">
-                                <h2 class="mb-0 text-primary">0</h2>
+                                <h2 class="mb-0 text-primary">{{ total_resources|default:0 }}</h2>
                                 <small class="text-muted">Resources</small>
+                                {% if verified_resources or pending_resources %}
+                                <div class="mt-2">
+                                    <small class="text-success d-block">{{ verified_resources|default:0 }} Verified</small>
+                                    {% if pending_resources > 0 %}
+                                    <small class="text-warning d-block">{{ pending_resources }} Pending</small>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="bg-light rounded p-3">
-                                <h2 class="mb-0 text-primary">0</h2>
+                                <h2 class="mb-0 text-primary">{{ total_bookmarks|default:0 }}</h2>
                                 <small class="text-muted">Bookmarks</small>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="bg-light rounded p-3">
-                                <h2 class="mb-0 text-primary">0</h2>
+                                <h2 class="mb-0 text-primary">{{ verified_resources|default:0 }}</h2>
                                 <small class="text-muted">Contributions</small>
                             </div>
                         </div>
@@ -99,10 +107,51 @@
             <!-- Recent Activity -->
             <div class="card mt-4">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Recent Activity</h5>
+                    <h5 class="card-title mb-0"><i class="fas fa-clock me-2"></i>Recent Activity</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-center text-muted mb-0">Activity tracking coming soon!</p>
+                    {% if recent_activities %}
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item">
+                            {% if activity.type == 'upload' %}
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-upload text-primary me-3 mt-1"></i>
+                                    <div class="flex-grow-1">
+                                        <strong>Uploaded:</strong> 
+                                        <a href="{% url 'resources:resource_detail' activity.resource.pk %}">{{ activity.resource.title }}</a>
+                                        <br>
+                                        <small class="text-muted">{{ activity.timestamp|date:"M d, Y \a\t g:i A" }}</small>
+                                        {% if activity.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark ms-2">Pending</span>
+                                        {% elif activity.status == 'verified' %}
+                                            <span class="badge bg-success ms-2">Verified</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% elif activity.type == 'verified' %}
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <div class="flex-grow-1">
+                                        <strong class="text-success">Approved:</strong> 
+                                        <a href="{% url 'resources:resource_detail' activity.resource.pk %}">{{ activity.resource.title }}</a>
+                                        <br>
+                                        <small class="text-muted">{{ activity.timestamp|date:"M d, Y \a\t g:i A" }}</small>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No recent activity. Start by uploading a resource!</p>
+                        <a href="{% url 'resources:resource_upload' %}" class="btn btn-primary btn-sm mt-3">
+                            <i class="fas fa-upload me-1"></i> Upload Resource
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

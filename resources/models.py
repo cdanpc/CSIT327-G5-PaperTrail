@@ -108,6 +108,18 @@ class Resource(models.Model):
             return 'not-verified'
         return 'pending'
     
+    def get_average_rating(self):
+        """Calculate and return average rating"""
+        ratings = self.ratings.all()
+        if not ratings:
+            return 0
+        total = sum(r.stars for r in ratings)
+        return round(total / len(ratings), 1)
+    
+    def get_rating_count(self):
+        """Return total number of ratings"""
+        return self.ratings.count()
+    
     def __str__(self):
         return self.title
     
@@ -123,3 +135,37 @@ class Bookmark(models.Model):
     class Meta:
         unique_together = ['user', 'resource']
         ordering = ['-created_at']
+
+
+class Rating(models.Model):
+    """User ratings for verified resources"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='ratings')
+    stars = models.PositiveSmallIntegerField(
+        choices=[(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), (4, '4 Stars'), (5, '5 Stars')],
+        help_text='Rating from 1 to 5 stars'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'resource']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.get_display_name()} rated {self.resource.title} - {self.stars} stars"
+
+
+class Comment(models.Model):
+    """User comments on verified resources"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(help_text='Comment text')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.get_display_name()} on {self.resource.title}"

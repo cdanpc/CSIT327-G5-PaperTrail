@@ -53,9 +53,9 @@
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">Upload Resource</h5>
                 <p class="card-text flex-grow-1">Share educational materials with students</p>
-                <button class="btn btn-primary" data-feature="in-progress">
+                <a class="btn btn-primary" href="{% url 'resources:resource_upload' %}">
                     <i class="bi bi-upload me-2"></i>Upload
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -64,9 +64,9 @@
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">Verify Content</h5>
                 <p class="card-text flex-grow-1">Review and verify student submissions</p>
-                <button class="btn btn-primary" data-feature="in-progress">
+                <a class="btn btn-primary" href="{% url 'resources:moderation_list' %}">
                     <i class="bi bi-check-circle me-2"></i>Review
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -89,14 +89,14 @@
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Pending Verifications</h5>
-                <button class="btn btn-sm btn-outline-primary" data-feature="in-progress">View All</button>
+                <a href="{% url 'resources:moderation_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
             <div class="card-body">
                 {% if pending_verifications %}
                     {% for resource in pending_verifications %}
                     <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                        <div>
-                            <a href="#" class="text-decoration-none fw-medium" data-feature="in-progress">
+                        <div class="flex-grow-1">
+                            <a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none fw-medium">
                                 {{ resource.title }}
                             </a>
                             <small class="text-muted d-block">
@@ -104,13 +104,19 @@
                                 <span class="ms-2">{{ resource.created_at|date:"M d, Y" }}</span>
                             </small>
                         </div>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-success" data-feature="in-progress" title="Approve">
-                                <i class="bi bi-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" data-feature="in-progress" title="Reject">
-                                <i class="bi bi-x"></i>
-                            </button>
+                        <div class="btn-group ms-2" role="group">
+                            <form method="post" action="{% url 'resources:approve_resource' resource.pk %}?next={{ request.path }}" style="display: inline;">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-success" type="submit" title="Approve">
+                                    <i class="bi bi-check-lg"></i> Approve
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'resources:reject_resource' resource.pk %}?next={{ request.path }}" style="display: inline;">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-danger" type="submit" title="Reject">
+                                    <i class="bi bi-x-lg"></i> Reject
+                                </button>
+                            </form>
                         </div>
                     </div>
                     {% endfor %}
@@ -157,9 +163,9 @@
                 {% else %}
                     <p class="text-center text-muted my-3">You haven't uploaded any resources yet.</p>
                     <div class="text-center">
-                        <button class="btn btn-outline-primary" data-feature="in-progress">
+                        <a class="btn btn-outline-primary" href="{% url 'resources:resource_upload' %}">
                             <i class="bi bi-upload me-2"></i>Upload Your First Resource
-                        </button>
+                        </a>
                     </div>
                 {% endif %}
             </div>
@@ -171,7 +177,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Recently Verified Resources</h5>
-        <button class="btn btn-sm btn-outline-primary" data-feature="in-progress">View All</button>
+        <a href="{% url 'resources:verified_resources_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
     </div>
     <div class="card-body">
         {% if recently_verified %}
@@ -189,7 +195,7 @@
                         {% for resource in recently_verified %}
                         <tr>
                             <td>
-                                <a href="#" class="text-decoration-none" data-feature="in-progress">
+                                <a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">
                                     {{ resource.title }}
                                 </a>
                             </td>

@@ -55,17 +55,17 @@
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:dashboard' %}" data-feature-in-progress="resources" data-bs-toggle="tooltip" title="Coming Soon!">Resources</a>
+                        <a class="nav-link" href="{% url 'resources:resource_list' %}">Resources</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'accounts:dashboard' %}" data-feature-in-progress="flashcards" data-bs-toggle="tooltip" title="Coming Soon!">Flashcards</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:dashboard' %}" data-feature-in-progress="quizzes" data-bs-toggle="tooltip" title="Coming Soon!">Quizzes</a>
+                        <a class="nav-link" href="{% url 'accounts:dashboard' %}" data-bs-toggle="tooltip" title="Coming Soon!">Quizzes</a>
                     </li>
                 </ul>
                 
-                <form class="search-form d-none d-lg-block me-lg-3" method="get" action="#" role="search">
+                <form class="search-form d-none d-lg-block me-lg-3" method="get" action="{% url 'resources:resource_list' %}" role="search">
                     <div class="input-group input-group-sm search-input-group">
                         <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
                         <input class="form-control border-start-0" type="search" name="q" placeholder="Search resources" 

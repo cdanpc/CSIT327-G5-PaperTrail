@@ -186,11 +186,46 @@ def profile(request):
     user_resources = Resource.objects.filter(uploader=request.user).order_by('-created_at')[:10]
     user_bookmarks = Bookmark.objects.filter(user=request.user).order_by('-created_at')[:10]
     
+    # Count statistics
+    total_resources = Resource.objects.filter(uploader=request.user).count()
+    verified_resources = Resource.objects.filter(uploader=request.user, verification_status='verified').count()
+    pending_resources = Resource.objects.filter(uploader=request.user, verification_status='pending').count()
+    total_bookmarks = Bookmark.objects.filter(user=request.user).count()
+    
+    # Get recent activity (uploads and verifications)
+    recent_activities = []
+    
+    # Add resource uploads
+    for resource in Resource.objects.filter(uploader=request.user).order_by('-created_at')[:10]:
+        recent_activities.append({
+            'type': 'upload',
+            'resource': resource,
+            'timestamp': resource.created_at,
+            'status': resource.verification_status
+        })
+    
+    # Add verified resources (when they were verified)
+    for resource in Resource.objects.filter(uploader=request.user, verification_status='verified', verified_at__isnull=False).order_by('-verified_at')[:10]:
+        recent_activities.append({
+            'type': 'verified',
+            'resource': resource,
+            'timestamp': resource.verified_at,
+            'status': 'verified'
+        })
+    
+    # Sort by timestamp and limit to 10 most recent
+    recent_activities = sorted(recent_activities, key=lambda x: x['timestamp'], reverse=True)[:10]
+    
     context = {
         'form': form,
         'user': request.user,
         'user_resources': user_resources,
         'user_bookmarks': user_bookmarks,
+        'total_resources': total_resources,
+        'verified_resources': verified_resources,
+        'pending_resources': pending_resources,
+        'total_bookmarks': total_bookmarks,
+        'recent_activities': recent_activities,
     }
     return render(request, 'accounts/profile.html', context)
 
