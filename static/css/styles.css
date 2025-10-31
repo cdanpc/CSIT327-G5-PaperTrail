@@ -1,41 +1,48 @@
 /* PaperTrail Professional Design System - 60-30-10 Rule */
 :root {
-    /* 10% - Accent/Action Colors (Primary Brand) */
-    --color-accent-10: #A44A3F;           /* Terracotta Red - Primary accent */
-    --color-accent-dark: #8B3935;         /* Darker terracotta */
-    --color-accent-light: #C55A4F;        /* Lighter terracotta */
-    
+    /* 60% - Dominant/Background Colors */
+    --color-bg-60: #F0F0F0;               /* Light Gray - Main background */
+    --color-bg-70: #FFFFFF;               /* White - Lighter variant for cards */
+    --color-bg-80: #FFFFFF;               /* White - Pure white */
+    --color-card-bg: #FFFFFF;             /* Card background */
+
     /* 30% - Secondary/Supporting Colors */
     --color-ui-30: #CBDFBD;               /* Sage Green - Secondary UI */
     --color-subtle-accent: #D4E09B;       /* Yellow-Green - Subtle accent */
     
-    /* 60% - Dominant/Background Colors */
-    --color-bg-60: #F0F0F0;               /* Light Gray - Main background */
-    --color-bg-70: #FAFAFA;               /* Lighter variant */
-    --color-bg-80: #FFFFFF;               /* White variant */
-    --color-card-bg: #FFFFFF;             /* Card background */
-    
-    /* Text Colors (30%) */
+    /* Text Colors (part of 30%) */
     --color-text-primary: #333333;        /* Primary text */
     --color-text-secondary: #6b7280;      /* Secondary text */
     --color-text-muted: #9ca3af;          /* Muted text */
-    --color-text-white: #FFFFFF;          /* White text */
-    
-    /* Border Colors (30%) */
+    --color-text-white: #FFFFFF;          /* White text for dark backgrounds */
+
+    /* Border Colors (part of 30%) */
     --color-border: #e5e7eb;              /* Default border */
+
+    /* 10% - Accent/Action Colors (Primary Brand) */
+    --color-accent-10: #A44A3F;           /* Terracotta Red - Primary accent */
+    --color-accent-dark: #8B3935;         /* Darker terracotta for hover/active */
+    --color-accent-light: #C55A4F;        /* Lighter terracotta for highlights */
     
-    /* Legacy aliases for compatibility */
-    --bg-cream: #F0F0F0;
-    --bg-light-cream: #FFFFFF;
-    --bg-white: #FFFFFF;
-    --bg-card: #FFFFFF;
-    --text-primary: #333333;
-    --text-secondary: #6b7280;
-    --text-muted: #9ca3af;
-    --text-white: #FFFFFF;
+    /* Legacy aliases for compatibility - Mapped to new system */
+    --bg-cream: var(--color-bg-60);
+    --bg-light-cream: var(--color-bg-70);
+    --bg-white: var(--color-bg-80);
+    --bg-card: var(--color-card-bg);
+    --text-primary: var(--color-text-primary);
+    --text-secondary: var(--color-text-secondary);
+    --text-muted: var(--color-text-muted);
+    --text-white: var(--color-text-white);
+    --border-light: var(--color-border);
+
+    /* Component-specific legacy vars - Mapped to new system */
+    --c-1: var(--color-ui-30);
+    --c-2: var(--color-subtle-accent);
+    --c-3: var(--color-ui-30);
+    --c-4: var(--color-accent-light);
+    --c-5: var(--color-accent-10);
     
     /* Border & Shadow */
-    --border-light: #E5E5E5;
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -441,8 +448,8 @@ h6 { font-size: var(--font-size-base); }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(164, 74, 63, 0.12);
-    color: var(--c-5);
+    background-color: rgba(102, 126, 234, 0.12);
+    color: #667eea;
     font-size: 0.85rem;
 }
 
@@ -462,8 +469,8 @@ h6 { font-size: var(--font-size-base); }
 }
 
 .toast-info {
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.22), rgba(52, 152, 219, 0.08));
-    color: #0c5460;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.22), rgba(118, 75, 162, 0.08));
+    color: #667eea;
 }
 
 /* Footer */
@@ -915,26 +922,27 @@ footer {
 
 /* Authentication Pages */
 .auth-page-wrapper {
-    min-height: auto;
-    background: #f5f6fa;
+    min-height: 100vh;
+    background: var(--color-bg-60);
     display: flex;
-    align-items: flex-start;
-    padding: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
 }
 
 .auth-container {
-    max-width: 2000px;
-    margin: 0 auto;
+    max-width: 1200px;
     width: 100%;
+    margin: auto;
 }
 
 .auth-layout {
     display: flex;
-    background: white;
+    background: var(--color-card-bg);
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: none;
-    min-height: 650px;
+    box-shadow: var(--shadow-lg);
+    min-height: 700px;
 }
 
 .auth-image-panel {
@@ -943,10 +951,10 @@ footer {
     background-size: cover;
     background-position: center;
     position: relative;
-    min-height: 650px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2rem;
 }
 
 .auth-image-panel::before {
@@ -956,29 +964,30 @@ footer {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(212, 224, 155, 0.4) 0%, rgba(203, 223, 189, 0.4) 100%);
+    background: linear-gradient(135deg, rgba(203, 223, 189, 0.8) 0%, rgba(212, 224, 155, 0.8) 100%);
 }
 
 .branding-overlay {
     position: relative;
     z-index: 2;
     text-align: center;
-    color: #A44A3F;
+    color: var(--color-accent-10);
     padding: 2rem;
 }
 
 .branding-overlay h1 {
-    font-size: 4rem;
+    font-size: 3.5rem;
     font-weight: 800;
     margin-bottom: 0.5rem;
-    text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+    color: var(--color-accent-10);
+    text-shadow: 1px 1px 3px rgba(255,255,255,0.5);
 }
 
 .branding-overlay p {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 500;
-    color: #495057;
-    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+    color: var(--color-text-primary);
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
 }
 
 .auth-form-panel {
@@ -987,7 +996,7 @@ footer {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: white;
+    background: var(--color-card-bg);
 }
 
 .auth-card {
@@ -995,84 +1004,82 @@ footer {
     border: none;
     box-shadow: none;
     width: 100%;
-    max-width: 1200px;
 }
 
 .auth-card .card-header {
     background: transparent;
     border: none;
     padding: 0 0 1.5rem 0;
+    text-align: center;
 }
 
 .auth-card .card-header h3 {
-    color: #A44A3F;
+    color: var(--color-accent-10);
     font-size: 1.75rem;
     font-weight: 700;
     margin: 0 0 0.25rem 0;
 }
 
 .auth-card .card-header p {
-    color: #6c757d;
+    color: var(--color-text-secondary);
     font-size: 1rem;
     margin: 0;
 }
 
-.auth-card .card-body {
-    padding: 0;
-}
-
 .auth-card .form-control,
 .auth-card .form-select {
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.9rem 1.1rem;
     font-size: 1rem;
-    transition: none;
-    background: white;
+    transition: all 0.2s ease-in-out;
+    background-color: var(--color-bg-70);
 }
 
 .auth-card .form-control:focus,
 .auth-card .form-select:focus {
-    border-color: #e9ecef;
-    box-shadow: none;
+    border-color: var(--color-accent-10);
+    box-shadow: 0 0 0 3px rgba(164, 74, 63, 0.1);
+    background-color: var(--color-card-bg);
 }
 
 .auth-card .btn-primary {
-    padding: 1rem 1.5rem;
+    padding: 0.9rem 1.5rem;
     font-size: 1.05rem;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
+    width: 100%;
 }
 
 .auth-card .mb-3 {
-    margin-bottom: 1.5rem !important;
+    margin-bottom: 1.25rem !important;
 }
 
 .auth-links {
     margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #e9ecef;
+    text-align: center;
 }
 
 .auth-links a {
-    color: #A44A3F;
+    color: var(--color-accent-10);
     text-decoration: none;
     font-weight: 500;
 }
 
 .auth-links a:hover {
-    color: #F19C79;
+    text-decoration: underline;
+    color: var(--color-accent-dark);
 }
 
 .info-card {
-    background: rgba(248, 249, 250, 0.8);
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
+    background: var(--color-bg-60);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
     padding: 1rem 1.25rem;
     margin-top: 1.5rem;
 }
 
 .info-card h6 {
-    color: #A44A3F;
+    color: var(--color-accent-10);
     font-weight: 600;
     margin-bottom: 1rem;
 }
@@ -1084,15 +1091,25 @@ footer {
     }
     
     .auth-image-panel {
-        min-height: 300px;
+        min-height: 250px;
+        flex: 0.5;
     }
     
     .auth-form-panel {
         padding: 2rem;
     }
+    .branding-overlay h1 {
+        font-size: 2.5rem;
+    }
+    .branding-overlay p {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 576px) {
+    .auth-page-wrapper {
+        padding: 1rem;
+    }
     .auth-form-panel {
         padding: 1.5rem;
     }
