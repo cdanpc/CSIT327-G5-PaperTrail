@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile Customization - PaperTrail{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+    .customization-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+    
+    .customization-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .customization-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+    
+    .customization-header p {
+        color: #6b7280;
+        font-size: 1.125rem;
+    }
+    
+    .unlock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 1rem;
+    }
+    
+    .customization-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .section-description {
+        color: #6b7280;
+        margin-bottom: 2rem;
+    }
+    
+    .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .theme-card {
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+    }
+    
+    .theme-card:hover {
+        border-color: #667eea;
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    
+    .theme-card.active {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    }
+    
+    .theme-preview {
+        width: 100%;
+        height: 80px;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: flex;
+        overflow: hidden;
+    }
+    
+    .theme-color {
+        flex: 1;
+    }
+    
+    .theme-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .theme-colors-text {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+    
+    .coming-soon-banner {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 2rem;
+        font-weight: 600;
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .feature-list li {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .feature-list i {
+        color: #8b5cf6;
+        font-size: 1.25rem;
+    }
+    
+    .save-btn {
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .save-btn:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="customization-container">
+    <div class="customization-header">
+        <h1><i class="fas fa-palette"></i> Profile Customization</h1>
+        <p>Personalize your PaperTrail experience</p>
+        <span class="unlock-badge">
+            <i class="fas fa-unlock"></i>
+            Unlocked Feature
+        </span>
+    </div>
+    
+    <!-- Coming Soon Banner -->
+    <div class="coming-soon-banner">
+        <i class="fas fa-hammer"></i> Full customization features coming soon! Preview available themes below.
+    </div>
+    
+    <!-- Theme Selection -->
+    <div class="customization-section">
+        <h2 class="section-title">
+            <i class="fas fa-swatchbook"></i>
+            Choose Your Theme
+        </h2>
+        <p class="section-description">
+            Select a color theme to personalize your profile and dashboard.
+        </p>
+        
+        <div class="theme-grid">
+            {% for theme in themes %}
+            <div class="theme-card {% if forloop.first %}active{% endif %}" 
+                 data-primary="{{ theme.primary }}" 
+                 data-secondary="{{ theme.secondary }}">
+                <div class="theme-preview">
+                    <div class="theme-color theme-primary"></div>
+                    <div class="theme-color theme-secondary"></div>
+                </div>
+                <div class="theme-name">{{ theme.name }}</div>
+                <div class="theme-colors-text">
+                    {{ theme.primary }} • {{ theme.secondary }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Upcoming Features -->
+    <div class="customization-section">
+        <h2 class="section-title">
+            <i class="fas fa-sparkles"></i>
+            Upcoming Customization Features
+        </h2>
+        <ul class="feature-list">
+            <li>
+                <i class="fas fa-paint-brush"></i>
+                <span>Custom color picker for creating your own theme</span>
+            </li>
+            <li>
+                <i class="fas fa-image"></i>
+                <span>Profile background customization</span>
+            </li>
+            <li>
+                <i class="fas fa-font"></i>
+                <span>Font style preferences</span>
+            </li>
+            <li>
+                <i class="fas fa-layout"></i>
+                <span>Dashboard layout options</span>
+            </li>
+            <li>
+                <i class="fas fa-moon"></i>
+                <span>Dark mode theme</span>
+            </li>
+        </ul>
+    </div>
+    
+    <!-- Save Button -->
+    <div class="text-center mb-4">
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="save-btn">
+                <i class="fas fa-save"></i> Save Customization (Coming Soon)
+            </button>
+        </form>
+    </div>
+    
+    <!-- Back to Profile -->
+    <div class="text-center">
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Profile
+        </a>
+    </div>
+</div>
+
+<script>
+    // Apply theme colors from data attributes (avoids CSS linting errors with Django templates)
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.theme-card').forEach(card => {
+            const primaryColor = card.dataset.primary;
+            const secondaryColor = card.dataset.secondary;
+            
+            // Apply colors to the theme preview divs
+            const primaryDiv = card.querySelector('.theme-primary');
+            const secondaryDiv = card.querySelector('.theme-secondary');
+            
+            if (primaryDiv && primaryColor) {
+                primaryDiv.style.backgroundColor = primaryColor;
+            }
+            if (secondaryDiv && secondaryColor) {
+                secondaryDiv.style.backgroundColor = secondaryColor;
+            }
+            
+            // Theme card selection handler
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    });
+</script>
+{% endblock %}
