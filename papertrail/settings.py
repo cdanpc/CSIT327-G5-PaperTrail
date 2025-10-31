@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'accounts.middleware.ForcePasswordChangeMiddleware',
     'accounts.middleware.UserRoleMiddleware',
+    'accounts.middleware.SessionTrackingMiddleware',  # Track user sessions
 ]
 
 ROOT_URLCONF = 'papertrail.urls'
@@ -72,6 +73,9 @@ SUPABASE_URL = config('SUPABASE_URL', default='https://rhkmdnwrdbvicxpanhnz.supa
 SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')
 SUPABASE_BUCKET = config('SUPABASE_BUCKET', default='papertrail-storage')
 
+# Use SQLite for local development, PostgreSQL for production
+USE_POSTGRES = config('USE_POSTGRES', default=False, cast=bool)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -84,6 +88,7 @@ DATABASES = {
         # 'OPTIONS': {'pool_mode': config('POOL_MODE', default='transaction')}
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -164,4 +169,19 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 # Session settings
 SESSION_COOKIE_AGE = 86400  # 24 hours in seconds
 SESSION_SAVE_EVERY_REQUEST = True
+
+# Email settings - Gmail SMTP for production (sends actual emails)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')  # Gmail App Password from .env
+DEFAULT_FROM_EMAIL = 'PaperTrail <noreply@papertrail.com>'
+
+# Note: Using Gmail App Password from .env file
+# If emails fail to send, verify:
+# 1. 2-Factor Authentication is enabled on Gmail
+# 2. App Password is correctly set in .env (16 characters)
+# 3. EMAIL_HOST_USER matches the Gmail account
 
