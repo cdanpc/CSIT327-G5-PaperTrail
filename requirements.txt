@@ -7,6 +7,7 @@ requests==2.31.0
 django-crispy-forms==2.0
 crispy-bootstrap5==0.7
 gunicorn==21.2.0
+user-agents==2.2.0
 # Supabase and dependencies - use compatible versions
 supabase==2.9.0
 storage3==0.8.1
