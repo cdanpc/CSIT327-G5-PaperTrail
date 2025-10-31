@@ -1,0 +1,41 @@
+/* Feature In Progress Popup Styles */
+.feature-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    z-index: 9999;
+    min-width: 320px;
+    max-width: 90vw;
+    padding: 2rem 1.5rem 1.5rem 1.5rem;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: auto;
+}
+.feature-popup.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+.feature-popup-content {
+    text-align: center;
+}
+.feature-popup-content h4 {
+    color: var(--color-accent-10, #A44A3F);
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+.feature-popup-content p {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+.feature-popup-content .btn {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+}

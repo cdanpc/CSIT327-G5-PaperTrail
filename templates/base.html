@@ -10,16 +10,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}?v=4.5">
     {% if request.resolver_match.url_name == 'home' and not user.is_authenticated %}
-    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=4.5">
     {% endif %}
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column h-100">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+    <nav class="navbar navbar-expand-lg {% if request.resolver_match.url_name == 'home' and not user.is_authenticated %}navbar-landing{% else %}navbar-light bg-light{% endif %} sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
                 <i class="fas fa-file-alt me-2"></i>
@@ -121,19 +121,16 @@
                             </ul>
                         </li>
                     {% else %}
-                        {% if request.resolver_match.url_name == 'home' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:login' %}">Sign In</a>
-                        </li>
-                        <li class="nav-item ms-2">
-                            <a class="btn btn-primary btn-sm px-4" href="{% url 'accounts:register' %}">Get Started</a>
-                        </li>
-                        {% elif request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+                        {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' %}
+                        <li class="nav-item me-2">
+                            <a class="btn btn-outline-light" href="{% url 'accounts:login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:register' %}">Register</a>
+                            <a class="btn btn-light" href="{% url 'accounts:register' %}">
+                                <i class="fas fa-user-plus me-1"></i> Get Started
+                            </a>
                         </li>
                         {% endif %}
                     {% endif %}
@@ -188,26 +185,26 @@
                 <div class="text-center">
                     <!-- Trust Badge -->
                     <div class="trust-badge mb-4">
-                        <i class="fas fa-star text-warning me-2"></i>
-                        Trusted by 10,000+ Students Worldwide
+                        <i class="fas fa-users me-2"></i>
+                        Connecting 10,000+ Students Worldwide
                     </div>
                     
                     <!-- Main Headline -->
-                    <h1 class="hero-title mb-4">Your Academic<br>Success Hub</h1>
+                    <h1 class="hero-title mb-4">Study Smarter, Not Harder</h1>
                     
                     <!-- Subtitle -->
                     <p class="hero-subtitle mb-5">
-                        Organize, share, and discover educational resources. Create quizzes, flashcards, and collaborate<br>
-                        with peers—all in one place.
+                        Connect with students worldwide. Share study materials instantly. Learn collaboratively online.<br>
+                        Join thousands transforming their academic journey through digital collaboration.
                     </p>
                     
                     <!-- CTA Buttons -->
                     <div class="hero-cta mb-5">
                         <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg me-3">
-                            <i class="fas fa-rocket me-2"></i>Get Started Free
+                            <i class="fas fa-rocket me-2"></i>Start Learning Free
                         </a>
-                        <a href="#" class="btn btn-outline-primary btn-lg" data-feature-in-progress="demo">
-                            <i class="fas fa-play-circle me-2"></i>Watch Demo
+                        <a href="#features" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-play-circle me-2"></i>See How It Works
                         </a>
                     </div>
                 </div>
@@ -263,12 +260,12 @@
                             <div class="feature-icon feature-icon-red">
                                 <i class="fas fa-book-open"></i>
                             </div>
-                            <h4 class="feature-title">Resource Library</h4>
+                            <h4 class="feature-title">Find Any Study Material</h4>
                             <p class="feature-description">
                                 Access thousands of PDFs, notes, and study materials shared by students and educators worldwide.
                             </p>
                             <a href="#" class="feature-link" data-feature-in-progress="resources">
-                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                                Explore resources <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
@@ -279,12 +276,12 @@
                             <div class="feature-icon feature-icon-green">
                                 <i class="fas fa-question-circle"></i>
                             </div>
-                            <h4 class="feature-title">Interactive Quizzes</h4>
+                            <h4 class="feature-title">Test Your Knowledge</h4>
                             <p class="feature-description">
                                 Create and take quizzes with instant feedback. Track your progress and identify areas for improvement.
                             </p>
                             <a href="#" class="feature-link" data-feature-in-progress="quizzes">
-                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                                Start practicing <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
@@ -295,12 +292,12 @@
                             <div class="feature-icon feature-icon-sage">
                                 <i class="fas fa-layer-group"></i>
                             </div>
-                            <h4 class="feature-title">Smart Flashcards</h4>
+                            <h4 class="feature-title">Remember Everything</h4>
                             <p class="feature-description">
                                 Build custom flashcard decks with spaced repetition algorithms to enhance memory retention.
                             </p>
                             <a href="#" class="feature-link" data-feature-in-progress="flashcards">
-                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                                Try flashcards <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
@@ -311,12 +308,12 @@
                             <div class="feature-icon feature-icon-red">
                                 <i class="fas fa-users"></i>
                             </div>
-                            <h4 class="feature-title">Peer Collaboration</h4>
+                            <h4 class="feature-title">Study Together</h4>
                             <p class="feature-description">
                                 Review and discuss resources with classmates. Share insights and learn together in a community.
                             </p>
                             <a href="#" class="feature-link" data-feature-in-progress="collaboration">
-                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                                Join the community <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
@@ -327,12 +324,12 @@
                             <div class="feature-icon feature-icon-green">
                                 <i class="fas fa-chart-line"></i>
                             </div>
-                            <h4 class="feature-title">Progress Tracking</h4>
+                            <h4 class="feature-title">Watch Yourself Improve</h4>
                             <p class="feature-description">
                                 Monitor your learning journey with detailed analytics and personalized recommendations.
                             </p>
                             <a href="#" class="feature-link" data-feature-in-progress="tracking">
-                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                                See your stats <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
@@ -343,12 +340,12 @@
                             <div class="feature-icon feature-icon-sage">
                                 <i class="fas fa-shield-alt"></i>
                             </div>
-                            <h4 class="feature-title">Privacy Controls</h4>
+                            <h4 class="feature-title">Your Content, Your Rules</h4>
                             <p class="feature-description">
                                 Keep your resources private, share with specific people, or make them public—you're in control.
                             </p>
                             <a href="#" class="feature-link" data-feature-in-progress="privacy">
-                                Learn more <i class="fas fa-arrow-right ms-2"></i>
+                                Learn about privacy <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
@@ -419,8 +416,8 @@
                     <div class="section-badge mb-3">
                         <i class="fas fa-users me-2"></i>OUR TEAM
                     </div>
-                    <h2 class="section-title">Meet the Team</h2>
-                    <p class="section-subtitle">The talented people behind PaperTrail</p>
+                    <h2 class="section-title">The Students Behind PaperTrail</h2>
+                    <p class="section-subtitle">Students building tools for students</p>
                 </div>
                 
                 <!-- Development Team -->
@@ -566,17 +563,17 @@
                 <div class="col-md-2">
                     <h6 class="mb-3 text-uppercase fw-bold">Quick Links</h6>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'home' %}" class="text-muted text-decoration-none hover-link">Home</a></li>
-                        <li class="mb-2"><a href="{% url 'accounts:login' %}" class="text-muted text-decoration-none hover-link">Login</a></li>
-                        <li class="mb-2"><a href="{% url 'accounts:register' %}" class="text-muted text-decoration-none hover-link">Register</a></li>
+                        <li class="mb-2"><a href="#home" class="text-muted text-decoration-none hover-link footer-scroll-link">Home</a></li>
+                        <li class="mb-2"><a href="#features" class="text-muted text-decoration-none hover-link footer-scroll-link">Features</a></li>
+                        <li class="mb-2"><a href="#team" class="text-muted text-decoration-none hover-link footer-scroll-link">Team</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
-                    <h6 class="mb-3 text-uppercase fw-bold">Features</h6>
+                    <h6 class="mb-3 text-uppercase fw-bold">Get Started</h6>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-link" data-feature-in-progress="resources">Resources</a></li>
-                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-link" data-feature-in-progress="flashcards">Flashcards</a></li>
-                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-link" data-feature-in-progress="quizzes">Quizzes</a></li>
+                        <li class="mb-2"><a href="{% url 'accounts:login' %}" class="text-muted text-decoration-none hover-link">Login</a></li>
+                        <li class="mb-2"><a href="{% url 'accounts:register' %}" class="text-muted text-decoration-none hover-link">Register</a></li>
+                        <li class="mb-2"><a href="#features" class="text-muted text-decoration-none hover-link footer-scroll-link">View Features</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
@@ -605,6 +602,9 @@
     </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% load static %}
+    <script src="{% static 'js/script.js' %}?v=3.0"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -686,56 +686,22 @@
                 toast.show();
             });
 
-            // Password visibility toggles
-            document.querySelectorAll('input[type="password"]').forEach(input => {
-                if (input.closest('.password-toggle-wrapper')) {
-                    return;
-                }
-
-                const wrapper = document.createElement('div');
-                wrapper.className = 'password-toggle-wrapper position-relative';
-                input.parentNode.insertBefore(wrapper, input);
-                wrapper.appendChild(input);
-
-                const toggleBtn = document.createElement('button');
-                toggleBtn.type = 'button';
-                toggleBtn.className = 'password-toggle-btn';
-                toggleBtn.setAttribute('aria-label', 'Toggle password visibility');
-                toggleBtn.innerHTML = '<i class="fas fa-eye"></i>';
-
-                // Toggle password visibility
-                toggleBtn.addEventListener('click', () => {
-                    const isPassword = input.getAttribute('type') === 'password';
-                    input.setAttribute('type', isPassword ? 'text' : 'password');
-                    toggleBtn.innerHTML = isPassword
-                        ? '<i class="fas fa-eye-slash"></i>'
-                        : '<i class="fas fa-eye"></i>';
-                });
-
-                // Show/hide toggle button based on input value
-                const updateToggleVisibility = () => {
-                    if (input.value.length > 0) {
-                        toggleBtn.classList.add('show');
-                    } else {
-                        toggleBtn.classList.remove('show');
-                    }
-                };
-
-                // Check on input event
-                input.addEventListener('input', updateToggleVisibility);
-                
-                // Check on page load (for autofilled passwords)
-                updateToggleVisibility();
-                
-                // Check after a delay for browser autofill
-                setTimeout(updateToggleVisibility, 100);
-
-                wrapper.appendChild(toggleBtn);
-            });
+            // Password toggle handled by auth.js
         });
 
         // Smooth Scroll for Landing Page Navigation
         document.addEventListener('DOMContentLoaded', function() {
+            // Navbar scroll effect
+            const navbar = document.querySelector('.navbar');
+            
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            
             const navLinks = document.querySelectorAll('.navbar-nav .nav-link[href^="#"]');
             
             navLinks.forEach(link => {
@@ -781,6 +747,27 @@
             }
             
             window.addEventListener('scroll', highlightNavOnScroll);
+        });
+        
+        // Smooth Scroll for Footer Links
+        document.addEventListener('DOMContentLoaded', function() {
+            const footerLinks = document.querySelectorAll('.footer-scroll-link[href^="#"]');
+            
+            footerLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    
+                    if (targetSection) {
+                        targetSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
         });
     </script>
     
