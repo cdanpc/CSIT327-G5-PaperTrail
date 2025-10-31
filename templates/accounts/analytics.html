@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Advanced Analytics - PaperTrail{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+    .analytics-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+    
+    .analytics-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .analytics-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+    
+    .analytics-header p {
+        color: #6b7280;
+        font-size: 1.125rem;
+    }
+    
+    .unlock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 1rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+    
+    .stat-icon.purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .stat-icon.blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .stat-icon.green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .stat-icon.gold { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+    
+    .analytics-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .resource-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .resource-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+    
+    .resource-item:hover {
+        background: #f3f4f6;
+    }
+    
+    .resource-info h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.25rem;
+    }
+    
+    .resource-info p {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+    }
+    
+    .resource-stats {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+    }
+    
+    .resource-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .type-breakdown {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .type-item {
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .type-count {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #667eea;
+    }
+    
+    .type-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        text-transform: capitalize;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h1><i class="fas fa-chart-line"></i> Advanced Analytics</h1>
+        <p>Detailed insights into your PaperTrail activity</p>
+        <span class="unlock-badge">
+            <i class="fas fa-unlock"></i>
+            Unlocked Feature
+        </span>
+    </div>
+    
+    <!-- Key Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon purple">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ total_resources }}</div>
+                    <div class="stat-label">Resources Shared</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon blue">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ total_views }}</div>
+                    <div class="stat-label">Total Views</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon green">
+                    <i class="fas fa-download"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ total_downloads }}</div>
+                    <div class="stat-label">Total Downloads</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon gold">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ total_bookmarks }}</div>
+                    <div class="stat-label">Resources Bookmarked</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="analytics-section">
+        <h2 class="section-title">
+            <i class="fas fa-calendar-alt text-primary"></i>
+            Recent Activity (Last 30 Days)
+        </h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value text-primary">{{ recent_uploads }}</div>
+                <div class="stat-label">New Uploads</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value text-primary">{{ recent_bookmarks }}</div>
+                <div class="stat-label">New Bookmarks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value text-primary">{{ avg_views_per_resource }}</div>
+                <div class="stat-label">Avg Views/Resource</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Resources -->
+    {% if top_resources %}
+    <div class="analytics-section">
+        <h2 class="section-title">
+            <i class="fas fa-fire text-danger"></i>
+            Most Viewed Resources
+        </h2>
+        <div class="resource-list">
+            {% for resource in top_resources %}
+            <div class="resource-item">
+                <div class="resource-info">
+                    <h4>{{ resource.title }}</h4>
+                    <p>{{ resource.resource_type|title }} • Uploaded {{ resource.created_at|date:"M d, Y" }}</p>
+                </div>
+                <div class="resource-stats">
+                    <span class="resource-stat">
+                        <i class="fas fa-eye"></i>
+                        {{ resource.views }}
+                    </span>
+                    <span class="resource-stat">
+                        <i class="fas fa-download"></i>
+                        {{ resource.downloads }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Resources by Type -->
+    {% if resources_by_type %}
+    <div class="analytics-section">
+        <h2 class="section-title">
+            <i class="fas fa-chart-pie text-info"></i>
+            Resources by Type
+        </h2>
+        <div class="type-breakdown">
+            {% for item in resources_by_type %}
+            <div class="type-item">
+                <div class="type-count">{{ item.count }}</div>
+                <div class="type-label">{{ item.resource_type|title }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Back to Profile -->
+    <div class="text-center mt-4">
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Profile
+        </a>
+    </div>
+</div>
+{% endblock %}

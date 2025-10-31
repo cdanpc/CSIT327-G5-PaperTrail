@@ -1,0 +1,410 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - PaperTrail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=6.0">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=2.0">
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Unified Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <!-- PaperTrail Brand/Toggle -->
+        <div class="sidebar-brand-toggle" id="sidebarToggle">
+            <i class="fas fa-book-reader"></i>
+            <span class="sidebar-text">PaperTrail</span>
+        </div>
+
+        <!-- Sidebar Content -->
+        <div class="sidebar-content">
+            <!-- Main Navigation -->
+            <nav class="sidebar-nav">
+                <a href="{% url 'accounts:student_dashboard' %}" class="sidebar-item">
+                    <i class="fas fa-home"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+                <a href="{% url 'resources:home' %}" class="sidebar-item">
+                    <i class="fas fa-book"></i>
+                    <span class="sidebar-text">Resources</span>
+                </a>
+                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
+                    <i class="fas fa-bookmark"></i>
+                    <span class="sidebar-text">Bookmarks</span>
+                    <span class="coming-soon-badge">Soon</span>
+                </a>
+                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="sidebar-text">Flashcards</span>
+                    <span class="coming-soon-badge">Soon</span>
+                </a>
+                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span class="sidebar-text">Quizzes</span>
+                    <span class="coming-soon-badge">Soon</span>
+                </a>
+                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
+                    <i class="fas fa-comments"></i>
+                    <span class="sidebar-text">Forum</span>
+                    <span class="coming-soon-badge">Soon</span>
+                </a>
+            </nav>
+
+            <!-- Sidebar Footer (Profile, Settings, Sign Out) -->
+            <div class="sidebar-footer">
+                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
+                    <i class="fas fa-user"></i>
+                    <span class="sidebar-text">Profile</span>
+                </a>
+                <a href="{% url 'accounts:settings' %}" class="sidebar-item active">
+                    <i class="fas fa-cog"></i>
+                    <span class="sidebar-text">Settings</span>
+                </a>
+                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="sidebar-text">Sign Out</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content-wrapper">
+        <div class="container-fluid py-4">
+            <!-- Page Header -->
+            <div class="settings-header">
+                <h1 class="settings-page-title">
+                    <i class="fas fa-cog"></i>
+                    Account Settings
+                </h1>
+                <p class="settings-subtitle">Manage your account preferences and security</p>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="settings-content">
+                <!-- Account Security Card -->
+                <div class="settings-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Account Security
+                        </h3>
+                        <p class="card-subtitle">Manage your password and email settings</p>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4 class="setting-title">Password</h4>
+                                <p class="setting-description">Change your password to keep your account secure</p>
+                            </div>
+                            <div class="setting-action">
+                                <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-key me-2"></i>
+                                    Change Password
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4 class="setting-title">Personal Email</h4>
+                                <p class="setting-description">Update your personal email address</p>
+                                <small class="setting-meta">Current: {{ user.personal_email }}</small>
+                            </div>
+                            <div class="setting-action">
+                                <a href="{% url 'accounts:change_personal_email' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    Change Email
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4 class="setting-title">University Email</h4>
+                                            <p class="setting-description">Update your university email (requires verification)</p>
+                                            <small class="text-muted">Current: {{ user.univ_email }}</small>
+                                        </div>
+                                        <a href="{% url 'accounts:change_university_email' %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-university"></i>
+                                            Change Email
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Two-Factor Authentication</h4>
+                                            <p class="setting-description">Add an extra layer of security to your account</p>
+                                            <span class="badge bg-warning text-dark">Coming Soon</span>
+                                        </div>
+                                        <button class="btn btn-outline-secondary" disabled>
+                                            <i class="fas fa-mobile-alt"></i>
+                                            Enable 2FA
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preferences Card -->
+                            <div class="profile-card">
+                                <div class="card-header-row">
+                                    <h3 class="card-title">
+                                        <i class="fas fa-sliders-h"></i>
+                                        Preferences
+                                    </h3>
+                                </div>
+                                
+                                <form method="post" id="preferencesForm">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="save_preferences" value="1">
+                                    
+                                    <div class="settings-section">
+                                        <div class="setting-item">
+                                            <div class="setting-info">
+                                                <h4 class="setting-title">Default Dashboard View</h4>
+                                                <p class="setting-description">Choose which page to see when you log in</p>
+                                            </div>
+                                            <select class="form-select settings-select" name="default_dashboard" id="defaultDashboard">
+                                                {% for value, label in dashboard_choices %}
+                                                    <option value="{{ value }}" {% if user.default_dashboard == value %}selected{% endif %}>
+                                                        {{ label }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="setting-item">
+                                            <div class="setting-info">
+                                                <h4 class="setting-title">Language</h4>
+                                                <p class="setting-description">Choose your preferred language</p>
+                                            </div>
+                                            <select class="form-select settings-select" name="language" id="language">
+                                                {% for value, label in language_choices %}
+                                                    <option value="{{ value }}" {% if user.language == value %}selected{% endif %}>
+                                                        {{ label }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="setting-item">
+                                            <div class="setting-info">
+                                                <h4 class="setting-title">Theme Mode</h4>
+                                                <p class="setting-description">Customize the appearance of PaperTrail</p>
+                                                <span class="badge bg-info text-dark">Coming in Phase 8</span>
+                                            </div>
+                                            <select class="form-select settings-select" disabled>
+                                                <option value="light" selected>Light</option>
+                                                <option value="dark">Dark</option>
+                                                <option value="auto">System Default</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="setting-item">
+                                            <div class="setting-info"></div>
+                                            <button type="submit" class="btn btn-outline-primary">
+                                                <i class="fas fa-save me-2"></i>
+                                                Save Preferences
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Notifications Card -->
+                            <div class="profile-card">
+                                <div class="card-header-row">
+                                    <h3 class="card-title">
+                                        <i class="fas fa-bell"></i>
+                                        Notifications
+                                    </h3>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Email Notifications</h4>
+                                            <p class="setting-description">Receive updates about your uploads and activity</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input notification-toggle" type="checkbox" 
+                                                   id="emailNotifications" 
+                                                   {% if user.email_notifications %}checked{% endif %}>
+                                            <label class="form-check-label" for="emailNotifications"></label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Resource Downloads</h4>
+                                            <p class="setting-description">Get notified when your uploaded resources are downloaded</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input notification-toggle" type="checkbox" 
+                                                   id="resourceDownloads" 
+                                                   {% if user.notify_resource_downloads %}checked{% endif %}>
+                                            <label class="form-check-label" for="resourceDownloads"></label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Quiz Submissions</h4>
+                                            <p class="setting-description">Receive notifications about quiz submissions and results</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input notification-toggle" type="checkbox" 
+                                                   id="quizSubmissions" 
+                                                   {% if user.notify_quiz_submissions %}checked{% endif %}>
+                                            <label class="form-check-label" for="quizSubmissions"></label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">System Updates</h4>
+                                            <p class="setting-description">Receive announcements and important system updates</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input notification-toggle" type="checkbox" 
+                                                   id="systemUpdates" 
+                                                   {% if user.notify_system_updates %}checked{% endif %}>
+                                            <label class="form-check-label" for="systemUpdates"></label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Weekly Summary</h4>
+                                            <p class="setting-description">Receive a weekly summary of your PaperTrail activity</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input notification-toggle" type="checkbox" 
+                                                   id="weeklySummary" 
+                                                   {% if user.notify_weekly_summary %}checked{% endif %}>
+                                            <label class="form-check-label" for="weeklySummary"></label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">In-App Sound</h4>
+                                            <p class="setting-description">Play sound for in-app notifications</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input notification-toggle" type="checkbox" 
+                                                   id="inAppSound" 
+                                                   {% if user.in_app_sound %}checked{% endif %}>
+                                            <label class="form-check-label" for="inAppSound"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Privacy & Security Card -->
+                            <div class="profile-card">
+                                <div class="card-header-row">
+                                    <h3 class="card-title">
+                                        <i class="fas fa-user-shield"></i>
+                                        Privacy & Security
+                                    </h3>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Profile Visibility</h4>
+                                            <p class="setting-description">Control who can see your profile information</p>
+                                        </div>
+                                        <select class="form-select settings-select" id="profileVisibility">
+                                            {% for value, label in visibility_choices %}
+                                                <option value="{{ value }}" {% if user.profile_visibility == value %}selected{% endif %}>
+                                                    {{ label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Active Sessions</h4>
+                                            <p class="setting-description">View and manage devices where you're logged in</p>
+                                        </div>
+                                        <button class="btn btn-outline-primary" id="viewSessionsBtn">
+                                            <i class="fas fa-laptop"></i>
+                                            View Devices
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Logout All Sessions</h4>
+                                            <p class="setting-description">Sign out from all devices except this one</p>
+                                        </div>
+                                        <button class="btn btn-outline-warning" id="logoutAllBtn">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                            Logout All Devices
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Data Export</h4>
+                                            <p class="setting-description">Download a copy of your PaperTrail data</p>
+                                        </div>
+                                        <button class="btn btn-outline-secondary" id="exportDataBtn">
+                                            <i class="fas fa-download"></i>
+                                            Download My Data
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Danger Zone Card -->
+                            <div class="profile-card border-danger">
+                                <div class="card-header-row">
+                                    <h3 class="card-title text-danger">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Danger Zone
+                                    </h3>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title text-danger">Delete Account</h4>
+                                            <p class="setting-description">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                                        </div>
+                                        <button class="btn btn-outline-danger" id="deleteAccountBtn">
+                                            <i class="fas fa-trash-alt"></i>
+                                            Delete Account
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/sidebar.js' %}?v=5.0"></script>
+    <script src="{% static 'js/settings.js' %}?v=2.0"></script>
+</body>
+</html>

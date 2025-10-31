@@ -24,11 +24,11 @@ from django.conf.urls.static import static
 def home_view(request):
     """
     Home view that redirects authenticated users to dashboard,
-    and shows landing page to anonymous users.
+    and shows landing page (base.html) to anonymous users.
     """
     if request.user.is_authenticated:
         return redirect('accounts:dashboard')
-    return render(request, 'landing.html')
+    return render(request, 'base.html')
 
 
 urlpatterns = [

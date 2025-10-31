@@ -1,78 +1,140 @@
-{% extends 'base.html' %}
-{% load crispy_forms_tags %}
-
-{% block title %}Login - PaperTrail{% endblock %}
-
-{% block extra_js %}
-<script>
-function showResetPasswordMessage(event) {
-    event.preventDefault();
-    const modal = new bootstrap.Modal(document.getElementById('featureInProgressModal'));
-    modal.show();
-}
-</script>
-{% endblock %}
-
-{% block content %}
-<!-- Feature In Progress Modal -->
-<div class="modal fade" id="featureInProgressModal" tabindex="-1" aria-labelledby="featureInProgressModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="featureInProgressModalLabel">
-                    <i class="fas fa-tools me-2"></i>Feature in Progress
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PaperTrail</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Login Page CSS -->
+    <link rel="stylesheet" href="{% static 'css/login_new.css' %}">
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-icon">
+                <i class="fas fa-sign-in-alt"></i>
             </div>
-            <div class="modal-body">
-                <p class="mb-0">The password reset feature is currently under development. Please contact your administrator for assistance.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="text-center mb-0">Login</h3>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-                
-                <div class="text-center mt-3">
-                    <p class="mb-0">
-                        Don't have an account? 
-                        <a href="{% url 'accounts:register' %}">Register here</a>
-                    </p>
-                    <p class="mb-0">
-                        <a href="#" onclick="showResetPasswordMessage(event)">Forgot your password?</a>
-                    </p>
-                </div>
-            </div>
+            <h1 class="login-title">Welcome Back!</h1>
+            <p class="login-subtitle">Sign in to continue your academic journey</p>
         </div>
         
-        <div class="card mt-3">
-            <div class="card-body">
-                <h6>Login Options</h6>
-                <small class="text-muted">
-                    You can login using any of the following:
-                    <ul class="mt-2">
-                        <li>Username</li>
-                        <li>Student ID (format: ##-####-### for students or #### for professors)</li>
-                        <li>University Email (@cit.edu)</li>
-                    </ul>
-                </small>
+        {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form method="post" novalidate id="loginForm">
+            {% csrf_token %}
+            
+            <!-- Username/Email Field -->
+            <div class="form-field">
+                <label for="id_username">Email or Student ID</label>
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        name="username" 
+                        id="id_username" 
+                        class="{% if form.username.errors %}error{% endif %}"
+                        value="{{ form.username.value|default:'' }}"
+                        placeholder="your.email@cit.edu or 12-3456-789"
+                        required
+                    >
+                    {% if form.username.errors %}
+                    <i class="fas fa-exclamation-circle validation-icon error"></i>
+                    <div class="validation-tooltip">{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Password Field -->
+            <div class="form-field">
+                <label for="id_password">Password</label>
+                <div class="password-field-wrapper">
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="id_password" 
+                        class="{% if form.password.errors %}error{% endif %}"
+                        required
+                        placeholder="••••••••"
+                    >
+                    <button type="button" class="toggle-password-btn" id="togglePassword">
+                        <img src="{% static 'svgs/basil--eye-outline.svg' %}" alt="Show password" id="eyeIcon">
+                    </button>
+                    {% if form.password.errors %}
+                    <i class="fas fa-exclamation-circle validation-icon error"></i>
+                    <div class="validation-tooltip">{{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Non-field errors (invalid credentials) -->
+            {% if form.non_field_errors %}
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+            
+            <!-- Forgot Password Link - TEMP DISABLED -->
+            <!-- <div class="forgot-password-link">
+                <a href="{% url 'accounts:password_reset' %}">Forgot your password?</a>
+            </div> -->
+            
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+        
+        <!-- Register Link -->
+        <div class="register-link">
+            Don't have an account? <a href="{% url 'accounts:register' %}">Create one now</a>
+        </div>
+        
+        <!-- Back to Home -->
+        <div class="back-link">
+            <a href="{% url 'home' %}">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
         </div>
     </div>
-</div>
-{% endblock %}
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Password toggle functionality
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('id_password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        
+        if (togglePassword && passwordInput && eyeIcon) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                // Toggle eye icon
+                if (type === 'text') {
+                    eyeIcon.src = "{% static 'svgs/basil--eye-solid.svg' %}";
+                } else {
+                    eyeIcon.src = "{% static 'svgs/basil--eye-outline.svg' %}";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+

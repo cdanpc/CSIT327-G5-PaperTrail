@@ -1,0 +1,287 @@
+/* ============================================
+   PAPERTRAIL THEME VARIABLES
+   Version: 1.0
+   Description: Centralized CSS variables for theming
+   Last Updated: October 31, 2025
+   ============================================ */
+
+/* ===== LIGHT THEME (DEFAULT) ===== */
+:root {
+    /* === PRIMARY BRAND COLORS === */
+    --primary-color: #667eea;
+    --primary-dark: #5568d3;
+    --primary-light: #818cf8;
+    --primary-gradient-start: #667eea;
+    --primary-gradient-end: #764ba2;
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-color: #764ba2;
+    
+    /* === STATUS COLORS === */
+    --success-color: #10b981;
+    --success-light: #34d399;
+    --success-dark: #059669;
+    
+    --warning-color: #f59e0b;
+    --warning-light: #fbbf24;
+    --warning-dark: #d97706;
+    
+    --danger-color: #ef4444;
+    --danger-light: #f87171;
+    --danger-dark: #dc2626;
+    
+    --info-color: #3b82f6;
+    --info-light: #60a5fa;
+    --info-dark: #2563eb;
+    
+    /* === TEXT COLORS === */
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-tertiary: #94a3b8;
+    --text-muted: #cbd5e1;
+    --text-inverse: #ffffff;
+    
+    /* === BACKGROUND COLORS === */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --bg-quaternary: #e2e8f0;
+    --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    
+    /* === BORDER COLORS === */
+    --border-color: #e2e8f0;
+    --border-light: #f1f5f9;
+    --border-dark: #cbd5e1;
+    
+    /* === SIDEBAR COLORS === */
+    --sidebar-bg: #ffffff;
+    --sidebar-bg-gradient: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+    --sidebar-text: #475569;
+    --sidebar-text-hover: #1e293b;
+    --sidebar-icon: #94a3b8;
+    --sidebar-icon-hover: #667eea;
+    --sidebar-active-bg: rgba(102, 126, 234, 0.1);
+    --sidebar-active-text: #667eea;
+    --sidebar-hover-bg: rgba(102, 126, 234, 0.05);
+    --sidebar-border: #e2e8f0;
+    --sidebar-shadow: 0 2px 10px rgba(102, 126, 234, 0.08);
+    
+    /* === CARD COLORS === */
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --card-hover-bg: #f8fafc;
+    
+    /* === SPACING === */
+    --spacing-xs: 0.5rem;      /* 8px */
+    --spacing-sm: 0.75rem;     /* 12px */
+    --spacing-md: 1rem;        /* 16px */
+    --spacing-lg: 1.5rem;      /* 24px */
+    --spacing-xl: 2rem;        /* 32px */
+    --spacing-2xl: 3rem;       /* 48px */
+    --spacing-3xl: 4rem;       /* 64px */
+    
+    /* === BORDER RADIUS === */
+    --radius-sm: 0.5rem;       /* 8px */
+    --radius-md: 0.75rem;      /* 12px */
+    --radius-lg: 1rem;         /* 16px */
+    --radius-xl: 1.25rem;      /* 20px */
+    --radius-2xl: 1.5rem;      /* 24px */
+    --radius-full: 9999px;     /* Full rounded */
+    
+    /* === SHADOWS === */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-primary: 0 10px 25px -5px rgba(102, 126, 234, 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    
+    /* === TRANSITIONS === */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slowest: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* === TYPOGRAPHY === */
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-family-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-family-mono: 'Fira Code', 'Courier New', monospace;
+    
+    --font-size-xs: 0.75rem;      /* 12px */
+    --font-size-sm: 0.875rem;     /* 14px */
+    --font-size-base: 1rem;       /* 16px */
+    --font-size-lg: 1.125rem;     /* 18px */
+    --font-size-xl: 1.25rem;      /* 20px */
+    --font-size-2xl: 1.5rem;      /* 24px */
+    --font-size-3xl: 1.875rem;    /* 30px */
+    --font-size-4xl: 2.25rem;     /* 36px */
+    
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+    
+    /* === Z-INDEX LAYERS === */
+    --z-dropdown: 1000;
+    --z-sticky: 1010;
+    --z-fixed: 1020;
+    --z-modal-backdrop: 1030;
+    --z-modal: 1040;
+    --z-popover: 1050;
+    --z-tooltip: 1060;
+    
+    /* === DIMENSIONS === */
+    --sidebar-width-collapsed: 80px;
+    --sidebar-width-expanded: 260px;
+    --header-height: 70px;
+    --max-content-width: 1400px;
+}
+
+/* ===== DARK THEME (OPTIONAL) ===== */
+[data-theme="dark"] {
+    /* === PRIMARY BRAND COLORS === */
+    --primary-color: #818cf8;
+    --primary-dark: #667eea;
+    --primary-light: #a5b4fc;
+    
+    /* === STATUS COLORS === */
+    --success-color: #34d399;
+    --success-light: #6ee7b7;
+    --success-dark: #10b981;
+    
+    --warning-color: #fbbf24;
+    --warning-light: #fde047;
+    --warning-dark: #f59e0b;
+    
+    --danger-color: #f87171;
+    --danger-light: #fca5a5;
+    --danger-dark: #ef4444;
+    
+    --info-color: #60a5fa;
+    --info-light: #93c5fd;
+    --info-dark: #3b82f6;
+    
+    /* === TEXT COLORS === */
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --text-muted: #64748b;
+    --text-inverse: #1e293b;
+    
+    /* === BACKGROUND COLORS === */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-quaternary: #475569;
+    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    
+    /* === BORDER COLORS === */
+    --border-color: #334155;
+    --border-light: #1e293b;
+    --border-dark: #475569;
+    
+    /* === SIDEBAR COLORS === */
+    --sidebar-bg: #1e293b;
+    --sidebar-bg-gradient: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    --sidebar-text: #cbd5e1;
+    --sidebar-text-hover: #f1f5f9;
+    --sidebar-icon: #64748b;
+    --sidebar-icon-hover: #818cf8;
+    --sidebar-active-bg: rgba(129, 140, 248, 0.15);
+    --sidebar-active-text: #818cf8;
+    --sidebar-hover-bg: rgba(129, 140, 248, 0.08);
+    --sidebar-border: #334155;
+    --sidebar-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    
+    /* === CARD COLORS === */
+    --card-bg: #1e293b;
+    --card-border: #334155;
+    --card-hover-bg: #334155;
+    
+    /* === SHADOWS (Darker for dark theme) === */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.15);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    --shadow-primary: 0 10px 25px -5px rgba(129, 140, 248, 0.3);
+}
+
+/* ===== THEME TOGGLE UTILITIES ===== */
+
+/* Apply theme based on system preference (automatic) */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        /* Dark theme variables will be automatically applied */
+        /* if user hasn't explicitly set a theme preference */
+        color-scheme: dark;
+    }
+}
+
+/* Theme transition for smooth switching */
+* {
+    transition: background-color var(--transition-base), 
+                color var(--transition-base),
+                border-color var(--transition-base);
+}
+
+/* Disable transitions on theme change to prevent flash */
+[data-theme-transitioning] * {
+    transition: none !important;
+}
+
+/* ===== USAGE EXAMPLES ===== */
+
+/*
+Example 1: Using colors
+.my-button {
+    background: var(--primary-color);
+    color: var(--text-inverse);
+    border: 2px solid var(--border-color);
+}
+
+Example 2: Using spacing
+.my-card {
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+Example 3: Using shadows
+.my-element {
+    box-shadow: var(--shadow-md);
+}
+
+Example 4: Using transitions
+.my-link {
+    transition: color var(--transition-base);
+}
+
+Example 5: Theme-specific styling
+[data-theme="dark"] .my-special-element {
+    background: rgba(129, 140, 248, 0.1);
+}
+*/
+
+/* ===== ACCESSIBILITY === */
+
+/* Ensure proper contrast in both themes */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-muted { color: var(--text-muted); }
+
+/* Background utilities */
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-tertiary { background-color: var(--bg-tertiary); }
+
+/* Border utilities */
+.border { border-color: var(--border-color); }
+.border-light { border-color: var(--border-light); }
+.border-dark { border-color: var(--border-dark); }

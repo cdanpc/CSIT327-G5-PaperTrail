@@ -1,0 +1,169 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change {% if email_type == 'personal' %}Personal{% else %}University{% endif %} Email - PaperTrail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=1.0">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="profile-card">
+                    <div class="card-header-row">
+                        <h3 class="card-title">
+                            <i class="fas fa-envelope"></i>
+                            Change {% if email_type == 'personal' %}Personal{% else %}University{% endif %} Email
+                        </h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if email_type == 'university' %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> Changing your university email requires verification and may need administrator approval. Your account will remain accessible during this process.
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <p class="text-muted">
+                                <strong>Current {{ email_type|title }} Email:</strong><br>
+                                <span class="text-dark">{{ user.personal_email if email_type == 'personal' else user.univ_email }}</span>
+                            </p>
+                        </div>
+                        
+                        <form method="post" id="changeEmailForm" novalidate>
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+
+                            <div class="mb-3">
+                                <label for="{{ form.new_email.id_for_label|default:form.new_univ_email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-at me-2"></i>New {% if email_type == 'personal' %}Personal{% else %}University{% endif %} Email
+                                </label>
+                                {% if email_type == 'personal' %}
+                                    {{ form.new_email }}
+                                    {% if form.new_email.help_text %}
+                                        <div class="form-text">{{ form.new_email.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.new_email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.new_email.errors }}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    {{ form.new_univ_email }}
+                                    {% if form.new_univ_email.help_text %}
+                                        <div class="form-text">{{ form.new_univ_email.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.new_univ_email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.new_univ_email.errors }}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.confirm_email.id_for_label|default:form.confirm_univ_email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-check-double me-2"></i>Confirm Email
+                                </label>
+                                {% if email_type == 'personal' %}
+                                    {{ form.confirm_email }}
+                                    {% if form.confirm_email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.confirm_email.errors }}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    {{ form.confirm_univ_email }}
+                                    {% if form.confirm_univ_email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.confirm_univ_email.errors }}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+
+                            {% if email_type == 'university' %}
+                            <div class="mb-3">
+                                <label for="{{ form.reason.id_for_label }}" class="form-label">
+                                    <i class="fas fa-comment me-2"></i>Reason for Change
+                                </label>
+                                {{ form.reason }}
+                                {% if form.reason.help_text %}
+                                    <div class="form-text">{{ form.reason.help_text }}</div>
+                                {% endif %}
+                                {% if form.reason.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.reason.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            <div class="mb-4">
+                                <label for="{{ form.password.id_for_label }}" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>Current Password
+                                </label>
+                                {{ form.password }}
+                                {% if form.password.help_text %}
+                                    <div class="form-text">{{ form.password.help_text }}</div>
+                                {% endif %}
+                                {% if form.password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.password.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-save me-2"></i>Update Email
+                                </button>
+                                <a href="{% url 'accounts:settings' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+                        
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6><i class="fas fa-shield-alt me-2"></i>Security Notice</h6>
+                            <ul class="small text-muted mb-0">
+                                <li>You will remain logged in after changing your email</li>
+                                <li>Use your new email for future logins</li>
+                                <li>Your password remains unchanged</li>
+                                {% if email_type == 'university' %}
+                                <li>You may receive a verification email to confirm the new address</li>
+                                <li>An administrator will review your request</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/settings.js' %}?v=1.0"></script>
+</body>
+</html>
