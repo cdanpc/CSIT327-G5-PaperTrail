@@ -4,6 +4,10 @@
 
 {% block title %}Upload Resource{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+{% endblock %}
+
 {% block header %}
 <div class="dashboard-header">
     <div class="dashboard-title-section">
@@ -12,7 +16,7 @@
     </div>
     
     <div class="dashboard-actions">
-        <a href="{% url 'resources:resource_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+        <a href="{% url 'resources:resource_list' %}" class="btn btn-outline-primary-soft">
             <i class="fas fa-arrow-left"></i> Back to Resources
         </a>
     </div>
@@ -55,9 +59,9 @@
                         <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
                             <i class="fas fa-file-alt" style="color: #667eea;"></i> File Upload
                         </h6>
-                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); padding: 1.5rem; border-radius: 12px; border: 2px dashed rgba(102, 126, 234, 0.3);">
+                        <div class="soft-panel">
                             {{ form.file|as_crispy_field }}
-                            <div class="alert alert-info mt-3 mb-0" style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 8px;">
+                            <div class="alert alert-info alert-soft-primary mt-3 mb-0">
                                 <i class="fas fa-info-circle"></i>
                                 <strong>Supported formats:</strong> PDF, PPT, PPTX, DOCX, TXT, JPG, PNG. <strong>Max size:</strong> 5MB.
                             </div>
@@ -69,9 +73,9 @@
                         <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
                             <i class="fas fa-globe" style="color: #667eea;"></i> External Link (Alternative)
                         </h6>
-                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); padding: 1.5rem; border-radius: 12px; border: 2px dashed rgba(102, 126, 234, 0.3);">
+                        <div class="soft-panel">
                             {{ form.external_url|as_crispy_field }}
-                            <div class="alert alert-info mt-3 mb-0" style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 8px;">
+                            <div class="alert alert-info alert-soft-primary mt-3 mb-0">
                                 <i class="fas fa-info-circle"></i>
                                 <strong>Note:</strong> Provide either a file OR an external URL (not both). If uploading a file, leave this blank.
                             </div>
@@ -88,14 +92,14 @@
                     
                     <!-- Errors -->
                     {% if form.non_field_errors %}
-                    <div class="alert alert-danger mb-4" style="border-radius: 8px;">
+                    <div class="alert alert-danger mb-4">
                         <i class="fas fa-exclamation-circle"></i> {{ form.non_field_errors.0 }}
                     </div>
                     {% endif %}
                     
                     <!-- Submit Button -->
                     <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; transition: all 0.3s ease;">
+                        <button type="submit" class="btn btn-lg btn-gradient-primary" style="padding: 1rem; border-radius: 12px; font-weight: 700;">
                             <i class="fas fa-upload"></i> {% if user.is_professor %}Submit & Publish{% else %}Submit for Review{% endif %}
                         </button>
                     </div>

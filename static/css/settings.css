@@ -87,9 +87,6 @@ body {
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: var(--spacing-sm);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
     line-height: 1.2;
 }
 
@@ -99,6 +96,7 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     font-size: 2rem;
+    
 }
 
 .settings-subtitle {
@@ -106,7 +104,7 @@ body {
     color: var(--text-secondary);
     margin: 0;
     font-weight: 400;
-}
+}   
 
 /* ===== SETTINGS CONTENT CONTAINER ===== */
 .settings-content {
@@ -179,7 +177,7 @@ body {
     align-items: center;
     padding: var(--spacing-lg) 0;
     border-bottom: 1px solid var(--border-light);
-    transition: background var(--transition-base);
+    transition: backgroundvar(--transition-base);
 }
 
 .setting-item:last-child {
@@ -898,10 +896,9 @@ form .setting-item:hover {
 
 /* Mobile (576px - 767px) */
 @media (max-width: 767px) {
+    /* Removed margin-left and width rules - handled by sidebar.css */
     .main-content-wrapper {
         padding: var(--spacing-md) var(--spacing-sm);
-        margin-left: 0;
-        width: 100%;
     }
     
     .settings-header {

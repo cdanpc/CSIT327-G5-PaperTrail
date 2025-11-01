@@ -5,10 +5,6 @@
     --color-bg-70: #FFFFFF;               /* White - Lighter variant for cards */
     --color-bg-80: #FFFFFF;               /* White - Pure white */
     --color-card-bg: #FFFFFF;             /* Card background */
-
-    /* 30% - Secondary/Supporting Colors */
-    --color-ui-30: #CBDFBD;               /* Sage Green - Secondary UI */
-    --color-subtle-accent: #D4E09B;       /* Yellow-Green - Subtle accent */
     
     /* Text Colors (part of 30%) */
     --color-text-primary: #333333;        /* Primary text */
@@ -19,11 +15,6 @@
     /* Border Colors (part of 30%) */
     --color-border: #e5e7eb;              /* Default border */
 
-    /* 10% - Accent/Action Colors (Primary Brand) */
-    --color-accent-10: #A44A3F;           /* Terracotta Red - Primary accent */
-    --color-accent-dark: #8B3935;         /* Darker terracotta for hover/active */
-    --color-accent-light: #C55A4F;        /* Lighter terracotta for highlights */
-    
     /* Legacy aliases for compatibility - Mapped to new system */
     --bg-cream: var(--color-bg-60);
     --bg-light-cream: var(--color-bg-70);

@@ -1,11 +1,3 @@
-/* ============================================
-   PAPERTRAIL THEME VARIABLES
-   Version: 1.0
-   Description: Centralized CSS variables for theming
-   Last Updated: October 31, 2025
-   ============================================ */
-
-/* ===== LIGHT THEME (DEFAULT) ===== */
 :root {
     /* === PRIMARY BRAND COLORS === */
     --primary-color: #667eea;

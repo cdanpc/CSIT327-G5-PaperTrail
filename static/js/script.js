@@ -1,11 +1,38 @@
-// Show popup for features in progress
+// Show popup for features in progress (generic)
 function showFeatureInProgressPopup() {
-    // Reuse Bootstrap toast for feature notification
     const toastEl = document.getElementById('featureToast');
     if (toastEl) {
         const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
         toast.show();
     }
+}
+
+// Show popup for features in progress with dynamic label/title/body
+function showFeatureInProgressToast(sourceEl) {
+    const toastEl = document.getElementById('featureToast');
+    const titleEl = document.getElementById('featureToastTitle');
+    const bodyEl = document.getElementById('featureToastBody');
+    if (!toastEl || !titleEl || !bodyEl) return;
+
+    const explicitLabel = sourceEl && sourceEl.getAttribute('data-feature-label');
+    const progressLabel = sourceEl && sourceEl.getAttribute('data-feature-in-progress');
+    const textLabel = sourceEl && sourceEl.textContent;
+
+    const formatLabel = (rawValue, fallback) => {
+        if (!rawValue) return fallback || 'This';
+        return rawValue
+            .trim()
+            .replace(/[-_]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .replace(/\b\w/g, c => c.toUpperCase());
+    };
+
+    const chosenLabel = explicitLabel || progressLabel || textLabel || 'This';
+    const formatted = formatLabel(chosenLabel, 'This');
+    titleEl.textContent = `${formatted} Feature`;
+    bodyEl.textContent = `${formatted} is currently in progress. Thanks for checking in!`;
+
+    bootstrap.Toast.getOrCreateInstance(toastEl, { autohide: true, delay: 4000 }).show();
 }
 
 // Password strength meter
@@ -197,29 +224,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (toastEl) {
         bootstrap.Toast.getOrCreateInstance(toastEl);
     }
+
+    // Initialize all tooltips
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(trigger => {
+        new bootstrap.Tooltip(trigger);
+    });
+
+    // Show Django message toasts if present
+    document.querySelectorAll('.toast-message').forEach(toastElement => {
+        bootstrap.Toast.getOrCreateInstance(toastElement, {
+            animation: true,
+            autohide: true,
+            delay: 5000
+        }).show();
+    });
     
-    // --- Dashboard Sidebar & Main Logic ---
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('mainContent');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    console.log('[Dashboard] sidebar:', sidebar, 'mainContent:', mainContent, 'sidebarToggle:', sidebarToggle);
-    const body = document.body;
-    let isLocked = false;
-    let hoverTimeout;
-    const EXPAND_DELAY = 100;
-
-    // Restore sidebar lock state from localStorage (persist between reloads)
-    try {
-        const savedLock = localStorage.getItem('dashboardSidebarLocked');
-        if (savedLock === 'true' && sidebar && mainContent && sidebarToggle) {
-            isLocked = true;
-            sidebar.classList.add('locked');
-            mainContent.classList.add('locked');
-            sidebarToggle.classList.add('active');
-            body.classList.add('sidebar-open');
-        }
-    } catch (_) { /* ignore storage errors */ }
-
+    // --- Greeting Message Logic ---
     function setGreeting() {
         const greetingElement = document.getElementById('greetingMessage');
         if (!greetingElement) return;
@@ -249,52 +269,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     setGreeting();
 
-    if (sidebarToggle && sidebar && mainContent) {
-        console.log('[Dashboard] Attaching sidebar event handlers');
-        sidebarToggle.addEventListener('click', function() {
-            console.log('[Dashboard] sidebarToggle clicked — pre-toggle isLocked=', isLocked);
-            clearTimeout(hoverTimeout);
-            isLocked = !isLocked;
-            console.log('[Dashboard] sidebarToggle clicked — post-toggle isLocked=', isLocked);
-            if (isLocked) {
-                sidebar.classList.add('locked');
-                mainContent.classList.add('locked');
-                sidebarToggle.classList.add('active');
-                sidebar.classList.remove('temp-expanded');
-                body.classList.add('sidebar-open');
-            } else {
-                sidebar.classList.remove('locked');
-                mainContent.classList.remove('locked');
-                sidebarToggle.classList.remove('active');
-                body.classList.remove('sidebar-open');
-            }
-            // Persist lock state
-            try { localStorage.setItem('dashboardSidebarLocked', String(isLocked)); } catch (_) { /* ignore */ }
-        });
-        sidebar.addEventListener('mouseenter', function() {
-            if (!isLocked) {
-                clearTimeout(hoverTimeout);
-                hoverTimeout = setTimeout(() => {
-                    sidebar.classList.add('temp-expanded');
-                }, EXPAND_DELAY);
-            }
-        });
-        sidebar.addEventListener('mouseleave', function() {
-            clearTimeout(hoverTimeout);
-            if (!isLocked) {
-                sidebar.classList.remove('temp-expanded');
-            }
-        });
-        sidebarToggle.addEventListener('mouseenter', function () {
-            if (!isLocked) sidebarToggle.classList.remove('active');
-        });
-        sidebarToggle.addEventListener('mouseleave', function () {
-            if (isLocked) {
-                sidebarToggle.classList.add('active');
-            }
-        });
-    }
-
     // Global search: focus with '/' (when not typing in an input/textarea)
     const searchInput = document.querySelector('.search-box-inline input, .search-box input');
     if (searchInput) {
@@ -316,13 +290,77 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Toast notifications for coming-soon features
-    document.querySelectorAll('[data-feature="coming-soon"], [data-feature="in-progress"]').forEach(function(element) {
-        element.addEventListener('click', function(e) {
-            e.preventDefault();
-            showFeatureInProgressPopup();
+    // Toast notifications for coming-soon/in-progress features
+    document.querySelectorAll('[data-feature="coming-soon"], [data-feature="in-progress"], [data-feature-in-progress]')
+        .forEach(function(element) {
+            element.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Prefer dynamic toast if we have labels, else generic
+                if (element.hasAttribute('data-feature-in-progress') || element.hasAttribute('data-feature-label')) {
+                    showFeatureInProgressToast(element);
+                } else {
+                    showFeatureInProgressPopup();
+                }
+            });
+            element.classList.add('feature-link');
         });
-    });
+
+    // Navbar scroll effect (used on landing and app pages)
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        const applyNavbarScroll = () => {
+            if (window.scrollY > 50) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        };
+        window.addEventListener('scroll', applyNavbarScroll);
+        applyNavbarScroll();
+    }
+
+    // Smooth scroll for landing page nav/footer links
+    if (document.querySelector('.navbar-landing') || document.querySelector('.hero-section')) {
+        const navLinks = document.querySelectorAll('.navbar-nav .nav-link[href^="#"]');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (!href || !href.startsWith('#')) return;
+                e.preventDefault();
+                const targetId = href.substring(1);
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        const sections = document.querySelectorAll('section[id]');
+        const highlightNavOnScroll = () => {
+            const scrollY = window.pageYOffset;
+            sections.forEach(section => {
+                const sectionHeight = section.offsetHeight;
+                const sectionTop = section.offsetTop - 100;
+                const sectionId = section.getAttribute('id');
+                if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${sectionId}`) link.classList.add('active');
+                    });
+                }
+            });
+        };
+        window.addEventListener('scroll', highlightNavOnScroll);
+
+        // Footer smooth links
+        document.querySelectorAll('.footer-scroll-link[href^="#"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    }
 
     // ==========================================
     // LANDING PAGE ANIMATIONS - Phase 1
@@ -560,152 +598,108 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // PART 2: Client-Side Dynamic Formset Logic (Related Resources)
+    // Resource upload: Client-side dynamic formset logic — only initialize if present
     const formsetContainer = document.getElementById('formset-container');
     const addButton = document.getElementById('add-form-btn');
-    const totalFormsInput = document.querySelector('[name="related_links-TOTAL_FORMS"]'); 
-    
-    let emptyFormTemplate = null;
+    const totalFormsInput = document.querySelector('[name="related_links-TOTAL_FORMS"]');
 
-    function updateFormIndex(element, index) {
-        const prefix = 'related_links';
-        const nameRegex = new RegExp(`${prefix}-\\d+`, 'g'); 
-        
-        ['name', 'id', 'htmlFor'].forEach(attr => {
-            if (element.hasAttribute(attr)) {
-                let currentValue = element.getAttribute(attr);
-                if (currentValue) {
-                    element.setAttribute(attr, currentValue.replace(nameRegex, `${prefix}-${index}`));
+    if (formsetContainer && totalFormsInput) {
+        let emptyFormTemplate = null;
+
+        function updateFormIndex(element, index) {
+            const prefix = 'related_links';
+            const nameRegex = new RegExp(`${prefix}-\\d+`, 'g');
+            ['name', 'id', 'htmlFor'].forEach(attr => {
+                if (element.hasAttribute(attr)) {
+                    const currentValue = element.getAttribute(attr);
+                    if (currentValue) element.setAttribute(attr, currentValue.replace(nameRegex, `${prefix}-${index}`));
                 }
-            }
-        });
-    }
-    
-    function reIndexForms() {
-        const forms = formsetContainer.querySelectorAll('.related-link-form');
-        let formIndex = 0;      
-        let visibleCount = 0;   
-        
-        forms.forEach((form) => {
-            if (form.id === 'empty-form-template') return; 
-
-            const deleteCheckbox = form.querySelector('input[name$="-DELETE"]');
-            
-            const isVisible = form.style.display !== 'none' && (!deleteCheckbox || !deleteCheckbox.checked);
-
-            form.querySelectorAll('[name^="related_links-"], [id^="id_related_links-"], label[for^="id_related_links-"]').forEach(element => {
-                updateFormIndex(element, formIndex);
             });
-            
-            if (isVisible) {
-                let header = form.querySelector('h6.text-primary');
-                if (header) {
-                    header.textContent = `Link #${visibleCount + 1}`;
+        }
+
+        function reIndexForms() {
+            const forms = formsetContainer.querySelectorAll('.related-link-form');
+            let formIndex = 0;
+            let visibleCount = 0;
+            forms.forEach((form) => {
+                if (form.id === 'empty-form-template') return;
+                const deleteCheckbox = form.querySelector('input[name$="-DELETE"]');
+                const isVisible = form.style.display !== 'none' && (!deleteCheckbox || !deleteCheckbox.checked);
+                form.querySelectorAll('[name^="related_links-"], [id^="id_related_links-"], label[for^="id_related_links-"]').forEach(element => {
+                    updateFormIndex(element, formIndex);
+                });
+                if (isVisible) {
+                    const header = form.querySelector('h6.text-primary');
+                    if (header) header.textContent = `Link #${visibleCount + 1}`;
+                    visibleCount++;
                 }
-                visibleCount++;
-            }
-            formIndex++; 
-        });
-        
-        totalFormsInput.value = formIndex; 
-    }
-
-    function deleteForm(e) {
-        e.preventDefault();
-        const formToDelete = e.target.closest('.related-link-form');
-        if (!formToDelete || formToDelete.id === 'empty-form-template') return;
-
-        const pkInput = formToDelete.querySelector('input[name$="-id"]');
-        const deleteCheckbox = formToDelete.querySelector('input[name$="-DELETE"]');
-
-        if (deleteCheckbox && pkInput && pkInput.value) {
-            deleteCheckbox.checked = true;
-            formToDelete.style.display = 'none';
-        } else {
-            formToDelete.remove();
+                formIndex++;
+            });
+            totalFormsInput.value = formIndex;
         }
-        
-        reIndexForms(); 
-    }
-    
-    function attachDeleteHandler(form) {
-        const deleteButton = form.querySelector('.remove-form-btn');
-        if (deleteButton) {
-            deleteButton.removeEventListener('click', deleteForm);
-            deleteButton.addEventListener('click', deleteForm);
-        }
-    }
-    
-    function addForm(e) {
-        e.preventDefault();
-        if (!emptyFormTemplate) return;
-    
-        let currentFormCount = parseInt(totalFormsInput.value);
-        const newForm = emptyFormTemplate.cloneNode(true);
-        
-        newForm.style.display = 'block';
-        newForm.id = `related-form-${currentFormCount}`;
-        
-        // CRITICAL FIX: Only index elements with the related_links prefix
-        // when setting up the new form. This prevents polluting the Tags field.
-        newForm.querySelectorAll('[name^="related_links-"], [id^="id_related_links-"], label[for^="id_related_links-"]').forEach(element => {
-            updateFormIndex(element, currentFormCount);
-            
-            // This part is crucial for new forms: reset the PK
-            if (element.name && element.name.endsWith('-id')) {
-                element.value = '';
+
+        function deleteForm(e) {
+            e.preventDefault();
+            const formToDelete = e.target.closest('.related-link-form');
+            if (!formToDelete || formToDelete.id === 'empty-form-template') return;
+            const pkInput = formToDelete.querySelector('input[name$="-id"]');
+            const deleteCheckbox = formToDelete.querySelector('input[name$="-DELETE"]');
+            if (deleteCheckbox && pkInput && pkInput.value) {
+                deleteCheckbox.checked = true;
+                formToDelete.style.display = 'none';
+            } else {
+                formToDelete.remove();
             }
+            reIndexForms();
+        }
+
+        function attachDeleteHandler(form) {
+            const deleteButton = form.querySelector('.remove-form-btn');
+            if (deleteButton) {
+                deleteButton.removeEventListener('click', deleteForm);
+                deleteButton.addEventListener('click', deleteForm);
+            }
+        }
+
+        function addForm(e) {
+            e.preventDefault();
+            if (!emptyFormTemplate) return;
+            const currentFormCount = parseInt(totalFormsInput.value);
+            const newForm = emptyFormTemplate.cloneNode(true);
+            newForm.style.display = 'block';
+            newForm.id = `related-form-${currentFormCount}`;
+            newForm.querySelectorAll('[name^="related_links-"], [id^="id_related_links-"], label[for^="id_related_links-"]').forEach(element => {
+                updateFormIndex(element, currentFormCount);
+                if (element.name && element.name.endsWith('-id')) element.value = '';
+            });
+            formsetContainer.appendChild(newForm);
+            totalFormsInput.value = currentFormCount + 1;
+            attachDeleteHandler(newForm);
+            reIndexForms();
+        }
+
+        // Initialization
+        const currentForms = formsetContainer.querySelectorAll('.related-link-form');
+        if (currentForms.length > 0) {
+            const lastForm = currentForms[currentForms.length - 1];
+            emptyFormTemplate = lastForm.cloneNode(true);
+            emptyFormTemplate.querySelectorAll('input, select, textarea').forEach(element => {
+                if (element.type !== 'hidden' && element.type !== 'checkbox') element.value = '';
+                if (element.name && element.name.endsWith('-DELETE')) element.checked = false;
+                if (element.name && element.name.endsWith('-id')) element.value = '';
+            });
+            emptyFormTemplate.style.display = 'none';
+            emptyFormTemplate.id = 'empty-form-template';
+            formsetContainer.appendChild(emptyFormTemplate);
+        }
+
+        currentForms.forEach((form) => {
+            const pkInput = form.querySelector('input[name$="-id"]');
+            if (!pkInput || !pkInput.value) form.style.display = 'none';
+            attachDeleteHandler(form);
         });
-    
-        formsetContainer.appendChild(newForm);
-        totalFormsInput.value = currentFormCount + 1; 
-        
-        attachDeleteHandler(newForm);
-        
-        // Global re-index to confirm numbering and total forms count
+
         reIndexForms();
-    }
-
-    // Initialization
-    const currentForms = formsetContainer.querySelectorAll('.related-link-form');
-    
-    // Create and hide the empty form template for cloning
-    if (currentForms.length > 0) {
-        const lastForm = currentForms[currentForms.length - 1]; 
-        
-        emptyFormTemplate = lastForm.cloneNode(true);
-        
-        emptyFormTemplate.querySelectorAll('input, select, textarea').forEach(element => {
-            if (element.type !== 'hidden' && element.type !== 'checkbox') {
-                element.value = '';
-            }
-            if (element.name && element.name.endsWith('-DELETE')) {
-                element.checked = false;
-            }
-            if (element.name && element.name.endsWith('-id')) {
-                element.value = '';
-            }
-        });
-        
-        emptyFormTemplate.style.display = 'none';
-        emptyFormTemplate.id = 'empty-form-template';
-        
-        formsetContainer.appendChild(emptyFormTemplate);
-    }
-    
-    // Hide initial empty form(s) and attach handlers
-    currentForms.forEach((form) => {
-        const pkInput = form.querySelector('input[name$="-id"]');
-        
-        if (!pkInput || !pkInput.value) {
-            form.style.display = 'none';
-        }
-        
-        attachDeleteHandler(form);
-    });
-    
-    reIndexForms();
-
-    if (addButton) {
-        addButton.addEventListener('click', addForm);
+        if (addButton) addButton.addEventListener('click', addForm);
     }
 });

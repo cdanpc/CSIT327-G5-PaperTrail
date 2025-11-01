@@ -1,13 +1,30 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 
-{% block title %}Delete Resource - PaperTrail{% endblock %}
+{% block title %}Delete Resource{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+{% endblock %}
+
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Delete Resource</h1>
+        <p class="dashboard-date">This action cannot be undone</p>
+    </div>
+    <div class="dashboard-actions">
+        <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-outline-danger">
+            <i class="fas fa-arrow-left"></i> Back to Detail
+        </a>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card">
+    <div class="col-md-6 col-lg-5">
+        <div class="card dashboard-card">
             <div class="card-header">
-                <h3 class="text-center mb-0">Delete Resource</h3>
+                <h5 class="card-title mb-0"><i class="fas fa-trash"></i> Confirm Deletion</h5>
             </div>
             <div class="card-body">
                 <div class="alert alert-warning">
@@ -24,7 +41,7 @@
                 <form method="post">
                     {% csrf_token %}
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-danger">Delete Resource</button>
+                        <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete Resource</button>
                         <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </form>

@@ -1,0 +1,80 @@
+﻿{% load static %}
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo" id="sidebarLogo">
+            <i class="fas fa-scroll logo-icon"></i>
+            <img src="{% static 'svgs/sidekickicons--sidebar-left-20-solid.svg' %}" alt="Toggle" class="toggle-icon">
+            <span class="sidebar-logo-text">PaperTrail</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Close sidebar">
+            <img src="{% static 'svgs/sidekickicons--sidebar-left-20-solid.svg' %}" alt="Close" class="toggle-close-icon">
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="{% url 'accounts:student_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}" title="Dashboard">
+                    <i class="fas fa-home"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'resources:resource_list' %}" class="nav-link {% if 'resources' in request.path %}active{% endif %}" title="Resources">
+                    <i class="fas fa-book"></i>
+                    <span class="nav-text">Resources</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-coming-soon="Flashcards feature is coming soon! Create and study flashcards from your resources." data-feature-name="Flashcards" title="Flashcards">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="nav-text">Flashcards</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-coming-soon="Quizzes feature is coming soon! Test your knowledge with interactive quizzes." data-feature-name="Quizzes" title="Quizzes">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span class="nav-text">Quizzes</span>
+                </a>
+            </li>
+           
+        </ul>
+
+        <div class="sidebar-divider"></div>
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-profile" id="accountMenuToggle" aria-haspopup="true" aria-expanded="false">
+            {% if user.profile_photo %}
+                <img src="{{ user.profile_photo }}" alt="Profile" class="user-avatar">
+            {% else %}
+                <div class="user-avatar-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+            <div class="user-info">
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                <span class="user-role">Student</span>
+            </div>
+            <i class="fas fa-chevron-up account-caret" aria-hidden="true"></i>
+        </div>
+        <div class="account-menu" id="accountMenu" role="menu" aria-label="Account menu">
+            <a href="{% url 'accounts:profile' %}" class="account-menu-item" role="menuitem">
+                <i class="fas fa-user"></i>
+                <span>View Profile</span>
+            </a>
+            <a href="{% url 'accounts:settings' %}" class="account-menu-item" role="menuitem">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <div class="account-menu-divider"></div>
+            <a href="{% url 'accounts:logout' %}" class="account-menu-item text-danger" role="menuitem">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>

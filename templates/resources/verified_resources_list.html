@@ -1,15 +1,25 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 
-{% block title %}Recently Verified Resources - PaperTrail{% endblock %}
+{% block title %}Recently Verified Resources{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+{% endblock %}
+
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Recently Verified Resources</h1>
+        <p class="dashboard-date">Latest resources approved by professors</p>
+    </div>
+    <div class="dashboard-actions">
+        <a href="{% url 'accounts:professor_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Recently Verified Resources</h2>
-    <a href="{% url 'accounts:professor_dashboard' %}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Back to Dashboard
-    </a>
-</div>
-
 {% if verified_resources %}
 <div class="table-responsive">
     <table class="table table-hover align-middle">
