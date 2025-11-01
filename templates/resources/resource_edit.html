@@ -1,21 +1,40 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Edit Resource - PaperTrail{% endblock %}
+{% block title %}Edit Resource{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+{% endblock %}
+
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Edit Resource</h1>
+        <p class="dashboard-date">Update your resource details</p>
+    </div>
+    <div class="dashboard-actions">
+        <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> Back to Detail
+        </a>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
-        <div class="card">
+        <div class="card dashboard-card">
             <div class="card-header">
-                <h3 class="text-center mb-0">Edit Resource</h3>
+                <h5 class="card-title mb-0"><i class="fas fa-edit"></i> Edit Resource</h5>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
                     {{ form|crispy }}
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Update Resource</button>
+                        <button type="submit" class="btn btn-gradient-primary">
+                            <i class="fas fa-save"></i> Update Resource
+                        </button>
                         <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </form>

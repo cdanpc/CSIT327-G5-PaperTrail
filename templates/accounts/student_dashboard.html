@@ -1,414 +1,296 @@
+{% extends 'base_dashboard.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - PaperTrail</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
-    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=6.0">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.2">
-    <link rel="stylesheet" href="{% static 'css/feature-popup.css' %}?v=1.0">
-</head>
-<body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
-        <i class="fas fa-bars"></i>
-    </button>
 
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay"></div>
+{% block title %}Dashboard{% endblock %}
 
-    <!-- Unified Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <!-- PaperTrail Brand/Toggle -->
-        <div class="sidebar-brand-toggle" id="sidebarToggle">
-            <i class="fas fa-book-reader"></i>
-            <span class="sidebar-text">PaperTrail</span>
-        </div>
-
-        <!-- Sidebar Content -->
-        <div class="sidebar-content">
-            <!-- Main Navigation -->
-            <nav class="sidebar-nav">
-                <a href="{% url 'accounts:student_dashboard' %}" class="sidebar-item active">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-text">Dashboard</span>
-                </a>
-                <a href="{% url 'resources:home' %}" class="sidebar-item">
-                    <i class="fas fa-book"></i>
-                    <span class="sidebar-text">Resources</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-bookmark"></i>
-                    <span class="sidebar-text">Bookmarks</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-layer-group"></i>
-                    <span class="sidebar-text">Flashcards</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="{% url 'quizzes:quiz_list' %}" class="sidebar-item">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span class="sidebar-text">Quizzes‎ ‎ ‎</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-comments"></i>
-                    <span class="sidebar-text">Forums‎ ‎ ‎ ‎ ‎ ‎ </span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-            </nav>
-
-            <!-- Sidebar Footer (Profile, Settings, Sign Out) -->
-            <div class="sidebar-footer">
-                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
-                    <i class="fas fa-user"></i>
-                    <span class="sidebar-text">Profile‎ ‎ ‎ ‎ ‎ </span>
-                </a>
-                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Settings‎ ‎ ‎ </span>
-                </a>
-                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="sidebar-text">Sign Out‎ ‎ ‎ </span>
-                </a>
+{% block content %}
+<!-- Stats Cards Row -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card stat-card-purple">
+            <div class="stat-icon">
+                <i class="fas fa-folder"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Resources</div>
+                <div class="stat-value" data-target="{{ total_resources }}">0</div>
+                <div class="stat-sublabel">From your library</div>
             </div>
         </div>
     </div>
-    
-    <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <!-- Dashboard Main -->
-        <div class="dashboard-main">
-            <div class="container-fluid">
-                <!-- Dashboard Header -->
-                <div class="dashboard-header">
-                    <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">Dashboard</h1>
-                    </div>
-                    
-                    <div class="dashboard-actions">
-                        <!-- Search Box -->
-                        <div class="search-box-inline">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search..." aria-label="Search">
-                        </div>
-                        
-                        <!-- Notification Bell -->
-                        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
-                            <i class="fas fa-bell"></i>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card stat-card-blue">
+            <div class="stat-icon">
+                <i class="fas fa-bookmark"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Bookmarks</div>
+                <div class="stat-value" data-target="{{ total_bookmarks }}">0</div>
+                <div class="stat-sublabel">Saved for later</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card stat-card-green">
+            <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Profile Completion</div>
+                <div class="stat-value">{{ profile_completion|floatformat:0 }}%</div>
+                <div class="stat-sublabel">
+                    {% if profile_complete %}
+                        <i class="fas fa-check-circle"></i> Complete!
+                    {% else %}
+                        Complete your profile
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card stat-card-teal">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Community Impact</div>
+                <div class="stat-value" data-target="0">0</div>
+                <div class="stat-sublabel">Students helped by your resources</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Completion Alert (if not 100%) -->
+{% if not profile_complete %}
+<div class="alert alert-info alert-dismissible fade show mb-4" role="alert" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea; border-radius: 12px;">
+    <div class="d-flex align-items-center">
+        <div style="font-size: 2.5rem; margin-right: 1rem; color: #667eea;">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div style="flex: 1;">
+            <h5 class="alert-heading mb-1" style="color: #667eea; font-weight: 700;">
+                Complete Your Profile ({{ profile_completion|floatformat:0 }}%)
+            </h5>
+            <p class="mb-2" style="color: #4b5563;">
+                Unlock exclusive features by completing your profile! Get access to Advanced Analytics, Profile Themes, and earn the Verified Student badge.
+            </p>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 6px; font-weight: 600;">
+                <i class="fas fa-arrow-right"></i> Complete Profile
+            </a>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Main Content Grid -->
+<div class="row g-3">
+    <!-- Left Column: Quick Actions + Recently Viewed -->
+    <div class="col-lg-8">
+        <!-- Quick Actions -->
+        <div class="card dashboard-card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <button class="action-card-new" data-feature="in-progress" title="Flashcards coming soon">
+                            <div class="action-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div class="action-text">Create Flashcards</div>
                         </button>
                     </div>
+                    <div class="col-md-6">
+                        <a class="action-card-new" href="{% url 'quizzes:quiz_create' %}">
+                            <div class="action-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="action-text">Create Quiz</div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a class="action-card-new" href="{% url 'resources:resource_upload' %}">
+                            <div class="action-icon">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <div class="action-text">Upload Resource</div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a class="action-card-new" href="{% url 'resources:resource_list' %}">
+                            <div class="action-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="action-text">Browse Library</div>
+                        </a>
+                    </div>
                 </div>
-                
-                <!-- Stats Cards Row -->
-                <div class="row g-3 mb-4">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card stat-card-purple">
-                            <div class="stat-icon">
-                                <i class="fas fa-folder"></i>
+            </div>
+        </div>
+        
+        <!-- Recently Viewed -->
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recently Viewed</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="resource-card-new">
+                            <div class="resource-icon-new pdf-icon">
+                                <i class="fas fa-file-pdf"></i>
                             </div>
-                            <div class="stat-content">
-                                <div class="stat-label">Total Resources</div>
-                                <div class="stat-value" data-target="{{ total_resources }}">0</div>
-                                <div class="stat-sublabel">From your library</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card stat-card-blue">
-                            <div class="stat-icon">
-                                <i class="fas fa-bookmark"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label">Bookmarks</div>
-                                <div class="stat-value" data-target="{{ total_bookmarks }}">0</div>
-                                <div class="stat-sublabel">Saved for later</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card stat-card-green">
-                            <div class="stat-icon">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label">Profile Completion</div>
-                                <div class="stat-value">{{ profile_completion|floatformat:0 }}%</div>
-                                <div class="stat-sublabel">
-                                    {% if profile_complete %}
-                                        <i class="fas fa-check-circle"></i> Complete!
-                                    {% else %}
-                                        Complete your profile
-                                    {% endif %}
+                            <div class="resource-info-new">
+                                <div class="resource-type-new">PDF</div>
+                                <h6 class="resource-title-new">Data Structures Notes</h6>
+                                <p class="resource-subject-new">Computer Science 101</p>
+                                <div class="resource-meta-new">
+                                    <span><i class="fas fa-eye"></i> 234</span>
+                                    <span>2 days ago</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card stat-card-teal">
-                            <div class="stat-icon">
-                                <i class="fas fa-users"></i>
+                    <div class="col-md-6">
+                        <div class="resource-card-new">
+                            <div class="resource-icon-new quiz-icon">
+                                <i class="fas fa-question-circle"></i>
                             </div>
-                            <div class="stat-content">
-                                <div class="stat-label">Community Impact</div>
-                                <div class="stat-value" data-target="0">0</div>
-                                <div class="stat-sublabel">Students helped by your resources</div>
+                            <div class="resource-info-new">
+                                <div class="resource-type-new">Quiz</div>
+                                <h6 class="resource-title-new">Calculus Midterm Prep</h6>
+                                <p class="resource-subject-new">Mathematics 201</p>
+                                <div class="resource-meta-new">
+                                    <span><i class="fas fa-question"></i> 25</span>
+                                    <span>3 days ago</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Study Stats -->
+    <div class="col-lg-4">
+        <div class="card dashboard-card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Study Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Resources Uploaded</div>
+                        <div class="activity-value">{{ total_resources }}</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Bookmarks Saved</div>
+                        <div class="activity-value">{{ total_bookmarks }}</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Quizzes Completed</div>
+                        <div class="activity-value">{{ quizzes_completed }}</div>
+                    </div>
+                </div>
                 
-                <!-- Phase 8: Profile Completion Alert (if not 100%) -->
-                {% if not profile_complete %}
-                <div class="alert alert-info alert-dismissible fade show mb-4" role="alert" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea; border-radius: 12px;">
-                    <div class="d-flex align-items-center">
-                        <div style="font-size: 2.5rem; margin-right: 1rem; color: #667eea;">
-                            <i class="fas fa-user-circle"></i>
+                <!-- Profile Completion Progress -->
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <span style="font-weight: 600; color: #1a1a1a;">Profile Completion</span>
+                        <span style="font-weight: 700; color: #667eea;">{{ profile_completion|floatformat:0 }}%</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
+                        <div class="profile-completion-bar" data-width="{{ profile_completion }}" style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); transition: width 0.5s ease;"></div>
+                    </div>
+                    {% if profile_complete %}
+                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-radius: 6px; text-align: center;">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        <span style="font-size: 0.875rem; color: #10b981; font-weight: 600; margin-left: 0.5rem;">Complete!</span>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'accounts:profile' %}" style="display: block; margin-top: 0.75rem; padding: 0.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 6px; text-align: center; text-decoration: none; color: #667eea; font-size: 0.875rem; font-weight: 600;">
+                        <i class="fas fa-arrow-right"></i> Complete Profile
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Welcome Message -->
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <h5 id="greetingMessage" data-username="{{ user.first_name }}">Good day, {{ user.first_name }}!</h5>
+                <p class="text-muted">Ready to continue your learning journey?</p>
+            </div>
+        </div>
+        
+        <!-- Unlocked Features Card (if 100% complete) -->
+        {% if profile_complete %}
+        <div class="card dashboard-card mt-3" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea;">
+            <div class="card-header" style="background: transparent; border-bottom: 1px solid rgba(102, 126, 234, 0.2);">
+                <h5 class="card-title mb-0" style="color: #667eea;">
+                    <i class="fas fa-unlock-alt"></i> Unlocked Features
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'accounts:analytics' %}" class="btn btn-sm unlocked-feature-btn" style="background: white; border: 1px solid #e5e7eb; color: #1a1a1a; text-align: left; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; transition: all 0.2s;">
+                        <div style="width: 35px; height: 35px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
+                            <i class="fas fa-chart-pie"></i>
                         </div>
                         <div style="flex: 1;">
-                            <h5 class="alert-heading mb-1" style="color: #667eea; font-weight: 700;">
-                                Complete Your Profile ({{ profile_completion|floatformat:0 }}%)
-                            </h5>
-                            <p class="mb-2" style="color: #4b5563;">
-                                Unlock exclusive features by completing your profile! Get access to Advanced Analytics, Profile Themes, and earn the Verified Student badge.
-                            </p>
-                            <a href="{% url 'accounts:profile' %}" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 6px; font-weight: 600;">
-                                <i class="fas fa-arrow-right"></i> Complete Profile
-                            </a>
+                            <div style="font-weight: 600; font-size: 0.9rem;">Advanced Analytics</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">View detailed insights</div>
                         </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                </div>
-                {% endif %}
-                
-                <!-- Main Content Grid -->
-                <div class="row g-3">
-                    <!-- Left Column: Quick Actions + Recently Viewed -->
-                    <div class="col-lg-8">
-                        <!-- Quick Actions -->
-                        <div class="card dashboard-card mb-3">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Quick Actions</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <button class="action-card-new" data-feature="in-progress">
-                                            <div class="action-icon">
-                                                <i class="fas fa-layer-group"></i>
-                                            </div>
-                                            <div class="action-text">Create Flashcards</div>
-                                        </button>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <a href="{% url 'quizzes:quiz_create' %}" class="action-card-new" style="text-decoration: none; color: inherit;">
-                                            <div class="action-icon">
-                                                <i class="fas fa-plus-circle"></i>
-                                            </div>
-                                            <div class="action-text">Create Quiz</div>
-                                        </a>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <a href="{% url 'resources:resource_upload' %}" class="action-card-new" style="text-decoration: none; color: inherit;">
-                                            <div class="action-icon">
-                                                <i class="fas fa-upload"></i>
-                                            </div>
-                                            <div class="action-text">Upload Resource</div>
-                                        </a>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <a href="{% url 'resources:resource_list' %}" class="action-card-new" style="text-decoration: none; color: inherit;">
-                                            <div class="action-icon">
-                                                <i class="fas fa-book"></i>
-                                            </div>
-                                            <div class="action-text">Browse Library</div>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                        <i class="fas fa-chevron-right" style="color: #9ca3af;"></i>
+                    </a>
+                    <a href="{% url 'accounts:customization' %}" class="btn btn-sm unlocked-feature-btn" style="background: white; border: 1px solid #e5e7eb; color: #1a1a1a; text-align: left; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; transition: all 0.2s;">
+                        <div style="width: 35px; height: 35px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
+                            <i class="fas fa-palette"></i>
                         </div>
-                        
-                        <!-- Recently Viewed -->
-                        <div class="card dashboard-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Recently Viewed</h5>
-                            </div>
-                            <div class="card-body">
-                                {% if recent_resources %}
-                                <div class="row g-3">
-                                    {% for resource in recent_resources|slice:":2" %}
-                                    <div class="col-md-6">
-                                        <a href="{% url 'resources:resource_detail' resource.pk %}" class="resource-card-new" style="text-decoration: none; color: inherit;">
-                                            <div class="resource-icon-new {% if resource.resource_type == 'pdf' %}pdf-icon{% else %}quiz-icon{% endif %}">
-                                                <i class="fas fa-{% if resource.resource_type == 'pdf' %}file-pdf{% else %}file-alt{% endif %}"></i>
-                                            </div>
-                                            <div class="resource-info-new">
-                                                <div class="resource-type-new">{{ resource.resource_type|upper }}</div>
-                                                <h6 class="resource-title-new">{{ resource.title|truncatewords:8 }}</h6>
-                                                <p class="resource-subject-new">{{ resource.subject|default:"General" }}</p>
-                                                <div class="resource-meta-new">
-                                                    <span><i class="fas fa-eye"></i> {{ resource.views_count }}</span>
-                                                    <span>{{ resource.created_at|timesince }} ago</span>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <div class="text-center py-4">
-                                    <i class="fas fa-folder-open" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
-                                    <p class="text-muted mb-0">No recent resources. Start by uploading one!</p>
-                                    <a href="{% url 'resources:resource_upload' %}" class="btn btn-sm mt-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                                        <i class="fas fa-upload"></i> Upload Resource
-                                    </a>
-                                </div>
-                                {% endif %}
-                            </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 0.9rem;">Profile Themes</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Customize your profile</div>
                         </div>
-                    </div>
-                    
-                    <!-- Right Column: Study Stats -->
-                    <div class="col-lg-4">
-                        <div class="card dashboard-card mb-3">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Study Activity</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="activity-item">
-                                    <div class="activity-icon">
-                                        <i class="fas fa-book-open"></i>
-                                    </div>
-                                    <div class="activity-content">
-                                        <div class="activity-title">Resources Uploaded</div>
-                                        <div class="activity-value">{{ total_resources }}</div>
-                                    </div>
-                                </div>
-                                <div class="activity-item">
-                                    <div class="activity-icon">
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <div class="activity-content">
-                                        <div class="activity-title">Bookmarks Saved</div>
-                                        <div class="activity-value">{{ total_bookmarks }}</div>
-                                    </div>
-                                </div>
-                                <div class="activity-item">
-                                    <div class="activity-icon">
-                                        <i class="fas fa-clipboard-check"></i>
-                                    </div>
-                                    <div class="activity-content">
-                                        <div class="activity-title">Quizzes Completed</div>
-                                        <div class="activity-value">0</div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Phase 8: Profile Completion Progress -->
-                                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                                        <span style="font-weight: 600; color: #1a1a1a;">Profile Completion</span>
-                                        <span style="font-weight: 700; color: #667eea;">{{ profile_completion|floatformat:0 }}%</span>
-                                    </div>
-                                    <div style="width: 100%; height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
-                                        <div class="profile-completion-bar" data-width="{{ profile_completion }}" style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); transition: width 0.5s ease;"></div>
-                                    </div>
-                                    {% if profile_complete %}
-                                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-radius: 6px; text-align: center;">
-                                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                        <span style="font-size: 0.875rem; color: #10b981; font-weight: 600; margin-left: 0.5rem;">Complete!</span>
-                                    </div>
-                                    {% else %}
-                                    <a href="{% url 'accounts:profile' %}" style="display: block; margin-top: 0.75rem; padding: 0.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 6px; text-align: center; text-decoration: none; color: #667eea; font-size: 0.875rem; font-weight: 600;">
-                                        <i class="fas fa-arrow-right"></i> Complete Profile
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Welcome Message -->
-                        <div class="card dashboard-card">
-                            <div class="card-body text-center">
-                                <h5 id="greetingMessage" data-username="{{ user.first_name }}">Good day, {{ user.first_name }}!</h5>
-                                <p class="text-muted">Ready to continue your learning journey?</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Phase 8: Unlocked Features Card (if 100% complete) -->
-                        {% if profile_complete %}
-                        <div class="card dashboard-card mt-3" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea;">
-                            <div class="card-header" style="background: transparent; border-bottom: 1px solid rgba(102, 126, 234, 0.2);">
-                                <h5 class="card-title mb-0" style="color: #667eea;">
-                                    <i class="fas fa-unlock-alt"></i> Unlocked Features
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <a href="{% url 'accounts:analytics' %}" class="btn btn-sm unlocked-feature-btn" style="background: white; border: 1px solid #e5e7eb; color: #1a1a1a; text-align: left; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; transition: all 0.2s;">
-                                        <div style="width: 35px; height: 35px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
-                                            <i class="fas fa-chart-pie"></i>
-                                        </div>
-                                        <div style="flex: 1;">
-                                            <div style="font-weight: 600; font-size: 0.9rem;">Advanced Analytics</div>
-                                            <div style="font-size: 0.75rem; color: #6b7280;">View detailed insights</div>
-                                        </div>
-                                        <i class="fas fa-chevron-right" style="color: #9ca3af;"></i>
-                                    </a>
-                                    <a href="{% url 'accounts:customization' %}" class="btn btn-sm unlocked-feature-btn" style="background: white; border: 1px solid #e5e7eb; color: #1a1a1a; text-align: left; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; transition: all 0.2s;">
-                                        <div style="width: 35px; height: 35px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
-                                            <i class="fas fa-palette"></i>
-                                        </div>
-                                        <div style="flex: 1;">
-                                            <div style="font-weight: 600; font-size: 0.9rem;">Profile Themes</div>
-                                            <div style="font-size: 0.75rem; color: #6b7280;">Customize your profile</div>
-                                        </div>
-                                        <i class="fas fa-chevron-right" style="color: #9ca3af;"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
+                        <i class="fas fa-chevron-right" style="color: #9ca3af;"></i>
+                    </a>
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
-    
-    <!-- Toast Notification -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
-        <div id="featureToast" class="toast">
-            <div class="toast-header bg-info text-white">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong class="me-auto">Feature Coming Soon</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body">This feature is currently under development and will be available soon!</div>
-        </div>
-    </div>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="{% static 'js/sidebar.js' %}?v=5.0"></script>
-    <script src="{% static 'js/script.js' %}?v=21.0"></script>
-    
-    <!-- Apply profile completion progress width from data attribute -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const progressBar = document.querySelector('.profile-completion-bar');
-            if (progressBar) {
-                const width = progressBar.dataset.width;
-                if (width) {
-                    progressBar.style.width = width + '%';
-                }
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Apply profile completion progress width from data attribute -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBar = document.querySelector('.profile-completion-bar');
+        if (progressBar) {
+            const width = progressBar.dataset.width;
+            if (width) {
+                progressBar.style.width = width + '%';
             }
-        });
-    </script>
-</body>
-</html>
+        }
+    });
+</script>
+{% endblock %}

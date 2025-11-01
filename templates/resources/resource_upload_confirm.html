@@ -1,30 +1,45 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 
 {% block title %}Submission Received{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+{% endblock %}
+
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Submission Received</h1>
+        <p class="dashboard-date">Your upload is pending review</p>
+    </div>
+    <div class="dashboard-actions">
+        <a href="{% url 'resources:resource_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> Back to Resources
+        </a>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card text-center shadow-lg border-success">
-                <div class="card-header bg-success text-white">
-                    <h2 class="mb-0"><i class="fas fa-check-circle me-2"></i> Submission Successful!</h2>
-                </div>
-                <div class="card-body p-5">
-                    <h3 class="card-title text-success mb-4">Thank You for Sharing Your Knowledge!</h3>
-                    
-                    <p class="lead">
-                        Your resource, **"{{ resource.title }}"**, has been uploaded successfully and is now **awaiting administrator approval.**
-                    </p>
-                    <p class="text-muted mb-4">
-                        We appreciate your contribution to the community. You will be notified once the resource is reviewed and published.
-                    </p>
-                    
-                    <a href="{% url 'resources:resource_detail' pk=resource.pk %}" class="btn btn-lg btn-primary mt-3" style="background-color: var(--c-5); border-color: var(--c-5);">
-                        <i class="fas fa-eye me-2"></i> View My Upload (Pending Approval)
-                    </a>
-                    
-                </div>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card dashboard-card text-center">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-check-circle text-success"></i> Submission Successful!</h5>
+            </div>
+            <div class="card-body p-5">
+                <h3 class="text-success mb-4">Thank You for Sharing Your Knowledge!</h3>
+                
+                <p class="lead">
+                    Your resource, "{{ resource.title }}", has been uploaded successfully and is now awaiting administrator approval.
+                </p>
+                <p class="text-muted mb-4">
+                    We appreciate your contribution to the community. You will be notified once the resource is reviewed and published.
+                </p>
+                
+                <a href="{% url 'resources:resource_detail' pk=resource.pk %}" class="btn btn-lg btn-gradient-primary">
+                    <i class="fas fa-eye me-2"></i> View My Upload (Pending Approval)
+                </a>
+                
             </div>
         </div>
     </div>

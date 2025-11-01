@@ -13,6 +13,7 @@ from .forms import (
 )
 from .models import User
 from resources.models import Resource, Bookmark
+from quizzes.models import QuizAttempt
 
 
 # Registration View
@@ -91,6 +92,7 @@ def student_dashboard(request):
     # Get total counts for stats
     total_resources = Resource.objects.filter(uploader=request.user).count()
     total_bookmarks = Bookmark.objects.filter(user=request.user).count()
+    quizzes_completed = QuizAttempt.objects.filter(student=request.user, completed_at__isnull=False).count()
     
     context = {
         'user': request.user,
@@ -100,6 +102,7 @@ def student_dashboard(request):
         'profile_complete': profile_complete,
         'total_resources': total_resources,
         'total_bookmarks': total_bookmarks,
+        'quizzes_completed': quizzes_completed,
     }
     return render(request, 'accounts/student_dashboard.html', context)
 
