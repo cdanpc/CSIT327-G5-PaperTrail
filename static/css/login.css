@@ -67,8 +67,7 @@ body::before {
     z-index: 1;
 }
 
-.back-to-home,
-.back-link {
+.back-to-home {
     position: fixed;
     top: 2rem;
     left: 2rem;
@@ -84,13 +83,16 @@ body::before {
     color: #667eea;
 }
 
-.back-to-home:hover,
-.back-link:hover {
+/* Note: Card-specific back-link styles are defined separately below */
+
+.back-to-home:hover {
     color: #764ba2;
     transform: translateX(-4px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     background: #ffffff;
 }
+
+/* Note: Card-specific back-link hover styles are defined separately below */
 
 .back-to-home i {
     margin-right: 0.5rem;
@@ -1126,6 +1128,10 @@ body .login-card {
     background-color: #ffffff;
 }
 
+.login-card .input-wrapper input[type="password"] {
+    padding-right: 3rem;
+}
+
 .login-card .input-wrapper input:focus {
     outline: none;
     border-color: #667eea;
@@ -1144,7 +1150,7 @@ body .login-card {
     padding-right: 3rem;
 }
 
-.login-card .toggle-password-btn {
+.login-card .input-wrapper .toggle-password-btn {
     position: absolute;
     right: 12px;
     top: 50%;
@@ -1154,6 +1160,37 @@ body .login-card {
     cursor: pointer;
     padding: 0.5rem;
     z-index: 10;
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+
+.login-card .input-wrapper .toggle-password-btn:hover {
+    color: #667eea;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 0.875rem;
+    font-weight: 600;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    color: #ffffff;
+    font-size: 1rem;
+    width: 100%;
+    margin-top: 1rem;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    cursor: pointer;
+}
+
+.submit-btn:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+}
+
+.submit-btn:active {
+    transform: translateY(-1px);
 }
 
 .login-card .submit-btn {
@@ -1168,6 +1205,7 @@ body .login-card {
     width: 100%;
     margin-top: 1rem;
     box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    cursor: pointer;
 }
 
 .login-card .submit-btn:hover {
@@ -1176,41 +1214,66 @@ body .login-card {
     box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
 }
 
+.login-card .submit-btn:active {
+    transform: translateY(-1px);
+}
+
 .register-link {
     text-align: center;
     margin-top: 1.5rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: #000000;
     font-size: 0.95rem;
+    font-weight: 500;
 }
 
 .register-link a {
-    color: #ffffff;
-    text-decoration: none;
+    color: #000000;
+    text-decoration: underline;
     font-weight: 600;
     transition: all 0.2s ease;
+    text-decoration-thickness: 1.5px;
 }
 
 .register-link a:hover {
-    color: #ffffff;
-    text-decoration: underline;
+    color: #5b4fc6;
+    text-decoration-thickness: 2px;
 }
 
 /* Back link inside login card */
 .login-card .back-link {
-    margin-top: 1rem;
-    text-align: center;
-    position: relative;
+    margin-top: auto !important;
+    margin-bottom: 1rem !important;
+    text-align: center !important;
+    position: relative !important;
+    padding-top: 1rem !important;
+    top: auto !important;
+    left: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 1rem 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
 }
 
-.login-card .back-link a {
-    color: rgba(255, 255, 255, 0.9);
+.login-card .back-link .back-home-btn {
+    display: inline-block;
+    background: transparent !important;
+    color: #667eea !important;
     text-decoration: none;
     font-size: 0.9rem;
-    transition: color 0.2s ease;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
 }
 
-.login-card .back-link a:hover {
-    color: #ffffff;
+.login-card .back-link .back-home-btn:hover {
+    background: transparent !important;
+    color: #764ba2 !important;
+    transform: translateX(-4px);
+    text-decoration: underline;
 }
 
 .error-message {

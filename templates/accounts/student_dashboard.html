@@ -51,10 +51,9 @@
                     <span class="sidebar-text">Flashcards</span>
                     <span class="coming-soon-badge">Soon</span>
                 </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
+                <a href="{% url 'quizzes:quiz_list' %}" class="sidebar-item">
                     <i class="fas fa-clipboard-list"></i>
                     <span class="sidebar-text">Quizzes‎ ‎ ‎</span>
-                    <span class="coming-soon-badge">Soon</span>
                 </a>
                 <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
                     <i class="fas fa-comments"></i>
@@ -207,12 +206,12 @@
                                         </button>
                                     </div>
                                     <div class="col-md-6">
-                                        <button class="action-card-new" data-feature="in-progress">
+                                        <a href="{% url 'quizzes:quiz_create' %}" class="action-card-new" style="text-decoration: none; color: inherit;">
                                             <div class="action-icon">
                                                 <i class="fas fa-plus-circle"></i>
                                             </div>
                                             <div class="action-text">Create Quiz</div>
-                                        </button>
+                                        </a>
                                     </div>
                                     <div class="col-md-6">
                                         <a href="{% url 'resources:resource_upload' %}" class="action-card-new" style="text-decoration: none; color: inherit;">

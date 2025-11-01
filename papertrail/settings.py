@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     # Local apps
     'accounts',
     'resources',
+    'quizzes',
 
     # Third-party apps
     "crispy_forms",

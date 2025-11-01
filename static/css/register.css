@@ -67,8 +67,7 @@ body::before {
     z-index: 1;
 }
 
-.back-to-home,
-.back-link {
+.back-to-home {
     position: fixed;
     top: 2rem;
     left: 2rem;
@@ -84,13 +83,16 @@ body::before {
     color: #667eea;
 }
 
-.back-to-home:hover,
-.back-link:hover {
+/* Note: Card-specific back-link styles are defined separately below */
+
+.back-to-home:hover {
     color: #764ba2;
     transform: translateX(-4px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     background: #ffffff;
 }
+
+/* Note: Card-specific back-link hover styles are defined separately below */
 
 .back-to-home i {
     margin-right: 0.5rem;
@@ -1156,6 +1158,10 @@ body .register-card {
     background-color: #ffffff;
 }
 
+.input-wrapper input[type="password"] {
+    padding-right: 3rem;
+}
+
 .input-wrapper input:focus {
     outline: none;
     border-color: #667eea;
@@ -1174,7 +1180,7 @@ body .register-card {
     padding-right: 3rem;
 }
 
-.toggle-password-btn {
+.input-wrapper .toggle-password-btn {
     position: absolute;
     right: 12px;
     top: 50%;
@@ -1185,6 +1191,11 @@ body .register-card {
     cursor: pointer;
     padding: 0.5rem;
     z-index: 10;
+    transition: color 0.2s ease;
+}
+
+.input-wrapper .toggle-password-btn:hover {
+    color: #667eea;
 }
 
 .submit-btn {
@@ -1228,20 +1239,39 @@ body .register-card {
 
 /* Remove duplicate back-link styling inside cards */
 .register-card .back-link {
-    margin-top: 1rem;
-    text-align: center;
-    position: relative;
+    margin-top: auto !important;
+    margin-bottom: 1rem !important;
+    text-align: center !important;
+    position: relative !important;
+    padding-top: 1rem !important;
+    top: auto !important;
+    left: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 1rem 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
 }
 
-.register-card .back-link a {
-    color: rgba(255, 255, 255, 0.9);
+.register-card .back-link .back-home-btn {
+    display: inline-block;
+    background: transparent !important;
+    color: #667eea !important;
     text-decoration: none;
     font-size: 0.9rem;
-    transition: color 0.2s ease;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
 }
 
-.register-card .back-link a:hover {
-    color: #ffffff;
+.register-card .back-link .back-home-btn:hover {
+    background: transparent !important;
+    color: #764ba2 !important;
+    transform: translateX(-4px);
+    text-decoration: underline;
 }
 
 .password-requirements-box {
