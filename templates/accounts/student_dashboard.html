@@ -215,20 +215,20 @@
                                         </button>
                                     </div>
                                     <div class="col-md-6">
-                                        <button class="action-card-new" data-feature="in-progress">
+                                        <a href="{% url 'resources:resource_upload' %}" class="action-card-new" style="text-decoration: none; color: inherit;">
                                             <div class="action-icon">
                                                 <i class="fas fa-upload"></i>
                                             </div>
                                             <div class="action-text">Upload Resource</div>
-                                        </button>
+                                        </a>
                                     </div>
                                     <div class="col-md-6">
-                                        <button class="action-card-new" data-feature="in-progress">
+                                        <a href="{% url 'resources:resource_list' %}" class="action-card-new" style="text-decoration: none; color: inherit;">
                                             <div class="action-icon">
                                                 <i class="fas fa-book"></i>
                                             </div>
                                             <div class="action-text">Browse Library</div>
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -240,40 +240,36 @@
                                 <h5 class="card-title mb-0">Recently Viewed</h5>
                             </div>
                             <div class="card-body">
+                                {% if recent_resources %}
                                 <div class="row g-3">
+                                    {% for resource in recent_resources|slice:":2" %}
                                     <div class="col-md-6">
-                                        <div class="resource-card-new">
-                                            <div class="resource-icon-new pdf-icon">
-                                                <i class="fas fa-file-pdf"></i>
+                                        <a href="{% url 'resources:resource_detail' resource.pk %}" class="resource-card-new" style="text-decoration: none; color: inherit;">
+                                            <div class="resource-icon-new {% if resource.resource_type == 'pdf' %}pdf-icon{% else %}quiz-icon{% endif %}">
+                                                <i class="fas fa-{% if resource.resource_type == 'pdf' %}file-pdf{% else %}file-alt{% endif %}"></i>
                                             </div>
                                             <div class="resource-info-new">
-                                                <div class="resource-type-new">PDF</div>
-                                                <h6 class="resource-title-new">Data Structures Notes</h6>
-                                                <p class="resource-subject-new">Computer Science 101</p>
+                                                <div class="resource-type-new">{{ resource.resource_type|upper }}</div>
+                                                <h6 class="resource-title-new">{{ resource.title|truncatewords:8 }}</h6>
+                                                <p class="resource-subject-new">{{ resource.subject|default:"General" }}</p>
                                                 <div class="resource-meta-new">
-                                                    <span><i class="fas fa-eye"></i> 234</span>
-                                                    <span>2 days ago</span>
+                                                    <span><i class="fas fa-eye"></i> {{ resource.views_count }}</span>
+                                                    <span>{{ resource.created_at|timesince }} ago</span>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </a>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="resource-card-new">
-                                            <div class="resource-icon-new quiz-icon">
-                                                <i class="fas fa-question-circle"></i>
-                                            </div>
-                                            <div class="resource-info-new">
-                                                <div class="resource-type-new">Quiz</div>
-                                                <h6 class="resource-title-new">Calculus Midterm Prep</h6>
-                                                <p class="resource-subject-new">Mathematics 201</p>
-                                                <div class="resource-meta-new">
-                                                    <span><i class="fas fa-question"></i> 25</span>
-                                                    <span>3 days ago</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {% endfor %}
                                 </div>
+                                {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-folder-open" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
+                                    <p class="text-muted mb-0">No recent resources. Start by uploading one!</p>
+                                    <a href="{% url 'resources:resource_upload' %}" class="btn btn-sm mt-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                                        <i class="fas fa-upload"></i> Upload Resource
+                                    </a>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

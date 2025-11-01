@@ -131,7 +131,14 @@ def my_resources(request):
 @login_required
 def resource_list(request):
     """List resources: show verified to everyone, plus the uploader's own."""
+    from django.core.paginator import Paginator
+    
     resources = Resource.objects.filter(Q(verification_status='verified') | Q(uploader=request.user))
+    
+    # Filter by resource type if provided
+    resource_type = request.GET.get('resource_type')
+    if resource_type:
+        resources = resources.filter(resource_type=resource_type)
     
     # Filter by tags if provided
     tag_filter = request.GET.get('tag')
@@ -142,13 +149,19 @@ def resource_list(request):
     search_query = request.GET.get('q')
     if search_query:
         resources = resources.filter(
-            title__icontains=search_query
-        ) | resources.filter(
-            description__icontains=search_query
+            Q(title__icontains=search_query) | Q(description__icontains=search_query)
         )
     
+    # Order by created_at
+    resources = resources.order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(resources, 12)  # 12 items per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'resources': resources,
+        'resources': page_obj,
         'search_query': search_query,
         'tag_filter': tag_filter,
     }
