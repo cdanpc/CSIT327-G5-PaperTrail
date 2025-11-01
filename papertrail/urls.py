@@ -35,6 +35,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('resources/', include('resources.urls')),
+    path('quizzes/', include('quizzes.urls')),
     path('', home_view, name='home'),  # Custom home view with authentication check
 ]
 
