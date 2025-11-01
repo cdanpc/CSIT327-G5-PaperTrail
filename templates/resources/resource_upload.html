@@ -1,228 +1,137 @@
+{% extends 'base_dashboard.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Resource - PaperTrail</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
-    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=6.0">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.2">
-</head>
-<body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
-        <i class="fas fa-bars"></i>
-    </button>
 
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay"></div>
+{% block title %}Upload Resource{% endblock %}
 
-    <!-- Unified Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <!-- PaperTrail Brand/Toggle -->
-        <div class="sidebar-brand-toggle" id="sidebarToggle">
-            <i class="fas fa-book-reader"></i>
-            <span class="sidebar-text">PaperTrail</span>
-        </div>
-
-        <!-- Sidebar Content -->
-        <div class="sidebar-content">
-            <!-- Main Navigation -->
-            <nav class="sidebar-nav">
-                <a href="{% url 'accounts:student_dashboard' %}" class="sidebar-item">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-text">Dashboard</span>
-                </a>
-                <a href="{% url 'resources:resource_list' %}" class="sidebar-item active">
-                    <i class="fas fa-book"></i>
-                    <span class="sidebar-text">Resources</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-bookmark"></i>
-                    <span class="sidebar-text">Bookmarks</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-layer-group"></i>
-                    <span class="sidebar-text">Flashcards</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span class="sidebar-text">Quizzes</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-comments"></i>
-                    <span class="sidebar-text">Forum</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-            </nav>
-
-            <!-- Sidebar Footer (Profile, Settings, Sign Out) -->
-            <div class="sidebar-footer">
-                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
-                    <i class="fas fa-user"></i>
-                    <span class="sidebar-text">Profile</span>
-                </a>
-                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Settings</span>
-                </a>
-                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="sidebar-text">Sign Out</span>
-                </a>
-            </div>
-        </div>
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Upload Resource</h1>
+        <p class="dashboard-date">Share your knowledge with the community</p>
     </div>
+    
+    <div class="dashboard-actions">
+        <a href="{% url 'resources:resource_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> Back to Resources
+        </a>
+    </div>
+    </div>
+{% endblock %}
 
-    <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <div class="dashboard-main">
-            <div class="container-fluid">
-                <!-- Dashboard Header -->
-                <div class="dashboard-header">
-                    <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">Upload Resource</h1>
-                        <p class="dashboard-date">Share your knowledge with the community</p>
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Upload Form Card -->
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-upload"></i> Submit New Resource
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Basic Details -->
+                    <div class="mb-4">
+                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-info-circle" style="color: #667eea;"></i> Basic Details
+                        </h6>
+                        {{ form.title|as_crispy_field }}
+                        {{ form.description|as_crispy_field }}
+                    </div>
+
+                    <!-- Resource Type -->
+                    <div class="mb-4">
+                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-tag" style="color: #667eea;"></i> Resource Type
+                        </h6>
+                        {{ form.resource_type|as_crispy_field }}
                     </div>
                     
-                    <div class="dashboard-actions">
-                        <a href="{% url 'resources:resource_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
-                            <i class="fas fa-arrow-left"></i> Back to Resources
-                        </a>
+                    <!-- File Upload Field -->
+                    <div class="mb-4">
+                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-file-alt" style="color: #667eea;"></i> File Upload
+                        </h6>
+                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); padding: 1.5rem; border-radius: 12px; border: 2px dashed rgba(102, 126, 234, 0.3);">
+                            {{ form.file|as_crispy_field }}
+                            <div class="alert alert-info mt-3 mb-0" style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 8px;">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Supported formats:</strong> PDF, PPT, PPTX, DOCX, TXT, JPG, PNG. <strong>Max size:</strong> 5MB.
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- External URL Field -->
+                    <div class="mb-4">
+                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-globe" style="color: #667eea;"></i> External Link (Alternative)
+                        </h6>
+                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); padding: 1.5rem; border-radius: 12px; border: 2px dashed rgba(102, 126, 234, 0.3);">
+                            {{ form.external_url|as_crispy_field }}
+                            <div class="alert alert-info mt-3 mb-0" style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 8px;">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Note:</strong> Provide either a file OR an external URL (not both). If uploading a file, leave this blank.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tags -->
+                    <div class="mb-4">
+                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-tags" style="color: #667eea;"></i> Tags (Optional)
+                        </h6>
+                        {{ form.tags|as_crispy_field }}
+                    </div>
+                    
+                    <!-- Errors -->
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger mb-4" style="border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle"></i> {{ form.non_field_errors.0 }}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; transition: all 0.3s ease;">
+                            <i class="fas fa-upload"></i> {% if user.is_professor %}Submit & Publish{% else %}Submit for Review{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Guidelines Card -->
+        <div class="card dashboard-card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i> Upload Guidelines
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 1px solid rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 8px; margin: 0;">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Note:</strong> 
+                    {% if user.is_professor %}
+                    Your uploads will be published immediately as verified content.
+                    {% else %}
+                    All uploads are reviewed by professors before being published. You'll be notified once your resource is verified.
+                    {% endif %}
                 </div>
-
-                <!-- Main Content Grid -->
-                <div class="row justify-content-center">
-                    <div class="col-lg-8">
-                        <!-- Upload Form Card -->
-                        <div class="card dashboard-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-upload"></i> Submit New Resource
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <form method="post" enctype="multipart/form-data" novalidate>
-                                    {% csrf_token %}
-                                    
-                                    <!-- Basic Details -->
-                                    <div class="mb-4">
-                                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
-                                            <i class="fas fa-info-circle" style="color: #667eea;"></i> Basic Details
-                                        </h6>
-                                        {{ form.title|as_crispy_field }}
-                                        {{ form.description|as_crispy_field }}
-                                    </div>
-
-                                    <!-- Resource Type -->
-                                    <div class="mb-4">
-                                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
-                                            <i class="fas fa-tag" style="color: #667eea;"></i> Resource Type
-                                        </h6>
-                                        {{ form.resource_type|as_crispy_field }}
-                                    </div>
-                                    
-                                    <!-- File Upload Field -->
-                                    <div class="mb-4">
-                                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
-                                            <i class="fas fa-file-alt" style="color: #667eea;"></i> File Upload
-                                        </h6>
-                                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); padding: 1.5rem; border-radius: 12px; border: 2px dashed rgba(102, 126, 234, 0.3);">
-                                            {{ form.file|as_crispy_field }}
-                                            <div class="alert alert-info mt-3 mb-0" style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 8px;">
-                                                <i class="fas fa-info-circle"></i>
-                                                <strong>Supported formats:</strong> PDF, PPT, PPTX, DOCX, TXT, JPG, PNG. <strong>Max size:</strong> 5MB.
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- External URL Field -->
-                                    <div class="mb-4">
-                                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
-                                            <i class="fas fa-globe" style="color: #667eea;"></i> External Link (Alternative)
-                                        </h6>
-                                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); padding: 1.5rem; border-radius: 12px; border: 2px dashed rgba(102, 126, 234, 0.3);">
-                                            {{ form.external_url|as_crispy_field }}
-                                            <div class="alert alert-info mt-3 mb-0" style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 8px;">
-                                                <i class="fas fa-info-circle"></i>
-                                                <strong>Note:</strong> Provide either a file OR an external URL (not both). If uploading a file, leave this blank.
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Tags -->
-                                    <div class="mb-4">
-                                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
-                                            <i class="fas fa-tags" style="color: #667eea;"></i> Tags (Optional)
-                                        </h6>
-                                        {{ form.tags|as_crispy_field }}
-                                    </div>
-                                    
-                                    <!-- Errors -->
-                                    {% if form.non_field_errors %}
-                                    <div class="alert alert-danger mb-4" style="border-radius: 8px;">
-                                        <i class="fas fa-exclamation-circle"></i> {{ form.non_field_errors.0 }}
-                                    </div>
-                                    {% endif %}
-                                    
-                                    <!-- Submit Button -->
-                                    <div class="d-grid mt-4">
-                                        <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; transition: all 0.3s ease;">
-                                            <i class="fas fa-upload"></i> {% if user.is_professor %}Submit & Publish{% else %}Submit for Review{% endif %}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <!-- Guidelines Card -->
-                        <div class="card dashboard-card mt-3">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-info-circle"></i> Upload Guidelines
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="alert" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 1px solid rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 8px; margin: 0;">
-                                    <i class="fas fa-lightbulb"></i>
-                                    <strong>Note:</strong> 
-                                    {% if user.is_professor %}
-                                    Your uploads will be published immediately as verified content.
-                                    {% else %}
-                                    All uploads are reviewed by professors before being published. You'll be notified once your resource is verified.
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="mt-3">
-                                    <h6 style="font-weight: 600; color: #1a1a1a; margin-bottom: 0.75rem;">Tips for better resources:</h6>
-                                    <ul style="color: #4b5563; line-height: 1.8; margin: 0; padding-left: 1.5rem;">
-                                        <li>Provide clear, descriptive titles</li>
-                                        <li>Add detailed descriptions to help others find your resource</li>
-                                        <li>Use relevant tags for better discoverability</li>
-                                        <li>Ensure your files are high quality and properly formatted</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                
+                <div class="mt-3">
+                    <h6 style="font-weight: 600; color: #1a1a1a; margin-bottom: 0.75rem;">Tips for better resources:</h6>
+                    <ul style="color: #4b5563; line-height: 1.8; margin: 0; padding-left: 1.5rem;">
+                        <li>Provide clear, descriptive titles</li>
+                        <li>Add detailed descriptions to help others find your resource</li>
+                        <li>Use relevant tags for better discoverability</li>
+                        <li>Ensure your files are high quality and properly formatted</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="{% static 'js/sidebar.js' %}?v=5.0"></script>
-    <script src="{% static 'js/script.js' %}?v=21.0"></script>
-</body>
-</html>
+</div>
+{% endblock %}
