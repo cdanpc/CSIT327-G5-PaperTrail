@@ -11,7 +11,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Register Page CSS -->
-    <link rel="stylesheet" href="{% static 'css/register_new.css' %}">
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
 </head>
 <body>
     <div class="register-card">
@@ -142,7 +142,7 @@
             <!-- Password -->
             <div class="form-field">
                 <label for="id_password1">Password</label>
-                <div class="password-field-wrapper">
+                <div class="input-wrapper">
                     <input 
                         type="password" 
                         name="password1" 
@@ -188,7 +188,7 @@
             <!-- Confirm Password -->
             <div class="form-field">
                 <label for="id_password2">Confirm Password</label>
-                <div class="password-field-wrapper">
+                <div class="input-wrapper">
                     <input 
                         type="password" 
                         name="password2" 
@@ -227,7 +227,7 @@
             </div>
             
             <div class="back-link">
-                <a href="{% url 'home' %}">
+                <a href="{% url 'home' %}" class="back-home-btn">
                     <i class="fas fa-arrow-left me-1"></i>
                     Back to Home
                 </a>

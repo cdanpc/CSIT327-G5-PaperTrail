@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Moderate Resources - PaperTrail{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Pending Resources</h2>
+    <a href="{% url 'accounts:professor_dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+{% if pending_resources %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Uploader</th>
+                <th>Type</th>
+                <th>Uploaded</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in pending_resources %}
+            <tr>
+                <td><a href="{% url 'resources:resource_detail' r.pk %}">{{ r.title }}</a></td>
+                <td>{{ r.uploader.get_display_name }}</td>
+                <td>{{ r.resource_type|title }}</td>
+                <td>{{ r.created_at|date:"M d, Y" }}</td>
+                <td class="text-end">
+                    <form method="post" action="{% url 'resources:approve_resource' r.pk %}" style="display:inline-block;">
+                        {% csrf_token %}
+                        <button class="btn btn-success btn-sm" type="submit">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'resources:reject_resource' r.pk %}" style="display:inline-block;">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm" type="submit">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <h5 class="text-muted">No resources pending verification</h5>
+    <p class="text-muted">All caught up!</p>
+</div>
+{% endif %}
+{% endblock %}
+
+

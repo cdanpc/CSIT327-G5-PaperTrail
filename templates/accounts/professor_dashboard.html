@@ -1,243 +1,381 @@
-{% extends 'accounts/dashboard_base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professor Dashboard - PaperTrail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=6.0">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.2">
+    <link rel="stylesheet" href="{% static 'css/feature-popup.css' %}?v=1.0">
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
+        <i class="fas fa-bars"></i>
+    </button>
 
-{% block dashboard_title %}Professor Dashboard{% endblock %}
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay"></div>
 
-{% block dashboard_nav %}
-<a href="#" class="list-group-item list-group-item-action" data-feature="in-progress">
-    <i class="bi bi-check-circle me-2"></i> Verify Content
-</a>
-<a href="#" class="list-group-item list-group-item-action" data-feature="in-progress">
-    <i class="bi bi-upload me-2"></i> My Resources
-</a>
-<a href="#" class="list-group-item list-group-item-action" data-feature="in-progress">
-    <i class="bi bi-people me-2"></i> Manage Students
-</a>
-{% endblock %}
+    <!-- Unified Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <!-- PaperTrail Brand/Toggle -->
+        <div class="sidebar-brand-toggle" id="sidebarToggle">
+            <i class="fas fa-book-reader"></i>
+            <span class="sidebar-text">PaperTrail</span>
+        </div>
 
-{% block dashboard_content %}
-<!-- Overview Section -->
-<div class="card mb-4">
-    <div class="card-body">
-        <h2 class="h4 mb-1">Professor Overview</h2>
-        <p class="text-muted mb-0">Manage resources, verify student content, and track engagement.</p>
-        
-        <!-- Quick Stats -->
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="profile-stat-item">
-                    <div class="stat-number" data-target="{{ pending_verifications.count }}">0</div>
-                    <div class="stat-label">Pending Verifications</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="profile-stat-item">
-                    <div class="stat-number" data-target="{{ professor_resources.count }}">0</div>
-                    <div class="stat-label">My Resources</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="profile-stat-item">
-                    <div class="stat-number" data-target="{{ recently_verified.count }}">0</div>
-                    <div class="stat-label">Recently Verified</div>
-                </div>
+        <!-- Sidebar Content -->
+        <div class="sidebar-content">
+            <!-- Main Navigation -->
+            <nav class="sidebar-nav">
+                <a href="{% url 'accounts:professor_dashboard' %}" class="sidebar-item active">
+                    <i class="fas fa-home"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+                <a href="{% url 'resources:resource_list' %}" class="sidebar-item">
+                    <i class="fas fa-book"></i>
+                    <span class="sidebar-text">Resources</span>
+                </a>
+                <a href="{% url 'resources:moderation_list' %}" class="sidebar-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="sidebar-text">Verify Content</span>
+                </a>
+                <a href="{% url 'resources:resource_upload' %}" class="sidebar-item">
+                    <i class="fas fa-upload"></i>
+                    <span class="sidebar-text">Upload Resource</span>
+                </a>
+                <a href="{% url 'quizzes:quiz_list' %}" class="sidebar-item">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span class="sidebar-text">Quizzes</span>
+                </a>
+            </nav>
+
+            <!-- Sidebar Footer (Profile, Settings, Sign Out) -->
+            <div class="sidebar-footer">
+                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
+                    <i class="fas fa-user"></i>
+                    <span class="sidebar-text">Profile</span>
+                </a>
+                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
+                    <i class="fas fa-cog"></i>
+                    <span class="sidebar-text">Settings</span>
+                </a>
+                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="sidebar-text">Sign Out</span>
+                </a>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">Upload Resource</h5>
-                <p class="card-text flex-grow-1">Share educational materials with students</p>
-                <button class="btn btn-primary" data-feature="in-progress">
-                    <i class="bi bi-upload me-2"></i>Upload
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">Verify Content</h5>
-                <p class="card-text flex-grow-1">Review and verify student submissions</p>
-                <button class="btn btn-primary" data-feature="in-progress">
-                    <i class="bi bi-check-circle me-2"></i>Review
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">Create Quiz</h5>
-                <p class="card-text flex-grow-1">Build quizzes to test student knowledge</p>
-                <button class="btn btn-primary" data-feature="in-progress">
-                    <i class="bi bi-file-text me-2"></i>Create
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Pending Verifications -->
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Pending Verifications</h5>
-                <button class="btn btn-sm btn-outline-primary" data-feature="in-progress">View All</button>
-            </div>
-            <div class="card-body">
-                {% if pending_verifications %}
-                    {% for resource in pending_verifications %}
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                        <div>
-                            <a href="#" class="text-decoration-none fw-medium" data-feature="in-progress">
-                                {{ resource.title }}
-                            </a>
-                            <small class="text-muted d-block">
-                                by {{ resource.uploader.get_display_name }}
-                                <span class="ms-2">{{ resource.created_at|date:"M d, Y" }}</span>
-                            </small>
-                        </div>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-success" data-feature="in-progress" title="Approve">
-                                <i class="bi bi-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" data-feature="in-progress" title="Reject">
-                                <i class="bi bi-x"></i>
-                            </button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-center text-muted my-3">No resources pending verification.</p>
-                    <div class="text-center">
-                        <i class="bi bi-check-circle text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-2">All caught up!</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- My Resources -->
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">My Resources</h5>
-                <button class="btn btn-sm btn-outline-primary" data-feature="in-progress">View All</button>
-            </div>
-            <div class="card-body">
-                {% if professor_resources %}
-                    {% for resource in professor_resources %}
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                        <div>
-                            <a href="#" class="text-decoration-none fw-medium" data-feature="in-progress">
-                                {{ resource.title }}
-                            </a>
-                            <small class="text-muted d-block">
-                                Uploaded {{ resource.created_at|date:"M d, Y" }}
-                                {% if resource.verification_status == 'verified' %}
-                                    <span class="badge bg-success ms-2">Verified</span>
-                                {% elif resource.verification_status == 'pending' %}
-                                    <span class="badge bg-warning text-dark ms-2">Pending</span>
-                                {% endif %}
-                            </small>
-                        </div>
-                        <button class="btn btn-sm btn-outline-secondary" data-feature="in-progress">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-center text-muted my-3">You haven't uploaded any resources yet.</p>
-                    <div class="text-center">
-                        <button class="btn btn-outline-primary" data-feature="in-progress">
-                            <i class="bi bi-upload me-2"></i>Upload Your First Resource
-                        </button>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recently Verified Resources -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Recently Verified Resources</h5>
-        <button class="btn btn-sm btn-outline-primary" data-feature="in-progress">View All</button>
-    </div>
-    <div class="card-body">
-        {% if recently_verified %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Resource</th>
-                            <th>Uploader</th>
-                            <th>Verified Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for resource in recently_verified %}
-                        <tr>
-                            <td>
-                                <a href="#" class="text-decoration-none" data-feature="in-progress">
-                                    {{ resource.title }}
-                                </a>
-                            </td>
-                            <td>{{ resource.uploader.get_display_name }}</td>
-                            <td>{{ resource.verified_at|date:"M d, Y" }}</td>
-                            <td>
-                                <span class="badge bg-success">Verified</span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-center text-muted my-3">No recently verified resources.</p>
-            <div class="text-center">
-                <i class="bi bi-clipboard-check text-muted" style="font-size: 3rem;"></i>
-                <p class="text-muted mt-2">Start verifying student submissions to see them here.</p>
-            </div>
-        {% endif %}
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Animate stat numbers
-    const statNumbers = document.querySelectorAll('.stat-number');
     
-    statNumbers.forEach(stat => {
-        const target = parseInt(stat.getAttribute('data-target')) || 0;
-        const duration = 1500; // 1.5 seconds
-        const increment = target / (duration / 16); // 60fps
-        let current = 0;
-        
-        const updateCount = () => {
-            current += increment;
-            if (current < target) {
-                stat.textContent = Math.floor(current);
-                requestAnimationFrame(updateCount);
-            } else {
-                stat.textContent = target;
-            }
-        };
-        
-        updateCount();
-    });
-});
-</script>
-{% endblock %}
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="dashboard-main">
+            <div class="container-fluid">
+                <!-- Dashboard Header -->
+                <div class="dashboard-header">
+                    <div class="dashboard-title-section">
+                        <h1 class="dashboard-title">Professor Dashboard</h1>
+                        <p class="dashboard-date">Manage resources, verify student content, and track engagement</p>
+                    </div>
+                    
+                    <div class="dashboard-actions">
+                        <!-- Search Box -->
+                        <div class="search-box-inline">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" placeholder="Search..." aria-label="Search">
+                        </div>
+                        
+                        <!-- Notification Bell -->
+                        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stat-card stat-card-purple">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Pending Verifications</div>
+                                <div class="stat-value" data-target="{{ pending_verifications.count }}">0</div>
+                                <div class="stat-sublabel">Awaiting review</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stat-card stat-card-blue">
+                            <div class="stat-icon">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">My Resources</div>
+                                <div class="stat-value" data-target="{{ professor_resources.count }}">0</div>
+                                <div class="stat-sublabel">Resources uploaded</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stat-card stat-card-green">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Recently Verified</div>
+                                <div class="stat-value" data-target="{{ recently_verified.count }}">0</div>
+                                <div class="stat-sublabel">Verified this period</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-4 col-md-6">
+                        <a href="{% url 'resources:resource_upload' %}" class="card dashboard-card" style="text-decoration: none; color: inherit;">
+                            <div class="card-body text-center">
+                                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <h5 class="card-title">Upload Resource</h5>
+                                <p class="text-muted">Share educational materials with students</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <a href="{% url 'resources:moderation_list' %}" class="card dashboard-card" style="text-decoration: none; color: inherit;">
+                            <div class="card-body text-center">
+                                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <h5 class="card-title">Verify Content</h5>
+                                <p class="text-muted">Review and verify student submissions</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <h5 class="card-title">Create Quiz</h5>
+                                <p class="text-muted">Build quizzes to test student knowledge</p>
+                                <button class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600;" data-feature="in-progress">
+                                    <i class="fas fa-plus"></i> Create
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content Grid -->
+                <div class="row g-3">
+                    <!-- Left Column: Pending Verifications -->
+                    <div class="col-lg-6">
+                        <div class="card dashboard-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Pending Verifications</h5>
+                                <a href="{% url 'resources:moderation_list' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
+                                    View All
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                {% if pending_verifications %}
+                                    {% for resource in pending_verifications %}
+                                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
+                                        <div style="flex: 1;">
+                                            <h6 class="mb-1" style="font-weight: 600; color: #1a1a1a;">
+                                                <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none;">
+                                                    {{ resource.title }}
+                                                </a>
+                                            </h6>
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-user"></i> by {{ resource.uploader.get_display_name }}
+                                                <span class="ms-2"><i class="fas fa-calendar"></i> {{ resource.created_at|date:"M d, Y" }}</span>
+                                            </small>
+                                        </div>
+                                        <div class="btn-group ms-2">
+                                            <form method="post" action="{% url 'resources:approve_resource' resource.pk %}?next={{ request.path }}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button class="btn btn-sm" type="submit" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none;" title="Approve">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <form method="post" action="{% url 'resources:reject_resource' resource.pk %}?next={{ request.path }}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
+                                        <p class="text-muted mb-0">No resources pending verification.</p>
+                                        <small class="text-muted">All caught up!</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: My Resources -->
+                    <div class="col-lg-6">
+                        <div class="card dashboard-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">My Resources</h5>
+                                <a href="{% url 'resources:my_resources' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
+                                    View All
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                {% if professor_resources %}
+                                    {% for resource in professor_resources %}
+                                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
+                                        <div style="flex: 1;">
+                                            <h6 class="mb-1" style="font-weight: 600; color: #1a1a1a;">
+                                                <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none;">
+                                                    {{ resource.title }}
+                                                </a>
+                                            </h6>
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-calendar"></i> Uploaded {{ resource.created_at|date:"M d, Y" }}
+                                                {% if resource.verification_status == 'verified' %}
+                                                    <span class="badge ms-2" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; font-size: 0.65rem;">Verified</span>
+                                                {% elif resource.verification_status == 'pending' %}
+                                                    <span class="badge ms-2" style="background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%); color: white; font-size: 0.65rem;">Pending</span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <a href="{% url 'resources:resource_edit' resource.pk %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2);" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-folder-open" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
+                                        <p class="text-muted mb-3">You haven't uploaded any resources yet.</p>
+                                        <a class="btn" href="{% url 'resources:resource_upload' %}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+                                            <i class="fas fa-upload"></i> Upload Your First Resource
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recently Verified Resources -->
+                <div class="row g-3 mt-3">
+                    <div class="col-12">
+                        <div class="card dashboard-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Recently Verified Resources</h5>
+                                <a href="{% url 'resources:verified_resources_list' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
+                                    View All
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                {% if recently_verified %}
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th style="font-weight: 600; color: #1a1a1a;">Resource</th>
+                                                    <th style="font-weight: 600; color: #1a1a1a;">Uploader</th>
+                                                    <th style="font-weight: 600; color: #1a1a1a;">Verified Date</th>
+                                                    <th style="font-weight: 600; color: #1a1a1a;">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for resource in recently_verified %}
+                                                <tr>
+                                                    <td>
+                                                        <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none; font-weight: 600;">
+                                                            {{ resource.title }}
+                                                        </a>
+                                                    </td>
+                                                    <td style="color: #4b5563;">{{ resource.uploader.get_display_name }}</td>
+                                                    <td style="color: #4b5563;">{{ resource.verified_at|date:"M d, Y" }}</td>
+                                                    <td>
+                                                        <span class="badge" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white;">Verified</span>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-clipboard-check" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
+                                        <p class="text-muted mb-0">No recently verified resources.</p>
+                                        <small class="text-muted">Start verifying student submissions to see them here.</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="featureToast" class="toast">
+            <div class="toast-header bg-info text-white">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong class="me-auto">Feature Coming Soon</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">This feature is currently under development and will be available soon!</div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/sidebar.js' %}?v=5.0"></script>
+    <script src="{% static 'js/script.js' %}?v=21.0"></script>
+    
+    <!-- Apply stat number animation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statNumbers = document.querySelectorAll('.stat-value');
+            
+            statNumbers.forEach(stat => {
+                const target = parseInt(stat.getAttribute('data-target')) || 0;
+                const duration = 1500;
+                const increment = target / (duration / 16);
+                let current = 0;
+                
+                const updateCount = () => {
+                    current += increment;
+                    if (current < target) {
+                        stat.textContent = Math.floor(current);
+                        requestAnimationFrame(updateCount);
+                    } else {
+                        stat.textContent = target;
+                    }
+                };
+                
+                updateCount();
+            });
+        });
+    </script>
+</body>
+</html>
