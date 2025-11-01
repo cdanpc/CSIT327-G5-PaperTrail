@@ -1,5 +1,5 @@
 from django import forms
-from .models import Resource, Tag
+from .models import Resource, Tag, Rating, Comment
 
 
 class ResourceUploadForm(forms.ModelForm):
@@ -97,3 +97,32 @@ class ResourceSearchForm(forms.Form):
             'class': 'form-select'
         })
     )
+
+
+class RatingForm(forms.ModelForm):
+    """Form for rating a resource"""
+    
+    class Meta:
+        model = Rating
+        fields = ['stars']
+        widgets = {
+            'stars': forms.RadioSelect(attrs={'class': 'star-rating-input'})
+        }
+
+
+class CommentForm(forms.ModelForm):
+    """Form for commenting on a resource"""
+    
+    class Meta:
+        model = Comment
+        fields = ['text']
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Share your thoughts about this resource...'
+            })
+        }
+        labels = {
+            'text': 'Your Comment'
+        }
