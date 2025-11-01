@@ -241,6 +241,16 @@ def password_change(request):
             user = form.save()
             # Important: Update session to prevent logout
             update_session_auth_hash(request, user)
+            
+            # Clear the must_change_password flag if it was set
+            # Refresh from database to get latest state, then clear the flag
+            user.refresh_from_db()
+            if user.must_change_password:
+                user.must_change_password = False
+                user.save(update_fields=['must_change_password'])
+                # Also update the request.user object for the middleware check
+                request.user.must_change_password = False
+            
             messages.success(request, 'Your password has been changed successfully!')
             return redirect('accounts:profile')
         else:
