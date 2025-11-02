@@ -1,0 +1,53 @@
+/* Quizzes module shared styles */
+
+/* Buttons */
+.btn-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff !important;
+  border: none;
+}
+.btn-outline-primary-soft {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea !important;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+.btn-gradient-success {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: #fff !important;
+  border: none;
+}
+
+/* Meta & utilities */
+.page-meta { font-size: 0.75rem; font-weight: 600; color: #6c757d; text-transform: uppercase; }
+.icon-muted { color: #6c757d; }
+.small-muted { color: #6c757d; font-size: 0.875rem; }
+
+/* Empty state */
+.empty-icon { font-size: 3rem; color: #d1d5db; }
+
+/* Quiz Attempt: multiple-choice option card */
+.mc-option {
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 0.5rem;
+}
+.mc-option:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.mc-option .form-check-input {
+  cursor: pointer;
+}
+.mc-option .form-check-label {
+  cursor: pointer;
+}
+
+/* Quiz Create: question item */
+.question-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+.question-item h6 { font-weight: 600; }
+.question-item .option-input { min-width: 0; }
