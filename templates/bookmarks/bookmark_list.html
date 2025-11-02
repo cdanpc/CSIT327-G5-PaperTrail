@@ -1,0 +1,82 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Bookmarks{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+{% endblock %}
+
+{% block header %}
+<div class="dashboard-title-section">
+    <h1 class="dashboard-title">Bookmarked Resources</h1>
+    <p class="dashboard-date">Quick access to the resources you've saved</p>
+</div>
+<div class="dashboard-actions">
+    <a href="{% url 'resources:resource_list' %}" class="btn btn-outline-primary-soft">
+        <i class="fas fa-arrow-left"></i> Browse Resources
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    {% if bookmarks %}
+        {% for b in bookmarks %}
+            {% with resource=b.resource %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="resource-icon-new resource-icon-lg {% if resource.resource_type == 'pdf' %}pdf-icon{% else %}pdf-icon{% endif %}">
+                                <i class="fas fa-{% if resource.resource_type == 'pdf' %}file-pdf{% elif resource.resource_type == 'image' %}image{% elif resource.resource_type == 'ppt' or resource.resource_type == 'pptx' %}file-powerpoint{% elif resource.resource_type == 'docx' %}file-word{% elif resource.resource_type == 'txt' %}file-lines{% elif resource.resource_type == 'link' %}link{% else %}file-alt{% endif %}"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-1">{{ resource.title }}</h5>
+                                <div class="resource-type-new resource-type-label">{{ resource.resource_type|upper }}</div>
+                            </div>
+                        </div>
+
+                        <p class="text-muted small flex-grow-1 mb-3">{{ resource.description|truncatewords:25 }}</p>
+
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            {% for tag in resource.tags.all %}
+                                <span class="badge badge-tag badge-sm">{{ tag.name }}</span>
+                            {% empty %}
+                                <span class="text-muted small">No tags</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-auto d-flex gap-2">
+                            <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-outline-primary-soft w-100">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <form method="post" action="{% url 'bookmarks:toggle' resource.id %}" class="w-100">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-star empty-icon" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted">No bookmarks yet</h5>
+                    <p class="text-muted">Bookmark resources you find helpful to see them here.</p>
+                    <a href="{% url 'resources:resource_list' %}" class="btn btn-gradient-primary">
+                        <i class="fas fa-book"></i> Browse Resources
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
