@@ -54,4 +54,35 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // Bookmark toggle
+  const bookmarkBtn = document.querySelector('.bookmark-toggle');
+  if (bookmarkBtn) {
+    bookmarkBtn.addEventListener('click', function () {
+      const resourceId = this.getAttribute('data-resource-id');
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/bookmarks/toggle/${resourceId}/`;
+
+      // CSRF token
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+      if (csrfCookie) {
+        csrfInput.value = csrfCookie.split('=')[1];
+      }
+      form.appendChild(csrfInput);
+
+      // Next redirect back to current page
+      const nextInput = document.createElement('input');
+      nextInput.type = 'hidden';
+      nextInput.name = 'next';
+      nextInput.value = window.location.pathname;
+      form.appendChild(nextInput);
+
+      document.body.appendChild(form);
+      form.submit();
+    });
+  }
 });
