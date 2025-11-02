@@ -26,7 +26,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link" data-coming-soon="Flashcards feature is coming soon! Create and study flashcards from your resources." data-feature-name="Flashcards" title="Flashcards">
+                <a href="{% url 'flashcards:deck_list' %}" class="nav-link {% if 'flashcards' in request.path %}active{% endif %}" title="Flashcards">
                     <i class="fas fa-layer-group"></i>
                     <span class="nav-text">Flashcards</span>
                 </a>

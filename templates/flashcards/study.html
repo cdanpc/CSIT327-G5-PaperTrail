@@ -1,0 +1,64 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Study - {{ deck.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
+{% endblock %}
+
+{% block header %}
+<div class="dashboard-title-section">
+    <h1 class="dashboard-title">Study: {{ deck.title }}</h1>
+    <p class="dashboard-date">{{ total_cards }} cards</p>
+</div>
+<div class="dashboard-actions">
+    <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft">
+        <i class="fas fa-arrow-left"></i> Back to Deck
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>Card <span id="currentIndex">1</span> / <span id="totalCount">{{ total_cards }}</span></div>
+                    <div class="progress" style="height: 8px; width: 200px;">
+                        <div class="progress-bar" id="studyProgress" data-width="0"></div>
+                    </div>
+                </div>
+
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard">
+                        <div class="flashcard-inner" id="flashcardInner">
+                            <div class="flashcard-front" id="cardFront"></div>
+                            <div class="flashcard-back" id="cardBack"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    <button class="btn btn-outline-primary-soft" id="prevBtn" disabled>
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <button class="btn btn-gradient-primary" id="flipBtn">
+                        <i class="fas fa-retweet"></i> Flip
+                    </button>
+                    <button class="btn btn-outline-primary-soft" id="nextBtn">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="cardsData" type="application/json">{{ cards_json|safe }}</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/flashcards.js' %}"></script>
+{% endblock %}
