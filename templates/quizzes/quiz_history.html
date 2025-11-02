@@ -7,6 +7,10 @@
 <link rel="stylesheet" href="{% static 'css/quizzes.css' %}">
 {% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'js/quizzes.js' %}"></script>
+{% endblock %}
+
 {% block header %}
 <div class="dashboard-title-section">
     <h1 class="dashboard-title">My Quiz Results</h1>
@@ -40,7 +44,7 @@
                             </div>
                             <div class="progress" style="height: 8px;">
                                 <div class="progress-bar {% if attempt.percentage >= 80 %}bg-success{% elif attempt.percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
-                                    style="width: {{ attempt.percentage }}%"></div>
+                                    data-width="{{ attempt.percentage }}"></div>
                             </div>
                         </div>
                         <div class="mb-3">

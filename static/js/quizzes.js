@@ -1,6 +1,7 @@
 // Quizzes module scripts
 // Handles dynamic quiz creation (add/remove questions, validation, payload build)
 
+
 (function () {
   function ready(fn) {
     if (document.readyState === 'loading') {
@@ -10,12 +11,26 @@
     }
   }
 
+  function applyDataWidth() {
+    // Set width for progress bars using data-width to avoid inline CSS with template braces
+    document.querySelectorAll('.progress-bar[data-width]')
+      .forEach(function (el) {
+        var val = el.getAttribute('data-width');
+        if (val !== null && val !== '') {
+          el.style.width = String(val).trim() + '%';
+        }
+      });
+  }
+
   ready(function () {
+    // Always apply data-widths on any quizzes page
+    applyDataWidth();
+
     const addBtn = document.getElementById('addQuestionBtn');
     const form = document.getElementById('quizCreateForm');
 
     if (!form || !addBtn) {
-      // Not on the quiz create page
+      // Not on the quiz create page; nothing more to do
       return;
     }
 

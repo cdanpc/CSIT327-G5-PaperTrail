@@ -7,13 +7,17 @@
 <link rel="stylesheet" href="{% static 'css/quizzes.css' %}">
 {% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'js/quizzes.js' %}"></script>
+{% endblock %}
+
 {% block header %}
 <div class="dashboard-title-section">
     <h1 class="dashboard-title">{{ quiz.title }}</h1>
     <p class="dashboard-date">Question {{ question_number }} of {{ total_questions }}</p>
     <div class="d-flex align-items-center gap-2">
         <div class="progress" style="width: 200px; height: 8px;">
-            <div class="progress-bar" role="progressbar" style="width: {{ progress_percentage }}%;" aria-valuenow="{{ question_number }}" aria-valuemin="0" aria-valuemax="{{ total_questions }}"></div>
+            <div class="progress-bar" role="progressbar" data-width="{{ progress_percentage }}" aria-valuenow="{{ question_number }}" aria-valuemin="0" aria-valuemax="{{ total_questions }}"></div>
         </div>
     </div>
 {% endblock %}
