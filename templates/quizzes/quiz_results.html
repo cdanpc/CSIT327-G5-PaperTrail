@@ -1,181 +1,107 @@
+{% extends 'base_dashboard.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Results - {{ quiz.title }} - PaperTrail</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
-    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=6.0">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.2">
-</head>
-<body>
-    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
-        <i class="fas fa-bars"></i>
-    </button>
 
-    <div class="sidebar-overlay"></div>
+{% block title %}Quiz Results - {{ quiz.title }}{% endblock %}
 
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-brand-toggle" id="sidebarToggle">
-            <i class="fas fa-book-reader"></i>
-            <span class="sidebar-text">PaperTrail</span>
-        </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/quizzes.css' %}">
+{% endblock %}
 
-        <div class="sidebar-content">
-            <nav class="sidebar-nav">
-                <a href="{% url 'accounts:student_dashboard' %}" class="sidebar-item">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-text">Dashboard</span>
-                </a>
-                <a href="{% url 'resources:resource_list' %}" class="sidebar-item">
-                    <i class="fas fa-book"></i>
-                    <span class="sidebar-text">Resources</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-bookmark"></i>
-                    <span class="sidebar-text">Bookmarks</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-layer-group"></i>
-                    <span class="sidebar-text">Flashcards</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="{% url 'quizzes:quiz_list' %}" class="sidebar-item active">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span class="sidebar-text">Quizzes</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-comments"></i>
-                    <span class="sidebar-text">Forum</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-            </nav>
+{% block header %}
+<div class="dashboard-title-section">
+    <h1 class="dashboard-title">Quiz Results</h1>
+    <p class="dashboard-date">{{ quiz.title }}</p>
+</div>
+<div class="dashboard-actions">
+    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary-soft">
+        <i class="fas fa-arrow-left"></i> Back to Quizzes
+    </a>
+</div>
+{% endblock %}
 
-            <div class="sidebar-footer">
-                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
-                    <i class="fas fa-user"></i>
-                    <span class="sidebar-text">Profile</span>
-                </a>
-                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Settings</span>
-                </a>
-                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="sidebar-text">Sign Out</span>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="main-content" id="mainContent">
-        <div class="dashboard-main">
-            <div class="container-fluid">
-                <div class="dashboard-header">
-                    <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">Quiz Results</h1>
-                        <p class="dashboard-date">{{ quiz.title }}</p>
-                    </div>
-                    <div class="dashboard-actions">
-                        <a href="{% url 'quizzes:quiz_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
-                            <i class="fas fa-arrow-left"></i> Back to Quizzes
-                        </a>
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Score Card -->
+        <div class="card dashboard-card mb-4" style="border: 2px solid #667eea; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);">
+            <div class="card-body text-center py-5">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">
+                    {% if percentage >= 80 %}
+                        <i class="fas fa-trophy text-warning"></i>
+                    {% elif percentage >= 60 %}
+                        <i class="fas fa-check-circle text-success"></i>
+                    {% else %}
+                        <i class="fas fa-times-circle text-danger"></i>
+                    {% endif %}
+                </div>
+                <h2 class="mb-2">Your Score</h2>
+                <div style="font-size: 3rem; font-weight: 700; color: #667eea; margin-bottom: 1rem;">
+                    {{ attempt.score }} / {{ attempt.total_questions }}
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 600; color: #4b5563; margin-bottom: 2rem;">
+                    {{ percentage }}%
+                </div>
+                <div class="progress" style="height: 20px; margin-bottom: 1rem;">
+                    <div class="progress-bar {% if percentage >= 80 %}bg-success{% elif percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
+                        role="progressbar"
+                        style="width: {{ percentage }}%;"
+                        aria-valuenow="{{ percentage }}"
+                        aria-valuemin="0"
+                        aria-valuemax="100">
+                        {{ percentage }}%
                     </div>
                 </div>
-
-                <div class="row justify-content-center">
-                    <div class="col-lg-8">
-                        <!-- Score Card -->
-                        <div class="card dashboard-card mb-4" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea;">
-                            <div class="card-body text-center py-5">
-                                <div style="font-size: 4rem; margin-bottom: 1rem;">
-                                    {% if percentage >= 80 %}
-                                        <i class="fas fa-trophy text-warning"></i>
-                                    {% elif percentage >= 60 %}
-                                        <i class="fas fa-check-circle text-success"></i>
-                                    {% else %}
-                                        <i class="fas fa-times-circle text-danger"></i>
-                                    {% endif %}
-                                </div>
-                                <h2 class="mb-2">Your Score</h2>
-                                <div style="font-size: 3rem; font-weight: 700; color: #667eea; margin-bottom: 1rem;">
-                                    {{ attempt.score }} / {{ attempt.total_questions }}
-                                </div>
-                                <div style="font-size: 1.5rem; font-weight: 600; color: #4b5563; margin-bottom: 2rem;">
-                                    {{ percentage }}%
-                                </div>
-                                <div class="progress" style="height: 20px; margin-bottom: 1rem;">
-                                    <div class="progress-bar {% if percentage >= 80 %}bg-success{% elif percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                         role="progressbar" 
-                                         style="width: {{ percentage }}%;" 
-                                         aria-valuenow="{{ percentage }}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                        {{ percentage }}%
-                                    </div>
-                                </div>
-                                {% if percentage >= 80 %}
-                                    <p class="text-success mb-0"><strong>Excellent work!</strong></p>
-                                {% elif percentage >= 60 %}
-                                    <p class="text-warning mb-0"><strong>Good job!</strong></p>
-                                {% else %}
-                                    <p class="text-danger mb-0"><strong>Keep practicing!</strong></p>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Answer Review -->
-                        <div class="card dashboard-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0"><i class="fas fa-list-check"></i> Answer Review</h5>
-                            </div>
-                            <div class="card-body">
-                                {% for answer in answers %}
-                                <div class="mb-4 pb-4 border-bottom">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 class="mb-0">
-                                            <strong>Question {{ forloop.counter }}:</strong> {{ answer.question.question_text }}
-                                        </h6>
-                                        {% if answer.is_correct %}
-                                            <span class="badge bg-success"><i class="fas fa-check"></i> Correct</span>
-                                        {% else %}
-                                            <span class="badge bg-danger"><i class="fas fa-times"></i> Incorrect</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-2">
-                                        <strong>Your Answer:</strong> <span class="{% if answer.is_correct %}text-success{% else %}text-danger{% endif %}">{{ answer.answer_text }}</span>
-                                    </div>
-                                    {% if not answer.is_correct %}
-                                    <div class="mb-2">
-                                        <strong>Correct Answer:</strong> <span class="text-success">{{ answer.question.correct_answer }}</span>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="mt-4 text-center">
-                            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.75rem 2rem; margin-right: 0.5rem;">
-                                <i class="fas fa-redo"></i> Retake Quiz
-                            </a>
-                            <a href="{% url 'quizzes:quiz_history' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.75rem 2rem;">
-                                <i class="fas fa-history"></i> View All Results
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                {% if percentage >= 80 %}
+                    <p class="text-success mb-0"><strong>Excellent work!</strong></p>
+                {% elif percentage >= 60 %}
+                    <p class="text-warning mb-0"><strong>Good job!</strong></p>
+                {% else %}
+                    <p class="text-danger mb-0"><strong>Keep practicing!</strong></p>
+                {% endif %}
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/sidebar.js' %}?v=5.0"></script>
-</body>
-</html>
+        <!-- Answer Review -->
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-list-check"></i> Answer Review</h5>
+            </div>
+            <div class="card-body">
+                {% for answer in answers %}
+                    <div class="mb-4 pb-4 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">
+                                <strong>Question {{ forloop.counter }}:</strong> {{ answer.question.question_text }}
+                            </h6>
+                            {% if answer.is_correct %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Correct</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fas fa-times"></i> Incorrect</span>
+                            {% endif %}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Your Answer:</strong> <span class="{% if answer.is_correct %}text-success{% else %}text-danger{% endif %}">{{ answer.answer_text }}</span>
+                        </div>
+                        {% if not answer.is_correct %}
+                            <div class="mb-2">
+                                <strong>Correct Answer:</strong> <span class="text-success">{{ answer.question.correct_answer }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-4 text-center">
+            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-gradient-primary" style="padding: 0.75rem 2rem; margin-right: 0.5rem;">
+                <i class="fas fa-redo"></i> Retake Quiz
+            </a>
+            <a href="{% url 'quizzes:quiz_history' %}" class="btn btn-outline-primary-soft" style="padding: 0.75rem 2rem;">
+                <i class="fas fa-history"></i> View All Results
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
 

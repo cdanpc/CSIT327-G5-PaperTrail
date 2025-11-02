@@ -1,148 +1,74 @@
+{% extends 'base_dashboard.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Quiz Results - PaperTrail</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
-    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=6.0">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.2">
-</head>
-<body>
-    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
-        <i class="fas fa-bars"></i>
-    </button>
 
-    <div class="sidebar-overlay"></div>
+{% block title %}My Quiz Results{% endblock %}
 
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-brand-toggle" id="sidebarToggle">
-            <i class="fas fa-book-reader"></i>
-            <span class="sidebar-text">PaperTrail</span>
-        </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/quizzes.css' %}">
+{% endblock %}
 
-        <div class="sidebar-content">
-            <nav class="sidebar-nav">
-                <a href="{% url 'accounts:student_dashboard' %}" class="sidebar-item">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-text">Dashboard</span>
-                </a>
-                <a href="{% url 'resources:resource_list' %}" class="sidebar-item">
-                    <i class="fas fa-book"></i>
-                    <span class="sidebar-text">Resources</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-bookmark"></i>
-                    <span class="sidebar-text">Bookmarks</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-layer-group"></i>
-                    <span class="sidebar-text">Flashcards</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="{% url 'quizzes:quiz_list' %}" class="sidebar-item active">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span class="sidebar-text">Quizzes</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-comments"></i>
-                    <span class="sidebar-text">Forum</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-            </nav>
+{% block header %}
+<div class="dashboard-title-section">
+    <h1 class="dashboard-title">My Quiz Results</h1>
+    <p class="dashboard-date">View your quiz attempt history</p>
+</div>
+<div class="dashboard-actions">
+    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary-soft">
+        <i class="fas fa-arrow-left"></i> Back to Quizzes
+    </a>
+</div>
+{% endblock %}
 
-            <div class="sidebar-footer">
-                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
-                    <i class="fas fa-user"></i>
-                    <span class="sidebar-text">Profile</span>
-                </a>
-                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Settings</span>
-                </a>
-                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="sidebar-text">Sign Out</span>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="main-content" id="mainContent">
-        <div class="dashboard-main">
-            <div class="container-fluid">
-                <div class="dashboard-header">
-                    <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">My Quiz Results</h1>
-                        <p class="dashboard-date">View your quiz attempt history</p>
-                    </div>
-                    <div class="dashboard-actions">
-                        <a href="{% url 'quizzes:quiz_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
-                            <i class="fas fa-arrow-left"></i> Back to Quizzes
+{% block content %}
+<div class="row">
+    {% if attempts %}
+        {% for attempt in attempts %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">{{ attempt.quiz.title }}</h5>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Score:</span>
+                                <strong>{{ attempt.score }} / {{ attempt.total_questions }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Percentage:</span>
+                                <strong class="{% if attempt.percentage >= 80 %}text-success{% elif attempt.percentage >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ attempt.percentage }}%
+                                </strong>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar {% if attempt.percentage >= 80 %}bg-success{% elif attempt.percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
+                                    style="width: {{ attempt.percentage }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> {{ attempt.completed_at|date:"M d, Y" }} at {{ attempt.completed_at|date:"g:i A" }}
+                            </small>
+                        </div>
+                        <a href="{% url 'quizzes:quiz_results' attempt.pk %}" class="btn btn-sm w-100 btn-gradient-primary">
+                            <i class="fas fa-eye"></i> View Details
                         </a>
                     </div>
                 </div>
-
-                <div class="row">
-                    {% if attempts %}
-                        {% for attempt in attempts %}
-                        <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card dashboard-card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title mb-3">{{ attempt.quiz.title }}</h5>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <span class="text-muted">Score:</span>
-                                            <strong>{{ attempt.score }} / {{ attempt.total_questions }}</strong>
-                                        </div>
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <span class="text-muted">Percentage:</span>
-                                            <strong class="{% if attempt.percentage >= 80 %}text-success{% elif attempt.percentage >= 60 %}text-warning{% else %}text-danger{% endif %}">
-                                                {{ attempt.percentage }}%
-                                            </strong>
-                                        </div>
-                                        <div class="progress" style="height: 8px;">
-                                            <div class="progress-bar {% if attempt.percentage >= 80 %}bg-success{% elif attempt.percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                                 style="width: {{ attempt.percentage }}%"></div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <small class="text-muted">
-                                            <i class="fas fa-calendar"></i> {{ attempt.completed_at|date:"M d, Y" }} at {{ attempt.completed_at|date:"g:i A" }}
-                                        </small>
-                                    </div>
-                                    <a href="{% url 'quizzes:quiz_results' attempt.pk %}" class="btn btn-sm w-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                                        <i class="fas fa-eye"></i> View Details
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="col-12">
-                            <div class="card dashboard-card">
-                                <div class="card-body text-center py-5">
-                                    <i class="fas fa-history" style="font-size: 4rem; color: #d1d5db; margin-bottom: 1rem;"></i>
-                                    <h5 class="text-muted">No quiz attempts yet</h5>
-                                    <p class="text-muted">Start taking quizzes to see your results here!</p>
-                                    <a href="{% url 'quizzes:quiz_list' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                                        <i class="fas fa-play"></i> Browse Quizzes
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-history empty-icon" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted">No quiz attempts yet</h5>
+                    <p class="text-muted">Start taking quizzes to see your results here!</p>
+                    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-gradient-primary">
+                        <i class="fas fa-play"></i> Browse Quizzes
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/sidebar.js' %}?v=5.0"></script>
-</body>
-</html>
+    {% endif %}
+</div>
+{% endblock %}
 

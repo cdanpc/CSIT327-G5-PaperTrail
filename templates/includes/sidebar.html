@@ -32,7 +32,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link" data-coming-soon="Quizzes feature is coming soon! Test your knowledge with interactive quizzes." data-feature-name="Quizzes" title="Quizzes">
+                <a href="{% url 'quizzes:quiz_list' %}" class="nav-link {% if 'quizzes' in request.path %}active{% endif %}" title="Quizzes">
                     <i class="fas fa-clipboard-check"></i>
                     <span class="nav-text">Quizzes</span>
                 </a>

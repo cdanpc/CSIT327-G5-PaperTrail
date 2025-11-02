@@ -1,104 +1,38 @@
+{% extends 'base_dashboard.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quizzes - PaperTrail</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
-    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=6.0">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.2">
-</head>
-<body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
-        <i class="fas fa-bars"></i>
-    </button>
 
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay"></div>
+{% block title %}Quizzes{% endblock %}
 
-    <!-- Unified Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-brand-toggle" id="sidebarToggle">
-            <i class="fas fa-book-reader"></i>
-            <span class="sidebar-text">PaperTrail</span>
-        </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/quizzes.css' %}?v=1.0">
+{% endblock %}
 
-        <div class="sidebar-content">
-            <nav class="sidebar-nav">
-                <a href="{% url 'accounts:student_dashboard' %}" class="sidebar-item">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-text">Dashboard</span>
-                </a>
-                <a href="{% url 'resources:resource_list' %}" class="sidebar-item">
-                    <i class="fas fa-book"></i>
-                    <span class="sidebar-text">Resources</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-bookmark"></i>
-                    <span class="sidebar-text">Bookmarks</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-layer-group"></i>
-                    <span class="sidebar-text">Flashcards</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="{% url 'quizzes:quiz_list' %}" class="sidebar-item active">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span class="sidebar-text">Quizzes</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-comments"></i>
-                    <span class="sidebar-text">Forum</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
-                    <i class="fas fa-user"></i>
-                    <span class="sidebar-text">Profile</span>
-                </a>
-                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Settings</span>
-                </a>
-                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="sidebar-text">Sign Out</span>
-                </a>
-            </div>
-        </div>
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Quizzes</h1>
+        <p class="dashboard-date">Test your knowledge with verified quizzes</p>
     </div>
+    <div class="dashboard-actions">
+        <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-gradient-primary">
+            <i class="fas fa-plus"></i> Create Quiz
+        </a>
+        <a href="{% url 'quizzes:quiz_history' %}" class="btn btn-outline-primary-soft ms-2">
+            <i class="fas fa-history"></i> My Results
+        </a>
+        {% if user.is_professor %}
+        <a href="{% url 'quizzes:quiz_moderation_list' %}" class="btn btn-outline-primary-soft ms-2">
+            <i class="fas fa-check-circle"></i> Moderate
+        </a>
+        {% endif %}
+        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
+            <i class="fas fa-bell"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}
 
-    <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <div class="dashboard-main">
-            <div class="container-fluid">
-                <div class="dashboard-header">
-                    <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">Quizzes</h1>
-                        <p class="dashboard-date">Test your knowledge with verified quizzes</p>
-                    </div>
-                    
-                    <div class="dashboard-actions">
-                        <a href="{% url 'quizzes:quiz_create' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
-                            <i class="fas fa-plus"></i> Create Quiz
-                        </a>
-                        <a href="{% url 'quizzes:quiz_history' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-left: 0.5rem;">
-                            <i class="fas fa-history"></i> My Results
-                        </a>
-                        {% if user.is_professor %}
-                        <a href="{% url 'quizzes:quiz_moderation_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-left: 0.5rem;">
-                            <i class="fas fa-check-circle"></i> Moderate
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
+{% block content %}
 
                 {% if messages %}
                     {% for message in messages %}
@@ -130,7 +64,7 @@
                                             <i class="fas fa-user"></i> {{ quiz.creator.get_display_name }}
                                         </small>
                                     </div>
-                                    <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-sm w-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                                    <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-sm w-100 btn-gradient-primary">
                                         <i class="fas fa-play"></i> Start Quiz
                                     </a>
                                 </div>
@@ -141,10 +75,10 @@
                         <div class="col-12">
                             <div class="card dashboard-card">
                                 <div class="card-body text-center py-5">
-                                    <i class="fas fa-clipboard-list" style="font-size: 4rem; color: #d1d5db; margin-bottom: 1rem;"></i>
+                                    <i class="fas fa-clipboard-list empty-icon mb-3"></i>
                                     <h5 class="text-muted">No quizzes available yet</h5>
                                     <p class="text-muted">Be the first to create a quiz!</p>
-                                    <a href="{% url 'quizzes:quiz_create' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                                    <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-gradient-primary">
                                         <i class="fas fa-plus"></i> Create Quiz
                                     </a>
                                 </div>
@@ -152,12 +86,5 @@
                         </div>
                     {% endif %}
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/sidebar.js' %}?v=5.0"></script>
-</body>
-</html>
+{% endblock %}
 
