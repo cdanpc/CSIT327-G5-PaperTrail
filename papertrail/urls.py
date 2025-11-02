@@ -36,6 +36,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('resources/', include('resources.urls')),
     path('quizzes/', include('quizzes.urls')),
+    path('flashcards/', include('flashcards.urls')),
     path('', home_view, name='home'),  # Custom home view with authentication check
 ]
 

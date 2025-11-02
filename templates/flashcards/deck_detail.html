@@ -1,0 +1,79 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Manage Deck - {{ deck.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
+{% endblock %}
+
+{% block header %}
+<div class="dashboard-title-section">
+    <h1 class="dashboard-title">{{ deck.title }}</h1>
+    <p class="dashboard-date">{{ deck.cards_count }} cards</p>
+</div>
+<div class="dashboard-actions">
+    <a href="{% url 'flashcards:study' deck.pk %}" class="btn btn-gradient-primary">
+        <i class="fas fa-play"></i> Study Deck
+    </a>
+    <a href="{% url 'flashcards:deck_list' %}" class="btn btn-outline-primary-soft">
+        <i class="fas fa-arrow-left"></i> Back to Decks
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card dashboard-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-plus"></i> Add Card</h5>
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ card_form.front_text.label_tag }}
+                        {{ card_form.front_text }}
+                    </div>
+                    <div class="mb-3">
+                        {{ card_form.back_text.label_tag }}
+                        {{ card_form.back_text }}
+                    </div>
+                    <button type="submit" class="btn btn-gradient-primary">
+                        <i class="fas fa-save"></i> Add Card
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card dashboard-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-list"></i> Cards</h5>
+                {% if cards %}
+                    <div class="list-group list-group-flush mt-3">
+                        {% for card in cards %}
+                        <div class="list-group-item">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <small class="text-muted">Front</small>
+                                    <div class="prewrap">{{ card.front_text }}</div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <small class="text-muted">Back</small>
+                                    <div class="prewrap">{{ card.back_text }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-note-sticky empty-icon" style="font-size: 3rem;"></i>
+                        <p class="text-muted mb-0">No cards yet. Add your first card using the form.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
