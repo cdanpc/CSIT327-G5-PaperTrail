@@ -323,6 +323,36 @@
     position: relative;
 }
 
+/* Footer behavior when sidebar is collapsed: center icons and hide labels */
+.sidebar:not(.expanded) .sidebar-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-sm) 0;
+}
+
+.sidebar:not(.expanded) .sidebar-footer .sidebar-footer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar:not(.expanded) .sidebar-footer .sidebar-footer-link {
+    justify-content: center !important;
+    padding: 0.4rem 0 !important;
+}
+
+.sidebar:not(.expanded) .sidebar-footer .sidebar-footer-link i {
+    margin-left: 0 !important;
+    font-size: 1.1rem !important;
+}
+
+.sidebar:not(.expanded) .sidebar-footer .sidebar-footer-link span {
+    display: none !important;
+}
+
 .user-profile {
     display: flex;
     align-items: center;

@@ -1,0 +1,33 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Edit Card - {{ deck.title }}{% endblock %}
+
+{% block header %}
+<div class="dashboard-title-section">
+  <h1 class="dashboard-title">Edit Card</h1>
+  <p class="dashboard-date">Deck: {{ deck.title }}</p>
+</div>
+<div class="dashboard-actions">
+  <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card dashboard-card">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fas fa-pencil"></i> Edit Card</h5>
+        <form method="post" class="mt-3">
+          {% csrf_token %}
+          <div class="mb-3">{{ form.front_text.label_tag }}{{ form.front_text }}</div>
+          <div class="mb-3">{{ form.back_text.label_tag }}{{ form.back_text }}</div>
+          <button type="submit" class="btn btn-gradient-primary"><i class="fas fa-save"></i> Save Card</button>
+          <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft ms-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

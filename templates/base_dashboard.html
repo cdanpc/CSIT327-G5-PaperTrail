@@ -51,6 +51,17 @@
                         <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
                             <i class="fas fa-bell"></i>
                         </button>
+
+                        <!-- Profile (direct link to profile page) -->
+                        <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-3 profile-link" title="Profile">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
+                            {% else %}
+                                <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                            {% endif %}
+                        </a>
                     </div>
                     {% endblock %}
                 </div>

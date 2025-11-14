@@ -22,6 +22,29 @@
 {% block content %}
 <div class="row g-3">
     <div class="col-12">
+        <form method="get" class="card dashboard-card mb-3 p-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search decks...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for value,label in form.category.field.choices %}
+                            <option value="{{ value }}" {% if value == selected_category %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-gradient-primary flex-grow-1"><i class="fas fa-search"></i> Filter</button>
+                    <a href="{% url 'flashcards:deck_list' %}" class="btn btn-outline-primary-soft"><i class="fas fa-undo"></i></a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-12">
         <div id="createDeck" class="collapse">
             <div class="card dashboard-card mb-3">
                 <div class="card-body">
@@ -55,6 +78,7 @@
                         <h5 class="card-title mb-1">
                             <i class="fas fa-layer-group"></i> {{ deck.title }}
                         </h5>
+                        <div class="mb-1"><span class="badge bg-primary-soft">{{ deck.get_category_display }}</span></div>
                         <p class="text-muted small mb-2">{{ deck.description|default:'No description' }}</p>
                         <p class="mb-4"><span class="badge bg-secondary-soft">{{ deck.cards_count }} cards</span></p>
                         <div class="mt-auto d-flex gap-2">
@@ -64,6 +88,8 @@
                             <a href="{% url 'flashcards:study' deck.pk %}" class="btn btn-gradient-primary w-100">
                                 <i class="fas fa-play"></i> Study
                             </a>
+                            <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="btn btn-outline-primary-soft"><i class="fas fa-pencil"></i></a>
+                            <a href="{% url 'flashcards:deck_delete' deck.pk %}" class="btn btn-outline-danger"><i class="fas fa-trash"></i></a>
                         </div>
                     </div>
                 </div>

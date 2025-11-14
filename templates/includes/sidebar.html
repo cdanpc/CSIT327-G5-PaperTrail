@@ -51,33 +51,14 @@
     </nav>
 
     <div class="sidebar-footer">
-        <div class="user-profile" id="accountMenuToggle" aria-haspopup="true" aria-expanded="false">
-            {% if user.profile_photo %}
-                <img src="{{ user.profile_photo }}" alt="Profile" class="user-avatar">
-            {% else %}
-                <div class="user-avatar-placeholder">
-                    <i class="fas fa-user"></i>
-                </div>
-            {% endif %}
-            <div class="user-info">
-                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
-                <span class="user-role">Student</span>
-            </div>
-            <i class="fas fa-chevron-up account-caret" aria-hidden="true"></i>
-        </div>
-        <div class="account-menu" id="accountMenu" role="menu" aria-label="Account menu">
-            <a href="{% url 'accounts:profile' %}" class="account-menu-item" role="menuitem">
-                <i class="fas fa-user"></i>
-                <span>View Profile</span>
-            </a>
-            <a href="{% url 'accounts:settings' %}" class="account-menu-item" role="menuitem">
-                <i class="fas fa-cog"></i>
+        <div class="sidebar-footer-actions d-flex flex-column gap-2">
+            <a href="{% url 'accounts:settings' %}" class="nav-link sidebar-footer-link d-flex align-items-center">
+                <i class="fas fa-cog me-2"></i>
                 <span>Settings</span>
             </a>
-            <div class="account-menu-divider"></div>
-            <a href="{% url 'accounts:logout' %}" class="account-menu-item text-danger" role="menuitem">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
+            <a href="{% url 'accounts:logout' %}" class="nav-link sidebar-footer-link d-flex align-items-center text-danger">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                <span>Sign out</span>
             </a>
         </div>
     </div>

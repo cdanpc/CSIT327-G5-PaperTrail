@@ -16,6 +16,15 @@
     <a href="{% url 'flashcards:study' deck.pk %}" class="btn btn-gradient-primary">
         <i class="fas fa-play"></i> Study Deck
     </a>
+    <a href="{% url 'quizzes:generate_from_deck' deck.pk %}" class="btn btn-outline-primary-soft">
+        <i class="fas fa-clipboard-list"></i> Generate Quiz
+    </a>
+    <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="btn btn-outline-primary-soft">
+        <i class="fas fa-pencil"></i> Edit Deck
+    </a>
+    <a href="{% url 'flashcards:deck_delete' deck.pk %}" class="btn btn-outline-danger">
+        <i class="fas fa-trash"></i> Delete Deck
+    </a>
     <a href="{% url 'flashcards:deck_list' %}" class="btn btn-outline-primary-soft">
         <i class="fas fa-arrow-left"></i> Back to Decks
     </a>
@@ -62,6 +71,10 @@
                                     <small class="text-muted">Back</small>
                                     <div class="prewrap">{{ card.back_text }}</div>
                                 </div>
+                            </div>
+                            <div class="mt-2 d-flex gap-2">
+                                <a href="{% url 'flashcards:card_edit' deck.pk card.pk %}" class="btn btn-sm btn-outline-primary-soft"><i class="fas fa-pencil"></i> Edit</a>
+                                <a href="{% url 'flashcards:card_delete' deck.pk card.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i> Delete</a>
                             </div>
                         </div>
                         {% endfor %}

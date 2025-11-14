@@ -1,81 +1,150 @@
-{% extends 'base_dashboard.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Moderation - PaperTrail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=6.0">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.2">
+</head>
+<body>
+    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
+        <i class="fas fa-bars"></i>
+    </button>
 
-{% block title %}Quiz Moderation{% endblock %}
+    <div class="sidebar-overlay"></div>
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/quizzes.css' %}?v=1.0">
-{% endblock %}
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-brand-toggle" id="sidebarToggle">
+            <i class="fas fa-book-reader"></i>
+            <span class="sidebar-text">PaperTrail</span>
+        </div>
 
-{% block header %}
-<div class="dashboard-header">
-    <div class="dashboard-title-section">
-        <h1 class="dashboard-title">Quiz Moderation</h1>
-        <p class="dashboard-date">Review and approve pending quizzes</p>
+        <div class="sidebar-content">
+            <nav class="sidebar-nav">
+                <a href="{% url 'accounts:professor_dashboard' %}" class="sidebar-item">
+                    <i class="fas fa-home"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+                <a href="{% url 'resources:resource_list' %}" class="sidebar-item">
+                    <i class="fas fa-book"></i>
+                    <span class="sidebar-text">Resources</span>
+                </a>
+                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
+                    <i class="fas fa-bookmark"></i>
+                    <span class="sidebar-text">Bookmarks</span>
+                    <span class="coming-soon-badge">Soon</span>
+                </a>
+                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="sidebar-text">Flashcards</span>
+                    <span class="coming-soon-badge">Soon</span>
+                </a>
+                <a href="{% url 'quizzes:quiz_list' %}" class="sidebar-item active">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span class="sidebar-text">Quizzes</span>
+                </a>
+                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
+                    <i class="fas fa-comments"></i>
+                    <span class="sidebar-text">Forum</span>
+                    <span class="coming-soon-badge">Soon</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
+                    <i class="fas fa-user"></i>
+                    <span class="sidebar-text">Profile</span>
+                </a>
+                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
+                    <i class="fas fa-cog"></i>
+                    <span class="sidebar-text">Settings</span>
+                </a>
+                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="sidebar-text">Sign Out</span>
+                </a>
+            </div>
+        </div>
     </div>
-    <div class="dashboard-actions">
-        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary-soft">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
-        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
-            <i class="fas fa-bell"></i>
-        </button>
-    </div>
-</div>
-{% endblock %}
 
-{% block content %}
-{% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-{% endif %}
-
-<div class="card dashboard-card">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Pending Quizzes</h5>
-    </div>
-    <div class="card-body">
-        {% if pending_quizzes %}
-            {% for quiz in pending_quizzes %}
-            <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
-                <div class="flex-grow-1">
-                    <h6 class="mb-1">{{ quiz.title }}</h6>
-                    {% if quiz.description %}
-                    <p class="text-muted small mb-2">{{ quiz.description|truncatewords:20 }}</p>
-                    {% endif %}
-                    <small class="text-muted">
-                        <i class="fas fa-user"></i> by {{ quiz.creator.get_display_name }} |
-                        <i class="fas fa-question-circle"></i> {{ quiz.total_questions }} questions |
-                        <i class="fas fa-calendar"></i> {{ quiz.created_at|date:"M d, Y" }}
-                    </small>
+    <div class="main-content" id="mainContent">
+        <div class="dashboard-main">
+            <div class="container-fluid">
+                <div class="dashboard-header">
+                    <div class="dashboard-title-section">
+                        <h1 class="dashboard-title">Quiz Moderation</h1>
+                        <p class="dashboard-date">Review and approve pending quizzes</p>
+                    </div>
+                    <div class="dashboard-actions">
+                        <a href="{% url 'quizzes:quiz_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </div>
                 </div>
-                <div class="btn-group ms-2">
-                    <form method="post" action="{% url 'quizzes:approve_quiz' quiz.pk %}">
-                        {% csrf_token %}
-                        <button class="btn btn-sm btn-gradient-success" type="submit" title="Approve">
-                            <i class="fas fa-check"></i>
-                        </button>
-                    </form>
-                    <form method="post" action="{% url 'quizzes:reject_quiz' quiz.pk %}">
-                        {% csrf_token %}
-                        <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </form>
+
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="card dashboard-card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Pending Quizzes</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_quizzes %}
+                            {% for quiz in pending_quizzes %}
+                            <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
+                                <div style="flex: 1;">
+                                    <h6 class="mb-1">{{ quiz.title }}</h6>
+                                    {% if quiz.description %}
+                                    <p class="text-muted small mb-2">{{ quiz.description|truncatewords:20 }}</p>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-user"></i> by {{ quiz.creator.get_display_name }} |
+                                        <i class="fas fa-question-circle"></i> {{ quiz.total_questions }} questions |
+                                        <i class="fas fa-calendar"></i> {{ quiz.created_at|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                                <div class="btn-group ms-2">
+                                    <form method="post" action="{% url 'quizzes:approve_quiz' quiz.pk %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm" type="submit" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none;" title="Approve">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'quizzes:reject_quiz' quiz.pk %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-check-circle" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
+                                <p class="text-muted mb-0">No pending quizzes to review.</p>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-4">
-                <i class="fas fa-check-circle empty-icon mb-3"></i>
-                <p class="text-muted mb-0">No pending quizzes to review.</p>
-            </div>
-        {% endif %}
+        </div>
     </div>
-</div>
-{% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/sidebar.js' %}?v=5.0"></script>
+</body>
+</html>
 

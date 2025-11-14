@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import OperationalError
@@ -354,15 +355,27 @@ def rate_resource(request, pk):
             resource=resource,
             defaults={'stars': stars}
         )
-        
+
         # Update if already exists
         if not created:
             rating.stars = stars
             rating.save()
-        
+
         action = 'rated' if created else 'updated rating for'
+        avg_rating = resource.get_average_rating()
+        rating_count = resource.get_rating_count()
+
+        # AJAX response
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f'You {action} "{resource.title}" with {stars} star{"s" if stars != 1 else ""}! ',
+                'avg_rating': avg_rating,
+                'rating_count': rating_count,
+                'user_stars': rating.stars,
+            })
+
         messages.success(request, f'You {action} "{resource.title}" with {stars} star{"s" if stars != 1 else ""}!')
-    
     return redirect('resources:resource_detail', pk=pk)
 
 

@@ -21,6 +21,29 @@
 
 {% block content %}
 <div class="row g-3">
+    <div class="col-12">
+        <form method="get" class="card dashboard-card mb-3 p-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="q" value="{{ search }}" class="form-control" placeholder="Search bookmarks...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tag</label>
+                    <select name="tag" class="form-select">
+                        <option value="">All Tags</option>
+                        {% for t in tags %}
+                            <option value="{{ t.name }}" {% if t.name == tag_name %}selected{% endif %}>{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-gradient-primary flex-grow-1"><i class="fas fa-search"></i> Filter</button>
+                    <a href="{% url 'bookmarks:bookmark_list' %}" class="btn btn-outline-primary-soft"><i class="fas fa-undo"></i></a>
+                </div>
+            </div>
+        </form>
+    </div>
     {% if bookmarks %}
         {% for b in bookmarks %}
             {% with resource=b.resource %}
@@ -47,11 +70,16 @@
                             {% endfor %}
                         </div>
 
-                        <div class="mt-auto d-flex gap-2">
-                            <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-outline-primary-soft w-100">
+                        <div class="mt-auto d-flex flex-wrap gap-2">
+                            <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-outline-primary-soft flex-grow-1">
                                 <i class="fas fa-eye"></i> View
                             </a>
-                            <form method="post" action="{% url 'bookmarks:toggle' resource.id %}" class="w-100">
+                            {% if resource.file_url or resource.external_url %}
+                            <a href="{% url 'resources:resource_download' resource.pk %}" class="btn btn-outline-primary-soft flex-grow-1">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            {% endif %}
+                            <form method="post" action="{% url 'bookmarks:toggle' resource.id %}" class="flex-grow-1">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}" />
                                 <button type="submit" class="btn btn-danger w-100">
@@ -77,6 +105,31 @@
                 </div>
             </div>
         </div>
+    {% endif %}
+    {% if page_obj.has_other_pages %}
+    <div class="col-12 mt-2">
+        <nav aria-label="Bookmarks pagination" class="d-flex justify-content-center">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search }}&tag={{ tag_name }}">&laquo;</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}&q={{ search }}&tag={{ tag_name }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search }}&tag={{ tag_name }}">&raquo;</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
     {% endif %}
 </div>
 {% endblock %}

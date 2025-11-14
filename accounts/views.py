@@ -12,8 +12,12 @@ from .forms import (
     CustomPasswordChangeForm
 )
 from .models import User
-from resources.models import Resource, Bookmark
-from quizzes.models import QuizAttempt
+from resources.models import Resource, Bookmark, Tag, Rating, Comment
+from quizzes.models import QuizAttempt, Quiz
+from flashcards.models import Deck
+from django.db.models import Count, Avg, Q
+from datetime import timedelta
+from .models import StudyReminder
 
 
 # Registration View
@@ -81,9 +85,77 @@ def student_dashboard(request):
     if request.user.is_professor:
         return redirect('accounts:professor_dashboard')
     
-    # Get user's recent resources and bookmarks
+    # Get user's recent resources and bookmarks (for Bookmarks Quick Access panel)
     recent_resources = Resource.objects.filter(uploader=request.user).order_by('-created_at')[:5]
-    recent_bookmarks = Bookmark.objects.filter(user=request.user).order_by('-created_at')[:5]
+    recent_bookmarks = Bookmark.objects.filter(user=request.user).select_related('resource').order_by('-created_at')[:5]
+
+    # Continue Studying panel assumptions:
+    #   - In-progress quizzes: attempts started but not completed
+    #   - Flashcards: most recently updated decks (simulates ongoing study)
+    in_progress_quiz_attempts = QuizAttempt.objects.filter(student=request.user, completed_at__isnull=True).select_related('quiz')[:3]
+    continue_decks = Deck.objects.filter(owner=request.user).order_by('-updated_at')[:3]
+
+    # Trending Tags (top 6 by resource count in last 7 days)
+    cutoff = timezone.now() - timedelta(days=7)
+    trending_tags = Tag.objects.annotate(
+        recent_count=Count('resources', filter=Q(resources__created_at__gte=cutoff))
+    ).order_by('-recent_count', 'name')[:6]
+
+    # Top Rated Resources (avg rating, minimum 3 ratings)
+    top_rated_resources = Resource.objects.annotate(
+        avg_rating=Avg('ratings__stars'),
+        rating_count=Count('ratings')
+    ).filter(rating_count__gte=3).order_by('-avg_rating')[:5]
+
+    # Upcoming Quizzes panel limitation:
+    # Quiz model has no scheduling fields; we show latest quizzes not by the user as 'Explore'
+    upcoming_quizzes = Quiz.objects.exclude(creator=request.user).order_by('-created_at')[:3]
+
+    # Study Reminders
+    study_reminders = StudyReminder.objects.filter(user=request.user).order_by('completed', 'due_date')[:8]
+
+    # Dynamic Activity Feed (limit 8 most recent actions by user)
+    recent_ratings = Rating.objects.filter(user=request.user).select_related('resource').order_by('-created_at')[:5]
+    recent_comments = Comment.objects.filter(user=request.user).select_related('resource').order_by('-created_at')[:5]
+    recent_uploads = Resource.objects.filter(uploader=request.user).order_by('-created_at')[:5]
+    feed_events = []
+    for r in recent_uploads:
+        feed_events.append({
+            'timestamp': r.created_at,
+            'type': 'upload',
+            'icon': 'file-upload',
+            'title': f'Uploaded "{r.title}"',
+            'meta': r.created_at.strftime('%b %d')
+        })
+    for rt in recent_ratings:
+        feed_events.append({
+            'timestamp': rt.created_at,
+            'type': 'rating',
+            'icon': 'star',
+            'title': f'Rated "{rt.resource.title}" {rt.stars}★',
+            'meta': rt.created_at.strftime('%b %d')
+        })
+    for c in recent_comments:
+        feed_events.append({
+            'timestamp': c.created_at,
+            'type': 'comment',
+            'icon': 'comment',
+            'title': f'Commented on "{c.resource.title}"',
+            'meta': c.created_at.strftime('%b %d')
+        })
+    feed_events.sort(key=lambda e: e['timestamp'], reverse=True)
+    activity_feed = feed_events[:8]
+
+    # Weekly Upload Stats (last 7 days)
+    today = timezone.now().date()
+    weekly_labels = []
+    weekly_upload_counts = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        label = day.strftime('%a')
+        count = Resource.objects.filter(uploader=request.user, created_at__date=day).count()
+        weekly_labels.append(label)
+        weekly_upload_counts.append(count)
     
     # Phase 8: Profile completion integration
     profile_completion = request.user.get_profile_completion_percentage()
@@ -93,6 +165,9 @@ def student_dashboard(request):
     total_resources = Resource.objects.filter(uploader=request.user).count()
     total_bookmarks = Bookmark.objects.filter(user=request.user).count()
     quizzes_completed = QuizAttempt.objects.filter(student=request.user, completed_at__isnull=False).count()
+    # Newly added counts (Tasks 1 & 2)
+    total_flashcards_posted = Deck.objects.filter(owner=request.user).count()
+    total_quizzes_posted = Quiz.objects.filter(creator=request.user).count()
     
     context = {
         'user': request.user,
@@ -103,8 +178,57 @@ def student_dashboard(request):
         'total_resources': total_resources,
         'total_bookmarks': total_bookmarks,
         'quizzes_completed': quizzes_completed,
+        'total_flashcards_posted': total_flashcards_posted,
+        'total_quizzes_posted': total_quizzes_posted,
+        # Panels 3-7 context
+        'in_progress_quiz_attempts': in_progress_quiz_attempts,
+        'continue_decks': continue_decks,
+        'trending_tags': trending_tags,
+        'top_rated_resources': top_rated_resources,
+        'upcoming_quizzes': upcoming_quizzes,
+        'study_reminders': study_reminders,
+        'activity_feed': activity_feed,
+        'weekly_upload_labels': weekly_labels,
+        'weekly_upload_counts': weekly_upload_counts,
     }
     return render(request, 'accounts/student_dashboard.html', context)
+
+
+# Study Reminder CRUD (basic synchronous handlers)
+@login_required
+def add_study_reminder(request):
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        due_date_raw = request.POST.get('due_date', '').strip()
+        due_dt = None
+        if due_date_raw:
+            try:
+                # Parse date (YYYY-MM-DD) into datetime midnight
+                from datetime import datetime
+                parsed = datetime.strptime(due_date_raw, '%Y-%m-%d')
+                due_dt = timezone.make_aware(parsed)
+            except ValueError:
+                due_dt = None
+        if title:
+            StudyReminder.objects.create(user=request.user, title=title, due_date=due_dt)
+    return redirect('accounts:student_dashboard')
+
+
+@login_required
+def toggle_study_reminder(request, pk):
+    reminder = StudyReminder.objects.filter(pk=pk, user=request.user).first()
+    if reminder:
+        reminder.completed = not reminder.completed
+        reminder.save(update_fields=['completed'])
+    return redirect('accounts:student_dashboard')
+
+
+@login_required
+def delete_study_reminder(request, pk):
+    reminder = StudyReminder.objects.filter(pk=pk, user=request.user).first()
+    if reminder:
+        reminder.delete()
+    return redirect('accounts:student_dashboard')
 
 
 # Professor Dashboard

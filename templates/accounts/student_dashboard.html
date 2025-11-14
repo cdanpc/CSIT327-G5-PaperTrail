@@ -3,8 +3,38 @@
 
 {% block title %}Dashboard{% endblock %}
 
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Welcome back, {{ user.first_name }}!</h1>
+        <p class="dashboard-date">Keep moving forward—small wins today become big results this semester.</p>
+    </div>
+    {% block header_actions %}
+    <div class="dashboard-actions">
+        <div class="search-box-inline">
+            <i class="fas fa-search"></i>
+            <input type="text" class="form-control" placeholder="Search..." aria-label="Search">
+        </div>
+        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
+            <i class="fas fa-bell"></i>
+        </button>
+        <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-3 profile-link" title="Profile">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
+            {% else %}
+                <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
+                    <i class="fas fa-user"></i>
+                </span>
+            {% endif %}
+        </a>
+    </div>
+    {% endblock %}
+    
+</div>
+{% endblock %}
+
 {% block content %}
-<!-- Stats Cards Row -->
+<!-- Stats Cards Row (clean, minimal) -->
 <div class="row g-3 mb-4">
     <div class="col-lg-3 col-md-6">
         <div class="stat-card stat-card-purple">
@@ -31,265 +61,323 @@
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
-        <div class="stat-card stat-card-green">
+        <div class="stat-card stat-card-teal">
             <div class="stat-icon">
-                <i class="fas fa-user-check"></i>
+                <i class="fas fa-layer-group"></i>
             </div>
             <div class="stat-content">
-                <div class="stat-label">Profile Completion</div>
-                <div class="stat-value">{{ profile_completion|floatformat:0 }}%</div>
-                <div class="stat-sublabel">
-                    {% if profile_complete %}
-                        <i class="fas fa-check-circle"></i> Complete!
-                    {% else %}
-                        Complete your profile
-                    {% endif %}
-                </div>
+                <div class="stat-label">Flashcards</div>
+                <div class="stat-value" data-target="{{ total_flashcards_posted|default:0 }}">0</div>
+                <div class="stat-sublabel">Decks created</div>
             </div>
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
-        <div class="stat-card stat-card-teal">
+        <div class="stat-card stat-card-green">
             <div class="stat-icon">
-                <i class="fas fa-users"></i>
+                <i class="fas fa-question-circle"></i>
             </div>
             <div class="stat-content">
-                <div class="stat-label">Community Impact</div>
-                <div class="stat-value" data-target="0">0</div>
-                <div class="stat-sublabel">Students helped by your resources</div>
+                <div class="stat-label">Quizzes Posted</div>
+                <div class="stat-value" data-target="{{ total_quizzes_posted|default:0 }}">0</div>
+                <div class="stat-sublabel">Quizzes created</div>
             </div>
         </div>
     </div>
+    
 </div>
-
-<!-- Profile Completion Alert (if not 100%) -->
-{% if not profile_complete %}
-<div class="alert alert-info alert-dismissible fade show mb-4" role="alert" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea; border-radius: 12px;">
-    <div class="d-flex align-items-center">
-        <div style="font-size: 2.5rem; margin-right: 1rem; color: #667eea;">
-            <i class="fas fa-user-circle"></i>
-        </div>
-        <div style="flex: 1;">
-            <h5 class="alert-heading mb-1" style="color: #667eea; font-weight: 700;">
-                Complete Your Profile ({{ profile_completion|floatformat:0 }}%)
-            </h5>
-            <p class="mb-2" style="color: #4b5563;">
-                Unlock exclusive features by completing your profile! Get access to Advanced Analytics, Profile Themes, and earn the Verified Student badge.
-            </p>
-            <a href="{% url 'accounts:profile' %}" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 6px; font-weight: 600;">
-                <i class="fas fa-arrow-right"></i> Complete Profile
-            </a>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-</div>
-{% endif %}
 
 <!-- Main Content Grid -->
 <div class="row g-3">
-    <!-- Left Column: Quick Actions + Recently Viewed -->
+    <!-- Left Column -->
     <div class="col-lg-8">
-        <!-- Quick Actions -->
+        <!-- Quick Actions (gradient cards) -->
         <div class="card dashboard-card mb-3">
             <div class="card-header">
                 <h5 class="card-title mb-0">Quick Actions</h5>
             </div>
             <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <button class="action-card-new" data-feature="in-progress" title="Flashcards coming soon">
-                            <div class="action-icon">
-                                <i class="fas fa-layer-group"></i>
-                            </div>
-                            <div class="action-text">Create Flashcards</div>
-                        </button>
-                    </div>
-                    <div class="col-md-6">
-                        <a class="action-card-new" href="{% url 'quizzes:quiz_create' %}">
-                            <div class="action-icon">
-                                <i class="fas fa-plus-circle"></i>
-                            </div>
-                            <div class="action-text">Create Quiz</div>
+                <div class="row g-3 qa-grid">
+                    <div class="col-6 col-lg-3">
+                        <a class="qa-tile qa-purple w-100" data-feature="in-progress" title="Flashcards coming soon">
+                            <div class="qa-icon"><i class="fas fa-layer-group"></i></div>
+                            <div class="qa-title mt-2">Flashcards</div>
                         </a>
                     </div>
-                    <div class="col-md-6">
-                        <a class="action-card-new" href="{% url 'resources:resource_upload' %}">
-                            <div class="action-icon">
-                                <i class="fas fa-upload"></i>
-                            </div>
-                            <div class="action-text">Upload Resource</div>
+                    <div class="col-6 col-lg-3">
+                        <a class="qa-tile qa-blue w-100" href="{% url 'quizzes:quiz_create' %}">
+                            <div class="qa-icon"><i class="fas fa-plus-circle"></i></div>
+                            <div class="qa-title mt-2">Create Quiz</div>
                         </a>
                     </div>
-                    <div class="col-md-6">
-                        <a class="action-card-new" href="{% url 'resources:resource_list' %}">
-                            <div class="action-icon">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <div class="action-text">Browse Library</div>
+                    <div class="col-6 col-lg-3">
+                        <a class="qa-tile qa-green w-100" href="{% url 'resources:resource_upload' %}">
+                            <div class="qa-icon"><i class="fas fa-upload"></i></div>
+                            <div class="qa-title mt-2">Upload</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <a class="qa-tile qa-amber w-100" href="{% url 'resources:resource_list' %}">
+                            <div class="qa-icon"><i class="fas fa-book"></i></div>
+                            <div class="qa-title mt-2">Library</div>
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Recently Viewed -->
-        <div class="card dashboard-card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Recently Viewed</h5>
+        <!-- Bookmarks Quick Access -->
+        <div class="card dashboard-card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Bookmarks</h5>
+                <a href="{% url 'resources:resource_list' %}" class="small text-decoration-none">All Resources</a>
             </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="resource-card-new">
-                            <div class="resource-icon-new pdf-icon">
-                                <i class="fas fa-file-pdf"></i>
-                            </div>
-                            <div class="resource-info-new">
-                                <div class="resource-type-new">PDF</div>
-                                <h6 class="resource-title-new">Data Structures Notes</h6>
-                                <p class="resource-subject-new">Computer Science 101</p>
-                                <div class="resource-meta-new">
-                                    <span><i class="fas fa-eye"></i> 234</span>
-                                    <span>2 days ago</span>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% if recent_bookmarks %}
+                        {% for b in recent_bookmarks %}
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="me-2" style="flex:1;">
+                                    <a href="{% url 'resources:resource_detail' b.resource.pk %}" class="fw-semibold text-decoration-none" style="color:#4f46e5;">{{ b.resource.title|truncatechars:60 }}</a>
+                                    <div class="small text-muted mt-1">
+                                        {% with avg=b.resource.get_average_rating count=b.resource.get_rating_count %}
+                                            {% if count > 0 %}
+                                                <span title="Average rating">⭐ {{ avg|floatformat:1 }}</span>
+                                                <span class="ms-1">({{ count }})</span>
+                                            {% else %}
+                                                <span class="text-muted">No ratings</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
                                 </div>
+                                <a href="{% url 'resources:resource_detail' b.resource.pk %}" class="btn btn-sm btn-outline-primary">Open</a>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item text-center text-muted py-4">No bookmarks yet.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Recent Uploads / Activity Feed -->
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="feed-list list-unstyled mb-0">
+                    {% if activity_feed %}
+                        {% for ev in activity_feed %}
+                        <li class="feed-item">
+                            <div class="feed-badge {% if ev.type == 'upload' %}pdf{% elif ev.type == 'rating' %}quiz{% else %}note{% endif %}"><i class="fas fa-{% if ev.icon %}{{ ev.icon }}{% else %}info-circle{% endif %}"></i></div>
+                            <div class="feed-content">
+                                <div class="feed-title">{{ ev.title }}</div>
+                                <div class="feed-meta">You • {{ ev.meta }}</div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="resource-card-new">
-                            <div class="resource-icon-new quiz-icon">
-                                <i class="fas fa-question-circle"></i>
-                            </div>
-                            <div class="resource-info-new">
-                                <div class="resource-type-new">Quiz</div>
-                                <h6 class="resource-title-new">Calculus Midterm Prep</h6>
-                                <p class="resource-subject-new">Mathematics 201</p>
-                                <div class="resource-meta-new">
-                                    <span><i class="fas fa-question"></i> 25</span>
-                                    <span>3 days ago</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="feed-item"><div class="feed-content"><div class="feed-title">No recent activity.</div><div class="feed-meta">Start uploading or rating resources.</div></div></li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
     </div>
-    
-    <!-- Right Column: Study Stats -->
+
+    <!-- Right Column -->
     <div class="col-lg-4">
+        <!-- Continue Studying -->
         <div class="card dashboard-card mb-3">
             <div class="card-header">
-                <h5 class="card-title mb-0">Study Activity</h5>
+                <h5 class="card-title mb-0">Continue Studying</h5>
             </div>
             <div class="card-body">
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-book-open"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">Resources Uploaded</div>
-                        <div class="activity-value">{{ total_resources }}</div>
-                    </div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">Bookmarks Saved</div>
-                        <div class="activity-value">{{ total_bookmarks }}</div>
-                    </div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-clipboard-check"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">Quizzes Completed</div>
-                        <div class="activity-value">{{ quizzes_completed }}</div>
-                    </div>
-                </div>
-                
-                <!-- Profile Completion Progress -->
-                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                        <span style="font-weight: 600; color: #1a1a1a;">Profile Completion</span>
-                        <span style="font-weight: 700; color: #667eea;">{{ profile_completion|floatformat:0 }}%</span>
-                    </div>
-                    <div style="width: 100%; height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
-                        <div class="profile-completion-bar" data-width="{{ profile_completion }}" style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); transition: width 0.5s ease;"></div>
-                    </div>
-                    {% if profile_complete %}
-                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-radius: 6px; text-align: center;">
-                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                        <span style="font-size: 0.875rem; color: #10b981; font-weight: 600; margin-left: 0.5rem;">Complete!</span>
-                    </div>
+                <div class="mb-3">
+                    <h6 class="fw-semibold mb-2" style="color:#4f46e5;">Flashcard Decks</h6>
+                    {% if continue_decks %}
+                        <ul class="list-unstyled mb-0 small">
+                            {% for deck in continue_decks %}
+                                <li class="d-flex justify-content-between mb-2">
+                                    <span>{{ deck.title|truncatechars:30 }}</span>
+                                    <span class="text-muted">{{ deck.cards_count }} cards</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
                     {% else %}
-                    <a href="{% url 'accounts:profile' %}" style="display: block; margin-top: 0.75rem; padding: 0.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 6px; text-align: center; text-decoration: none; color: #667eea; font-size: 0.875rem; font-weight: 600;">
-                        <i class="fas fa-arrow-right"></i> Complete Profile
-                    </a>
+                        <p class="text-muted small mb-0">No decks yet.</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <h6 class="fw-semibold mb-2" style="color:#4f46e5;">In-Progress Quizzes</h6>
+                    {% if in_progress_quiz_attempts %}
+                        <ul class="list-unstyled mb-0 small">
+                            {% for attempt in in_progress_quiz_attempts %}
+                                <li class="d-flex justify-content-between mb-2">
+                                    <span>{{ attempt.quiz.title|truncatechars:30 }}</span>
+                                    <span class="text-muted">Started {{ attempt.started_at|date:'M d' }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted small mb-0">No active quiz attempts.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
-        
-        <!-- Welcome Message -->
-        <div class="card dashboard-card">
-            <div class="card-body text-center">
-                <h5 id="greetingMessage" data-username="{{ user.first_name }}">Good day, {{ user.first_name }}!</h5>
-                <p class="text-muted">Ready to continue your learning journey?</p>
-            </div>
-        </div>
-        
-        <!-- Unlocked Features Card (if 100% complete) -->
-        {% if profile_complete %}
-        <div class="card dashboard-card mt-3" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea;">
-            <div class="card-header" style="background: transparent; border-bottom: 1px solid rgba(102, 126, 234, 0.2);">
-                <h5 class="card-title mb-0" style="color: #667eea;">
-                    <i class="fas fa-unlock-alt"></i> Unlocked Features
-                </h5>
+
+        <!-- Learning Insights (chart) -->
+        <div class="card dashboard-card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Learning Insights</h5>
             </div>
             <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'accounts:analytics' %}" class="btn btn-sm unlocked-feature-btn" style="background: white; border: 1px solid #e5e7eb; color: #1a1a1a; text-align: left; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; transition: all 0.2s;">
-                        <div style="width: 35px; height: 35px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
-                            <i class="fas fa-chart-pie"></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 0.9rem;">Advanced Analytics</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">View detailed insights</div>
-                        </div>
-                        <i class="fas fa-chevron-right" style="color: #9ca3af;"></i>
-                    </a>
-                    <a href="{% url 'accounts:customization' %}" class="btn btn-sm unlocked-feature-btn" style="background: white; border: 1px solid #e5e7eb; color: #1a1a1a; text-align: left; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; transition: all 0.2s;">
-                        <div style="width: 35px; height: 35px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
-                            <i class="fas fa-palette"></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 0.9rem;">Profile Themes</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Customize your profile</div>
-                        </div>
-                        <i class="fas fa-chevron-right" style="color: #9ca3af;"></i>
-                    </a>
-                </div>
+                <canvas id="uploadsChart" height="160" class="w-100"></canvas>
             </div>
         </div>
-        {% endif %}
+
+        <!-- Trending Tags -->
+        <div class="card dashboard-card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Trending Tags</h5>
+            </div>
+            <div class="card-body">
+                {% if trending_tags %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for tag in trending_tags %}
+                            <span class="badge rounded-pill" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">{{ tag.name }}{% if tag.recent_count %}<span class="ms-1">×{{ tag.recent_count }}</span>{% endif %}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">No tag activity this week.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Top Rated Resources -->
+        <div class="card dashboard-card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Top Rated Resources</h5>
+            </div>
+            <div class="card-body">
+                {% if top_rated_resources %}
+                    <ul class="list-unstyled mb-0 small">
+                        {% for res in top_rated_resources %}
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="me-2" style="flex:1;">
+                                    <a href="{% url 'resources:resource_detail' res.pk %}" class="text-decoration-none" style="color:#4f46e5;">{{ res.title|truncatechars:40 }}</a>
+                                </span>
+                                <span title="Average rating">⭐ {{ res.avg_rating|floatformat:1 }} ({{ res.rating_count }})</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted small mb-0">Not enough ratings yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Upcoming Quizzes (Placeholder) -->
+        <div class="card dashboard-card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upcoming / Explore Quizzes</h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_quizzes %}
+                    <ul class="list-unstyled mb-0 small">
+                        {% for q in upcoming_quizzes %}
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="me-2" style="flex:1;">{{ q.title|truncatechars:40 }}</span>
+                                <span class="text-muted">Created {{ q.created_at|date:'M d' }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted small mb-0">No quizzes available.</p>
+                {% endif %}
+                <p class="mt-2 mb-0 text-muted" style="font-size:0.75rem;">Scheduling fields not yet implemented—showing latest quizzes.</p>
+            </div>
+        </div>
+
+        <!-- Study Schedule / Reminders -->
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Study Reminders</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'accounts:add_study_reminder' %}" class="mb-3 d-flex flex-wrap gap-2">
+                    {% csrf_token %}
+                    <input type="text" name="title" class="form-control flex-grow-1" placeholder="Reminder title" required>
+                    <input type="date" name="due_date" class="form-control" style="max-width:170px;">
+                    <button type="submit" class="btn btn-sm btn-gradient-primary"><i class="fas fa-plus"></i> Add</button>
+                </form>
+                <ul class="list-group small">
+                    {% if study_reminders %}
+                        {% for r in study_reminders %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center {% if r.completed %}text-muted{% endif %}">
+                            <div>
+                                <span class="{% if r.completed %}text-decoration-line-through{% endif %}">{{ r.title }}</span>
+                                {% if r.due_date %}
+                                    <span class="ms-2 badge bg-light text-dark">Due {{ r.due_date|date:'M d' }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'accounts:toggle_study_reminder' r.pk %}" class="btn btn-sm btn-outline-success" title="Toggle"><i class="fas fa-check"></i></a>
+                                <a href="{% url 'accounts:delete_study_reminder' r.pk %}" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Delete reminder?');"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item text-muted">No reminders yet.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Apply profile completion progress width from data attribute -->
+<!-- Chart.js for the small insights bar chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const progressBar = document.querySelector('.profile-completion-bar');
-        if (progressBar) {
-            const width = progressBar.dataset.width;
-            if (width) {
-                progressBar.style.width = width + '%';
-            }
+        // Animate stat counters
+        document.querySelectorAll('.stat-value[data-target]').forEach(function(el){
+            const target = parseInt(el.getAttribute('data-target') || '0', 10);
+            let current = 0;
+            const step = Math.max(1, Math.ceil(target / 40));
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) { current = target; clearInterval(timer); }
+                el.textContent = current;
+            }, 20);
+        });
+
+        // Dynamic Learning Insights bar chart
+        const labels = JSON.parse('{{ weekly_upload_labels|safe|escapejs }}'.replace(/&quot;/g,'"'));
+        const counts = JSON.parse('{{ weekly_upload_counts|safe|escapejs }}'.replace(/&quot;/g,'"'));
+        const ctx = document.getElementById('uploadsChart');
+        if (ctx && window.Chart && labels.length === counts.length) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Uploads',
+                        data: counts,
+                        backgroundColor: labels.map((l,i) => i === labels.length-2 ? '#a78bfa' : '#c7d2fe'),
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { grid: { color: 'rgba(102,126,234,0.1)' }, beginAtZero: true, ticks: { precision:0 } }
+                    }
+                }
+            });
         }
     });
 </script>
