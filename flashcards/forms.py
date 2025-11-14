@@ -5,10 +5,11 @@ from .models import Deck, Card
 class DeckForm(forms.ModelForm):
     class Meta:
         model = Deck
-        fields = ["title", "description"]
+        fields = ["title", "description", "category"]
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Deck title"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Optional description"}),
+            "category": forms.Select(attrs={"class": "form-select"}),
         }
 
 

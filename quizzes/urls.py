@@ -13,5 +13,6 @@ urlpatterns = [
     path('moderation/', views.quiz_moderation_list, name='quiz_moderation_list'),
     path('<int:pk>/approve/', views.approve_quiz, name='approve_quiz'),
     path('<int:pk>/reject/', views.reject_quiz, name='reject_quiz'),
+    path('generate-from-deck/<int:deck_pk>/', views.generate_quiz_from_deck, name='generate_from_deck'),
 ]
 

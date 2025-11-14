@@ -37,6 +37,10 @@ urlpatterns = [
     path('export-data/', views.export_user_data, name='export_data'),
     path('delete-account/', views.delete_account, name='delete_account'),
     path('cancel-deletion/', views.cancel_deletion, name='cancel_deletion'),
+    # Study Reminders
+    path('reminders/add/', views.add_study_reminder, name='add_study_reminder'),
+    path('reminders/toggle/<int:pk>/', views.toggle_study_reminder, name='toggle_study_reminder'),
+    path('reminders/delete/<int:pk>/', views.delete_study_reminder, name='delete_study_reminder'),
     
     # Forgot Password (Link-based reset - Standard method) - TEMP DISABLED
     # path('forgot-password/', views.forgot_password_request, name='forgot_password'),

@@ -989,3 +989,75 @@ body {
         font-size: 1.5rem;
     }
 }
+
+/* ==================== EDU-PLEX STYLE CARDS & FEED ==================== */
+/* Quick Action gradient cards */
+.qa-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    padding: 1rem 1.1rem;
+    border-radius: 14px;
+    text-decoration: none;
+    color: #0f172a;
+    border: 1px solid rgba(102,126,234,0.15);
+    background: linear-gradient(135deg, rgba(102,126,234,0.06), rgba(118,75,162,0.06));
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.qa-card:hover { 
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(102,126,234,.18);
+    border-color: #667eea;
+}
+.qa-icon {
+    width: 44px; height: 44px; border-radius: 12px; color: #fff;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 1.15rem;
+    background: linear-gradient(135deg,#667eea,#764ba2);
+}
+.qa-title { font-weight: 700; line-height: 1.1; }
+.qa-sub { font-size: .8rem; color: #64748b; }
+
+/* color variations */
+.qa-purple { background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(102,126,234,0.08)); }
+.qa-blue   { background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(102,126,234,0.08)); }
+.qa-green  { background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(102,126,234,0.06)); }
+.qa-amber  { background: linear-gradient(135deg, rgba(251,191,36,0.16), rgba(102,126,234,0.05)); }
+
+/* Square Quick Action Tiles */
+.qa-grid { --qa-min: 110px; }
+.qa-tile {
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    width:100%; aspect-ratio: 1 / 1; border-radius:14px; padding:.75rem; text-decoration:none; color:#0f172a;
+    border:1px solid rgba(102,126,234,.15); background: linear-gradient(135deg, rgba(102,126,234,.06), rgba(118,75,162,.06));
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease, background .25s ease;
+}
+.qa-tile:hover { transform: translateY(-4px); box-shadow:0 10px 24px rgba(102,126,234,.18); border-color:#667eea; }
+.qa-tile .qa-icon { width:48px; height:48px; font-size:1.25rem; }
+@media (max-width: 575px) {
+    .qa-tile { aspect-ratio: unset; height:110px; }
+}
+
+/* Activity Feed */
+.feed-list { padding: .5rem 0; }
+.feed-item { display:flex; align-items:center; gap:.9rem; padding: .9rem 1rem; border-bottom: 1px solid rgba(102,126,234,.08); }
+.feed-item:last-child { border-bottom: 0; }
+.feed-badge { width:38px; height:38px; border-radius: 10px; display:flex; align-items:center; justify-content:center; color:#fff; }
+.feed-badge.pdf  { background: linear-gradient(135deg,#a78bfa,#667eea); }
+.feed-badge.quiz { background: linear-gradient(135deg,#34d399,#667eea); }
+.feed-badge.note { background: linear-gradient(135deg,#60a5fa,#a78bfa); }
+.feed-title { font-weight: 600; }
+.feed-meta { font-size:.8rem; color:#6b7280; }
+.feed-content { flex:1; min-width:0; }
+.feed-link { color:#667eea; text-decoration:none; }
+.feed-link:hover { color:#764ba2; }
+
+/* Placeholder schedule */
+.placeholder-box { background: linear-gradient(135deg, rgba(102,126,234,0.06), rgba(118,75,162,0.06)); border:1px dashed rgba(102,126,234,0.3); padding: .85rem 1rem; border-radius: 12px; }
+
+/* Study reminders list tweaks */
+.list-group-item.text-muted { font-size:.85rem; }
+.list-group-item .badge { font-weight:500; }
+
+/* Subtle card shadow consistency */
+.dashboard-card { box-shadow: 0 2px 8px rgba(0,0,0,0.03); }

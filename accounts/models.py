@@ -454,3 +454,27 @@ class UserSession(models.Model):
         """Get human-readable time since last activity"""
         from django.utils.timesince import timesince
         return timesince(self.last_activity)
+
+
+class StudyReminder(models.Model):
+    """Simple study reminder for the Study Schedule module."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='study_reminders')
+    title = models.CharField(max_length=200)
+    due_date = models.DateTimeField(null=True, blank=True)
+    completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['completed', 'due_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({'Done' if self.completed else 'Pending'})"
+
+    def mark_complete(self):
+        self.completed = True
+        self.save(update_fields=['completed'])
+
+    def mark_incomplete(self):
+        self.completed = False
+        self.save(update_fields=['completed'])

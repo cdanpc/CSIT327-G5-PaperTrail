@@ -6,6 +6,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from .models import Quiz, Question, Option, QuizAttempt, QuizAttemptAnswer
+from flashcards.models import Deck, Card
 from .forms import QuizForm, QuestionForm, QuizAttemptForm
 import json
 
@@ -263,6 +264,45 @@ def quiz_moderation_list(request):
         'pending_quizzes': pending_quizzes,
     }
     return render(request, 'quizzes/moderation_list.html', context)
+
+
+@login_required
+def generate_quiz_from_deck(request, deck_pk):
+    """Generate a quiz automatically from a flashcard deck.
+
+    Each card becomes a fill-in-the-blank question where the front side is the question
+    and the back side is the correct answer. Minimal UI: one-click generation.
+    """
+    deck = get_object_or_404(Deck, pk=deck_pk, owner=request.user)
+    cards = deck.cards.all()
+    if not cards.exists():
+        messages.error(request, 'Deck has no cards; add cards before generating a quiz.')
+        return redirect('flashcards:deck_detail', pk=deck.pk)
+
+    # Create quiz
+    quiz = Quiz.objects.create(
+        title=f"Deck: {deck.title}",
+        description=f"Auto-generated from deck '{deck.title}'.",
+        creator=request.user,
+        verification_status='verified' if getattr(request.user, 'is_professor', False) else 'pending',
+        verification_by=request.user if getattr(request.user, 'is_professor', False) else None,
+        verified_at=timezone.now() if getattr(request.user, 'is_professor', False) else None,
+    )
+
+    # Bulk create questions
+    question_objs = []
+    for order, card in enumerate(cards):
+        question_objs.append(Question(
+            quiz=quiz,
+            question_text=card.front_text[:500],  # enforce reasonable length
+            question_type='fill_in_blank',
+            correct_answer=card.back_text[:500],
+            order=order,
+        ))
+    Question.objects.bulk_create(question_objs)
+
+    messages.success(request, f"Quiz '{quiz.title}' generated with {len(question_objs)} questions.")
+    return redirect('quizzes:quiz_detail', pk=quiz.pk)
 
 
 @login_required

@@ -10,6 +10,15 @@ class Deck(models.Model):
 	)
 	title = models.CharField(max_length=200)
 	description = models.TextField(blank=True)
+	# Simple taxonomy for grouping decks; optional for backward compatibility
+	CATEGORY_CHOICES = [
+		("general", "General"),
+		("definitions", "Definitions"),
+		("formulas", "Formulas"),
+		("concepts", "Concepts"),
+		("language", "Language"),
+	]
+	category = models.CharField(max_length=40, choices=CATEGORY_CHOICES, default="general")
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

@@ -319,4 +319,62 @@
 
 {% block extra_js %}
 <script src="{% static 'js/resource_detail.js' %}"></script>
+<script>
+// AJAX rating submission
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('ratingForm');
+    if(!form) return;
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const stars = formData.get('stars');
+        if(!stars){ return; }
+        try {
+            const resp = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            });
+            const data = await resp.json();
+            if(data.success){
+                // Update star icons
+                document.querySelectorAll('.star-input').forEach(inp => {
+                    const icon = inp.parentElement.querySelector('.star-icon');
+                    if(parseInt(inp.value) <= parseInt(data.user_stars)){
+                        icon.classList.remove('far'); icon.classList.add('fas');
+                    } else {
+                        icon.classList.remove('fas'); icon.classList.add('far');
+                    }
+                });
+                // Update average rating display if present
+                const avgContainer = document.querySelector('.card-header .d-flex.align-items-center.gap-2');
+                if(avgContainer){
+                    avgContainer.querySelectorAll('i').forEach(i => i.remove());
+                    // Rebuild stars based on avg_rating (rounded to nearest 0.5 handling already simplified)
+                    const avg = parseFloat(data.avg_rating);
+                    for(let i=1;i<=5;i++){
+                        const starEl = document.createElement('i');
+                        if(i <= avg){ starEl.className='fas fa-star text-warning icon-sm'; }
+                        else if(i - 0.5 <= avg){ starEl.className='fas fa-star-half-alt text-warning icon-sm'; }
+                        else { starEl.className='far fa-star text-warning icon-sm'; }
+                        avgContainer.prepend(starEl);
+                    }
+                    const meta = avgContainer.querySelector('small.text-muted.fw-semibold');
+                    if(meta){ meta.textContent = `${data.avg_rating.toFixed(1)} (${data.rating_count})`; }
+                }
+                // Toast-like feedback
+                let toast = document.getElementById('ratingToast');
+                if(!toast){
+                    toast = document.createElement('div');
+                    toast.id='ratingToast';
+                    toast.style.position='fixed';toast.style.bottom='1rem';toast.style.right='1rem';toast.style.padding='0.75rem 1rem';toast.style.background='linear-gradient(135deg,#667eea,#764ba2)';toast.style.color='#fff';toast.style.borderRadius='8px';toast.style.boxShadow='0 4px 12px rgba(0,0,0,.15)';toast.style.zIndex='9999';
+                    document.body.appendChild(toast);
+                }
+                toast.textContent = data.message.trim();
+                setTimeout(()=>{ toast.remove(); }, 3000);
+            }
+        } catch(err){ console.error(err); }
+    });
+});
+</script>
 {% endblock %}

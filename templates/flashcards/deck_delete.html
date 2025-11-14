@@ -1,0 +1,32 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Delete Deck - {{ deck.title }}{% endblock %}
+
+{% block header %}
+<div class="dashboard-title-section">
+  <h1 class="dashboard-title">Delete Deck</h1>
+  <p class="dashboard-date">"{{ deck.title }}" will be removed permanently</p>
+</div>
+<div class="dashboard-actions">
+  <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card dashboard-card">
+      <div class="card-body">
+        <h5 class="card-title text-danger"><i class="fas fa-trash"></i> Confirm Deletion</h5>
+        <p>Deleting this deck will also delete <strong>{{ deck.cards_count }}</strong> associated card(s). This action cannot be undone.</p>
+        <form method="post" class="mt-3">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete Deck</button>
+          <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft ms-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
