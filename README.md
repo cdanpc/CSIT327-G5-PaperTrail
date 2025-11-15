@@ -1,4 +1,4 @@
-"# PaperTrail
+# PaperTrail
 
 A centralized academic resource management system for CIT-U College of Computer Studies students. PaperTrail provides a platform for sharing and accessing lecture notes, digital documents, presentation slides, e-books, and interactive learning materials like quizzes and flashcards.
 
@@ -67,4 +67,6 @@ The application will be available at `http://localhost:8000`
 
 ## Deployment Status
 
-The application is currently under development. Deployment link will be available soon." 
+The application is currently in development. Deployment link is available below:
+
+(https://papertrail-6jxj.onrender.com/)
