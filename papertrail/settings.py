@@ -1,7 +1,9 @@
-from decouple import config
+from decouple import config  # legacy fallback (can be removed later)
 from pathlib import Path
 import os
 import sys
+from dotenv import load_dotenv
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -10,25 +12,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-go_8clx1an_w06&m&s8sv0m6&4bv^w=*krn*v^mw!pn%dtreph')
+# Load .env in local development (Render sets RENDER=true in its environment)
+if os.environ.get("RENDER", "") != "true":
+    load_dotenv()
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+# Core settings from environment (fall back only for dev convenience)
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY") or os.environ.get("SECRET_KEY") or "unsafe-dev-key"
+DEBUG = os.environ.get("DJANGO_DEBUG", os.environ.get("DEBUG", "False")).lower() == "true"
 
-# Render provides the external hostname in env var
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 
-# Allowed hosts and CSRF trusted origins
-default_allowed = ['localhost', '127.0.0.1']
-ALLOWED_HOSTS = [h for h in config('ALLOWED_HOSTS', default=','.join(default_allowed)).split(',') if h]
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS += [RENDER_EXTERNAL_HOSTNAME, '.onrender.com']
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1")).split(',') if h.strip()]
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    if '.onrender.com' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('.onrender.com')
 
-csrf_trusted = [o for o in config('CSRF_TRUSTED_ORIGINS', default='').split(',') if o]
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", os.environ.get("CSRF_TRUSTED_ORIGINS", "")).split(',') if o.strip()]
 if RENDER_EXTERNAL_HOSTNAME:
-    csrf_trusted += [f"https://{RENDER_EXTERNAL_HOSTNAME}", 'https://*.onrender.com']
-CSRF_TRUSTED_ORIGINS = csrf_trusted
+    host_origin = f"https://{RENDER_EXTERNAL_HOSTNAME}"
+    if host_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(host_origin)
+    wildcard_origin = 'https://*.onrender.com'
+    if wildcard_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(wildcard_origin)
 
 
 # Application definition
@@ -87,35 +94,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'papertrail.wsgi.application'
     
-SUPABASE_URL = config('SUPABASE_URL', default='https://rhkmdnwrdbvicxpanhnz.supabase.co')
-SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')
-SUPABASE_BUCKET = config('SUPABASE_BUCKET', default='papertrail-storage')
+SUPABASE_URL = os.environ.get('SUPABASE_URL', config('SUPABASE_URL', default=''))
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', config('SUPABASE_SERVICE_KEY', default=''))
+SUPABASE_BUCKET = os.environ.get('SUPABASE_BUCKET', config('SUPABASE_BUCKET', default='papertrail-storage'))
+SUPABASE_ANON_KEY = os.environ.get('SUPABASE_ANON_KEY', config('SUPABASE_ANON_KEY', default=''))
+SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='')
 
 # Use SQLite for local development, PostgreSQL for production
 
-# Switch to Supabase/PostgreSQL only
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': config('DB_NAME', default='postgres'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
-        # Optional: pool mode for Supabase pooler
-        # 'OPTIONS': {'pool_mode': config('POOL_MODE', default='transaction')}
-    }
-}
-
-
-# If DATABASE_URL is present (Render), prefer it
+# Database (expects DATABASE_URL in Render or local .env)
 DATABASE_URL = os.environ.get('DATABASE_URL') or config('DATABASE_URL', default=None)
-if DATABASE_URL:
-    try:
-        import dj_database_url
-        DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=True)
-    except Exception as e:
-        print('Warning: dj-database-url not available or failed to parse DATABASE_URL:', e, file=sys.stderr)
+DATABASES = {
+    'default': dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -169,12 +164,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# WhiteNoise storage for static files
-# Use non-manifest storage in DEBUG to avoid 500s when collectstatic hasn't been run
-if DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise static files storage (use manifest for cache busting)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Honor X-Forwarded-Proto header set by Render's proxy
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -211,9 +202,10 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')  # Gmail App Password from .env
 DEFAULT_FROM_EMAIL = 'PaperTrail <noreply@papertrail.com>'
 
-# Note: Using Gmail App Password from .env file
-# If emails fail to send, verify:
-# 1. 2-Factor Authentication is enabled on Gmail
-# 2. App Password is correctly set in .env (16 characters)
-# 3. EMAIL_HOST_USER matches the Gmail account
+if os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True").lower() == "true":
+    SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Note: Using Gmail App Password from environment/.env file
 
