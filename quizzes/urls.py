@@ -6,6 +6,9 @@ app_name = 'quizzes'
 urlpatterns = [
     path('', views.quiz_list, name='quiz_list'),
     path('create/', views.quiz_create, name='quiz_create'),
+    path('<int:pk>/edit/', views.quiz_edit, name='quiz_edit'),
+    path('<int:pk>/delete/', views.quiz_delete, name='quiz_delete'),
+    path('<int:pk>/bookmark/toggle/', views.toggle_quiz_bookmark, name='toggle_quiz_bookmark'),
     path('<int:pk>/', views.quiz_detail, name='quiz_detail'),
     path('<int:pk>/attempt/', views.quiz_attempt, name='quiz_attempt'),
     path('attempt/<int:attempt_pk>/results/', views.quiz_results, name='quiz_results'),
@@ -13,6 +16,5 @@ urlpatterns = [
     path('moderation/', views.quiz_moderation_list, name='quiz_moderation_list'),
     path('<int:pk>/approve/', views.approve_quiz, name='approve_quiz'),
     path('<int:pk>/reject/', views.reject_quiz, name='reject_quiz'),
-    path('generate-from-deck/<int:deck_pk>/', views.generate_quiz_from_deck, name='generate_from_deck'),
 ]
 

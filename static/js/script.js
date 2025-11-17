@@ -702,4 +702,5 @@ document.addEventListener('DOMContentLoaded', function() {
         reIndexForms();
         if (addButton) addButton.addEventListener('click', addForm);
     }
+
 });

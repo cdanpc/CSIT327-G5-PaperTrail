@@ -299,10 +299,7 @@ body {
     color: #4CAF50;
 }
 
-.flashcard-icon {
-    background-color: rgba(230, 238, 156, 0.5);
-    color: #9E9D24;
-}
+/* flashcard-icon moved to flashcards.css */
 
 /* Resource Info */
 .resource-info {
@@ -635,19 +632,11 @@ body {
 }
 
 .stat-card-teal { 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(13,202,240,0.08) 100%);
 }
 .stat-card-teal .stat-icon { 
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-.stat-card-teal .stat-label,
-.stat-card-teal .stat-sublabel { 
-    color: rgba(255, 255, 255, 0.95);
-}
-.stat-card-teal .stat-value {
-    color: white;
+    background: linear-gradient(135deg,#667eea,#0dcaf0);
+    color:#fff;
 }
 
 .stat-content {
@@ -726,7 +715,7 @@ body {
 .dashboard-card .card-header {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
     border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-    padding: 1.25rem 1.5rem;
+    padding: 0.85rem 1.15rem;
 }
 
 .dashboard-card .card-title {
@@ -1025,17 +1014,28 @@ body {
 .qa-amber  { background: linear-gradient(135deg, rgba(251,191,36,0.16), rgba(102,126,234,0.05)); }
 
 /* Square Quick Action Tiles */
-.qa-grid { --qa-min: 110px; }
+.quick-actions-body { display:flex; align-items:center; justify-content:center; }
+.qa-grid {
+    display:grid;
+    grid-template-columns:repeat(2, 110px);
+    grid-auto-rows:110px;
+    gap:0.65rem; /* slightly compact spacing */
+    justify-content:center;
+    align-content:center;
+}
 .qa-tile {
     display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-    width:100%; aspect-ratio: 1 / 1; border-radius:14px; padding:.75rem; text-decoration:none; color:#0f172a;
-    border:1px solid rgba(102,126,234,.15); background: linear-gradient(135deg, rgba(102,126,234,.06), rgba(118,75,162,.06));
-    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease, background .25s ease;
+    width:110px; height:110px; border-radius:14px; padding:.6rem; text-decoration:none; color:#0f172a;
+    border:1px solid rgba(102,126,234,.18); background:linear-gradient(135deg, rgba(102,126,234,.07), rgba(118,75,162,.07));
+    transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease;
 }
-.qa-tile:hover { transform: translateY(-4px); box-shadow:0 10px 24px rgba(102,126,234,.18); border-color:#667eea; }
-.qa-tile .qa-icon { width:48px; height:48px; font-size:1.25rem; }
-@media (max-width: 575px) {
-    .qa-tile { aspect-ratio: unset; height:110px; }
+.qa-tile .qa-title { margin-top:.45rem; font-size:.85rem; font-weight:600; }
+.qa-tile .qa-icon { width:40px; height:40px; font-size:1.15rem; display:flex; align-items:center; justify-content:center; border-radius:10px; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; box-shadow:0 4px 10px rgba(102,126,234,.25); }
+.qa-tile:hover { transform:translateY(-3px); box-shadow:0 8px 18px rgba(102,126,234,.28); border-color:#667eea; }
+@media (max-width: 575px){
+  .qa-grid { grid-template-columns:repeat(2, 1fr); grid-auto-rows:90px; }
+  .qa-tile { width:100%; height:90px; }
+  .qa-tile .qa-icon { width:34px; height:34px; font-size:1rem; }
 }
 
 /* Activity Feed */
@@ -1061,3 +1061,86 @@ body {
 
 /* Subtle card shadow consistency */
 .dashboard-card { box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+
+/* --- Added: Multi-metric Insights, Latest Resources, Scrollable Activity, Compact Calendar --- */
+.insights-card-metrics .btn-group .btn { font-size: 0.65rem; }
+#insightsChart { height: 100% !important; max-height: none; }
+
+.latest-resources-list { max-height: none; overflow-y: visible; padding-right: 0; }
+.latest-resources-list::-webkit-scrollbar { width: 6px; }
+.latest-resources-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 3px; }
+.latest-resources-list::-webkit-scrollbar-thumb { background: rgba(102,126,234,0.35); border-radius: 3px; }
+.latest-resources-list::-webkit-scrollbar-thumb:hover { background: rgba(102,126,234,0.55); }
+.latest-resource-item { background: rgba(102,126,234,0.03); border:1px solid rgba(102,126,234,.1); padding:.5rem .75rem; border-radius:8px; transition:.2s; }
+.latest-resource-item:hover { background: rgba(102,126,234,0.08); border-color: rgba(102,126,234,.25); }
+
+/* Scrollable Activity feed (override default feed-list padding) */
+.feed-list { max-height: 260px; overflow-y: auto; overflow-x: hidden; }
+.feed-list::-webkit-scrollbar { width: 6px; }
+.feed-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 3px; }
+.feed-list::-webkit-scrollbar-thumb { background: rgba(118,75,162,0.35); border-radius: 3px; }
+.feed-list::-webkit-scrollbar-thumb:hover { background: rgba(118,75,162,0.55); }
+
+/* Compact Calendar */
+.calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-top:.25rem; width:100%; }
+.calendar-header { text-align:center; font-size:.6rem; font-weight:600; color:#6c757d; padding:.2rem .1rem; text-transform:uppercase; letter-spacing:.3px; }
+.calendar-day { display:flex; align-items:center; justify-content:center; border-radius:3px; font-size:.65rem; font-weight:500; cursor:pointer; transition:.18s; position:relative; background:transparent; border:1px solid transparent; min-height:28px; max-height:32px; width:100%; }
+.calendar-day.today { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; font-weight:700; box-shadow:0 2px 8px rgba(102,126,234,.3); flex-direction:column; gap:2px; }
+.calendar-day.today .today-badge { font-size:.4rem; text-transform:uppercase; letter-spacing:.2px; opacity:.9; }
+.calendar-day.has-event { font-weight:600; flex-direction:column; gap:3px; }
+.calendar-day .event-dot { width:5px; height:5px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); position:absolute; bottom:4px; box-shadow:0 0 0 2px rgba(102,126,234,.15); }
+.calendar-day.today .event-dot { background:#fff; box-shadow:0 0 0 2px rgba(255,255,255,.4); }
+.calendar-day .event-count-badge { position:absolute; top:2px; right:2px; background:rgba(102,126,234,.85); color:#fff; font-size:.45rem; padding:1px 3px; border-radius:6px; line-height:1; }
+.calendar-day.has-event { cursor:pointer; }
+.calendar-day:not(.other-month):hover::before { content:''; position:absolute; width:6px; height:6px; border-radius:50%; background:rgba(102,126,234,.5); bottom:1px; }
+.calendar-day.other-month { background:transparent; cursor:default; }
+.calendar-day:focus-visible { box-shadow:0 0 0 2px #667eea inset,0 0 0 3px rgba(102,126,234,.35); }
+/* In-Progress Toast */
+#inProgressToast { font-size:0.85rem; }
+
+/* Draft-style tweaks merged */
+.chart-wrap { position:relative; width:100%; height: auto; }
+/* Fixed desktop heights (replaces previous dynamic --top-row-min-h approach) */
+/* Natural/auto heights on mobile; constrain explicitly on large screens */
+.quick-actions-card, .insights-card, .latest-resources-card { height: auto; overflow: visible; }
+@media (min-width:1200px){
+    /* Unified fixed height for top row cards (reduce vertical emptiness) */
+    .quick-actions-card, .insights-card, .latest-resources-card { height: 300px; }
+    /* Allow internal scrolling where content can exceed fixed height */
+    .latest-resources-card .latest-resources-list { overflow-y: auto; }
+}
+/* Ensure equal-height when parent columns use flex */
+.equal-height { display:flex; flex-direction:column; }
+.equal-height .card-body { display:flex; flex-direction:column; flex: 1; min-height: 0; }
+/* Tighter padding for insights card - natural chart sizing */
+.insights-card .card-body { padding: 0.75rem 1rem 0.6rem 1rem !important; display: flex; flex-direction: column; min-height: 0; }
+/* Chart wrapper fills remaining card space; canvas adapts without manual fixed height */
+.insights-card .chart-wrap { position: relative; flex: 1 1 0; min-height: 0; display: flex; }
+.insights-card #insightsChart { display: block; width: 100%; height: 100% !important; }
+/* Metric selector styling */
+.metric-selector .metric-btn { display:flex; align-items:center; gap:4px; font-size:0.65rem; background:#fff; border:1px solid rgba(102,126,234,.25); color:#334155; padding:0.35rem 0.6rem; }
+.metric-selector .metric-btn:hover { background:rgba(102,126,234,0.08); color:#1e293b; }
+.metric-selector .btn-check:checked + .metric-btn { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border-color:#667eea; }
+.metric-dot { width:10px; height:10px; border-radius:50%; display:inline-block; box-shadow:0 0 0 2px rgba(0,0,0,0.05); }
+.metric-dot.uploads { background:#0d6efd; }
+.metric-dot.quizzes { background:#ffc107; }
+.metric-dot.flashcards { background:#0dcaf0; }
+.metric-dot.activity { background:#198754; }
+.metric-dot.multi { background:conic-gradient(#0d6efd 0deg 90deg,#ffc107 90deg 180deg,#0dcaf0 180deg 270deg,#198754 270deg 360deg); }
+.metric-all { font-weight:600; }
+/* Latest resources list - natural stacking with scroll when overflowing */
+.latest-resources-card .card-body { padding: 0.75rem 1rem !important; display: flex; flex-direction: column; overflow: hidden; }
+.latest-resources-list { margin: 0; display: flex; flex-direction: column; gap: 0; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.latest-resources-list.empty { min-height: 100px; display:flex; align-items:center; justify-content:center; }
+/* Quick Actions - center grid perfectly */
+.quick-actions-card .card-body { 
+    padding: 0.75rem 1rem !important; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+}
+/* Activity list visual accent (optional) */
+.feed-list .feed-item { transition:background .2s ease, transform .2s ease; }
+.feed-list .feed-item:hover { background:rgba(102,126,234,0.06); transform:translateX(4px); }
+/* Square QA tiles hover icon scaling */
+.qa-tile:hover .qa-icon { transform:scale(1.05); }

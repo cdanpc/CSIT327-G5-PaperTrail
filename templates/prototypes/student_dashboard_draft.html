@@ -1,0 +1,329 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard (Draft){% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/prototypes/dashboard_draft.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-draft py-3">
+    <!-- Stats Row -->
+    <section class="container-fluid mb-3" aria-label="Statistics overview">
+        <div class="row g-3">
+            <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+                <div class="card h-100 shadow-sm stat-card" tabindex="0" aria-label="Total Resources">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="me-3 text-primary"><i class="fa-solid fa-folder fa-lg" aria-hidden="true"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="stat-label">Total Resources</div>
+                            <div class="stat-number" data-target="128" aria-live="polite">0</div>
+                            <div class="stat-sub">from your library</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+                <div class="card h-100 shadow-sm stat-card" tabindex="0" aria-label="Total Flashcards">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="me-3 text-info"><i class="fa-solid fa-layer-group fa-lg" aria-hidden="true"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="stat-label">Total Flashcards</div>
+                            <div class="stat-number" data-target="12" aria-live="polite">0</div>
+                            <div class="stat-sub">decks created</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+                <div class="card h-100 shadow-sm stat-card" tabindex="0" aria-label="Total Quizzes">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="me-3 text-warning"><i class="fa-regular fa-circle-question fa-lg" aria-hidden="true"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="stat-label">Total Quizzes</div>
+                            <div class="stat-number" data-target="8" aria-live="polite">0</div>
+                            <div class="stat-sub">available quizzes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+                <div class="card h-100 shadow-sm stat-card" tabindex="0" aria-label="Total Bookmarks">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="me-3 text-danger"><i class="fa-regular fa-bookmark fa-lg" aria-hidden="true"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="stat-label">Total Bookmarks</div>
+                            <div class="stat-number" data-target="24" aria-live="polite">0</div>
+                            <div class="stat-sub">saved for later</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Grid: Quick Actions (left) | Insights (center) | New Posted (right) -->
+    <div class="container-fluid">
+        <div class="row g-3 align-items-start">
+            <!-- Quick Actions (compact) -->
+            <div class="col-12 col-lg-4 col-xl-3">
+                <section class="card shadow-sm quick-actions-card h-100" aria-labelledby="quick-actions-title">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 id="quick-actions-title" class="h5 mb-0">Quick Actions</h2>
+                        </div>
+                        <div class="quick-actions-grid" role="list" aria-label="Quick actions">
+                            <a href="#" class="qa-tile" role="button" tabindex="0" data-feature="in-progress" aria-label="Upload Resource">
+                                <div class="qa-icon"><i class="fa-solid fa-upload" aria-hidden="true"></i></div>
+                                <div class="qa-title">Upload Resource</div>
+                            </a>
+                            <a href="#" class="qa-tile" role="button" tabindex="0" data-feature="in-progress" aria-label="Create Flashcards">
+                                <div class="qa-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></div>
+                                <div class="qa-title">Create Flashcards</div>
+                            </a>
+                            <a href="#" class="qa-tile" role="button" tabindex="0" data-feature="in-progress" aria-label="Browse Library">
+                                <div class="qa-icon"><i class="fa-solid fa-book" aria-hidden="true"></i></div>
+                                <div class="qa-title">Browse Library</div>
+                            </a>
+                            <a href="#" class="qa-tile" role="button" tabindex="0" data-feature="in-progress" aria-label="Create Quizzes">
+                                <div class="qa-icon"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i></div>
+                                <div class="qa-title">Create Quizzes</div>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Learning Insights (center, wide) -->
+            <div class="col-12 col-lg-8 col-xl-6">
+                <section class="card shadow-sm insights-card h-100" aria-labelledby="insights-title">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 id="insights-title" class="h5 mb-0">Learning Insights</h2>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Metric selector">
+                                <input type="radio" class="btn-check" name="metricType" id="metricUploads" value="uploads" checked autocomplete="off">
+                                <label class="btn btn-outline-primary" for="metricUploads">Uploads</label>
+                                
+                                <input type="radio" class="btn-check" name="metricType" id="metricQuizzes" value="quizzes" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="metricQuizzes">Quizzes</label>
+                                
+                                <input type="radio" class="btn-check" name="metricType" id="metricFlashcards" value="flashcards" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="metricFlashcards">Flashcards</label>
+                                
+                                <input type="radio" class="btn-check" name="metricType" id="metricViews" value="views" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="metricViews">Views</label>
+                            </div>
+                        </div>
+                        <div class="chart-wrap">
+                            <canvas id="insightsChart" aria-label="Learning insights chart" role="img"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sidebar: New posted resources (right) -->
+            <aside class="col-12 col-xl-3">
+                <section class="card shadow-sm h-100" aria-labelledby="new-posted-title">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 id="new-posted-title" class="h5 mb-0">Latest Resources</h2>
+                            <a href="#" class="text-primary text-decoration-none small" data-feature="in-progress">View All</a>
+                        </div>
+                        <ul class="list-unstyled mb-0 new-posted-list" role="list">
+                            <li>
+                                <a href="#" class="new-posted-item" data-feature="in-progress" aria-label="Open resource: Intro to DB Systems">
+                                    <div class="title text-truncate">Intro to DB Systems</div>
+                                    <div class="sub tiny text-muted">Today</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="new-posted-item" data-feature="in-progress" aria-label="Open resource: Linear Algebra – Eigenvalues">
+                                    <div class="title text-truncate">Linear Algebra – Eigenvalues</div>
+                                    <div class="sub tiny text-muted">Today</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="new-posted-item" data-feature="in-progress" aria-label="Open resource: Compiler Construction Notes">
+                                    <div class="title text-truncate">Compiler Construction Notes</div>
+                                    <div class="sub tiny text-muted">Yesterday</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="new-posted-item" data-feature="in-progress" aria-label="Open resource: Networks – TCP vs UDP">
+                                    <div class="title text-truncate">Networks – TCP vs UDP</div>
+                                    <div class="sub tiny text-muted">2 days ago</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="new-posted-item" data-feature="in-progress" aria-label="Open resource: Discrete Math Proofs">
+                                    <div class="title text-truncate">Discrete Math Proofs</div>
+                                    <div class="sub tiny text-muted">3 days ago</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="new-posted-item" data-feature="in-progress" aria-label="Open resource: Data Mining Basics">
+                                    <div class="title text-truncate">Data Mining Basics</div>
+                                    <div class="sub tiny text-muted">Last week</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </aside>
+        </div>
+
+        <!-- Bottom Row: Recent Activity (left) | Calendar (right) -->
+        <div class="row g-3 mt-1">
+            <div class="col-12 col-xl-7">
+                <section class="card shadow-sm h-100" aria-labelledby="recent-activity-title">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 id="recent-activity-title" class="h5 mb-0">Recent Activity</h2>
+                            <a href="#" class="text-primary text-decoration-none small" data-feature="in-progress">View All</a>
+                        </div>
+                        <ul class="list-unstyled mb-0 activity-list">
+                            <li>
+                                <span class="me-2 text-danger" aria-hidden="true"><i class="fa-regular fa-file-pdf"></i></span>
+                                Uploaded "DSA Lecture 3.pdf"
+                                <small class="text-muted d-block">2 hours ago</small>
+                            </li>
+                            <li>
+                                <span class="me-2 text-warning" aria-hidden="true"><i class="fa-regular fa-star"></i></span>
+                                Rated "Sorting Algorithms Guide"
+                                <small class="text-muted d-block">Yesterday</small>
+                            </li>
+                            <li>
+                                <span class="me-2 text-info" aria-hidden="true"><i class="fa-regular fa-comment"></i></span>
+                                Commented on "Binary Trees Notes"
+                                <small class="text-muted d-block">2 days ago</small>
+                            </li>
+                            <li>
+                                <span class="me-2 text-primary" aria-hidden="true"><i class="fa-solid fa-book"></i></span>
+                                Bookmarked "Graph Theory Cheatsheet"
+                                <small class="text-muted d-block">3 days ago</small>
+                            </li>
+                            <li>
+                                <span class="me-2 text-info" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span>
+                                Created flashcard deck "OS Scheduling"
+                                <small class="text-muted d-block">Last week</small>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+            <div class="col-12 col-xl-5">
+                <section class="card shadow-sm h-100" aria-labelledby="calendar-title">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 id="calendar-title" class="h5 mb-0">Calendar</h2>
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-sm btn-outline-secondary" data-feature="in-progress" aria-label="Previous month">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <span class="fw-semibold text-nowrap" id="currentMonth">November 2025</span>
+                                <button class="btn btn-sm btn-outline-secondary" data-feature="in-progress" aria-label="Next month">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="calendar-grid">
+                            <!-- Weekday headers -->
+                            <div class="calendar-header">Sun</div>
+                            <div class="calendar-header">Mon</div>
+                            <div class="calendar-header">Tue</div>
+                            <div class="calendar-header">Wed</div>
+                            <div class="calendar-header">Thu</div>
+                            <div class="calendar-header">Fri</div>
+                            <div class="calendar-header">Sat</div>
+                            
+                            <!-- Calendar days (Nov 2025 starts on Saturday - 7th column) -->
+                            <!-- Empty cells for previous month (6 empty cells to place Nov 1 on Saturday) -->
+                            <div class="calendar-day other-month"></div>
+                            <div class="calendar-day other-month"></div>
+                            <div class="calendar-day other-month"></div>
+                            <div class="calendar-day other-month"></div>
+                            <div class="calendar-day other-month"></div>
+                            <div class="calendar-day other-month"></div>
+                            
+                            <!-- November days (1st falls on Saturday, 7th column) -->
+                            <div class="calendar-day" data-date="1">1</div>
+                            <div class="calendar-day" data-date="2">2</div>
+                            <div class="calendar-day" data-date="3">3</div>
+                            <div class="calendar-day" data-date="4">4</div>
+                            <div class="calendar-day" data-date="5">5</div>
+                            <div class="calendar-day" data-date="6">6</div>
+                            <div class="calendar-day" data-date="7">7</div>
+                            <div class="calendar-day" data-date="8">8</div>
+                            <div class="calendar-day" data-date="9">9</div>
+                            <div class="calendar-day has-event" data-date="10">
+                                10
+                                <div class="event-dot" title="Study: DS Chapter 4"></div>
+                            </div>
+                            <div class="calendar-day has-event" data-date="11">
+                                11
+                                <div class="event-dot" title="Review: Graphs"></div>
+                            </div>
+                            <div class="calendar-day has-event" data-date="12">
+                                12
+                                <div class="event-dot" title="Quiz: OS Basics"></div>
+                            </div>
+                            <div class="calendar-day has-event" data-date="13">
+                                13
+                                <div class="event-dot" title="Practice: Sorting"></div>
+                            </div>
+                            <div class="calendar-day has-event" data-date="14">
+                                14
+                                <div class="event-dot" title="Group Study"></div>
+                            </div>
+                            <div class="calendar-day today" data-date="15">
+                                15
+                                <span class="today-badge">Today</span>
+                            </div>
+                            <div class="calendar-day" data-date="16">16</div>
+                            <div class="calendar-day" data-date="17">17</div>
+                            <div class="calendar-day" data-date="18">18</div>
+                            <div class="calendar-day" data-date="19">19</div>
+                            <div class="calendar-day has-event" data-date="20">
+                                20
+                                <div class="event-dot" title="Project Deadline"></div>
+                            </div>
+                            <div class="calendar-day" data-date="21">21</div>
+                            <div class="calendar-day" data-date="22">22</div>
+                            <div class="calendar-day" data-date="23">23</div>
+                            <div class="calendar-day" data-date="24">24</div>
+                            <div class="calendar-day has-event" data-date="25">
+                                25
+                                <div class="event-dot" title="Midterm Exam"></div>
+                            </div>
+                            <div class="calendar-day" data-date="26">26</div>
+                            <div class="calendar-day" data-date="27">27</div>
+                            <div class="calendar-day" data-date="28">28</div>
+                            <div class="calendar-day" data-date="29">29</div>
+                            <div class="calendar-day" data-date="30">30</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-progress Toast -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080">
+        <div id="inProgressToast" class="toast align-items-center text-bg-secondary border-0" role="status" aria-live="polite" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    This feature is in progress.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js (only external lib allowed) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-vRhJrT2R4FZlO/2J6h9bHec6dA6qg6e5qkY5m6tFq7v3X9w7iGdXQZr1tUq1qk0g" crossorigin="anonymous"></script>
+<script src="{% static 'js/prototypes/dashboard_draft.js' %}"></script>
+{% endblock %}

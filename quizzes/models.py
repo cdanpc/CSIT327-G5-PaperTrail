@@ -33,6 +33,9 @@ class Quiz(models.Model):
     )
     verified_at = models.DateTimeField(null=True, blank=True)
     
+    # Privacy
+    is_public = models.BooleanField(default=True, help_text='If True, visible to all users. If False, only visible to creator.')
+    
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -132,4 +135,15 @@ class QuizAttemptAnswer(models.Model):
     
     def __str__(self):
         return f"{self.attempt.student.get_display_name()} - {self.question.question_text[:50]}"
+
+
+class QuizBookmark(models.Model):
+    """User bookmarks for quizzes"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_bookmarks')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='bookmarked_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'quiz']
+        ordering = ['-created_at']
 

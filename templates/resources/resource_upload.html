@@ -14,18 +14,19 @@
         <h1 class="dashboard-title">Upload Resource</h1>
         <p class="dashboard-date">Share your knowledge with the community</p>
     </div>
-    
-    <div class="dashboard-actions">
-        <a href="{% url 'resources:resource_list' %}" class="btn btn-outline-primary-soft">
-            <i class="fas fa-arrow-left"></i> Back to Resources
-        </a>
-    </div>
     </div>
 {% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
+        <!-- Back Button -->
+        <div class="mb-3">
+            <a href="{% url 'resources:resource_list' %}" class="btn btn-outline-primary-soft btn-pill">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+        
         <!-- Upload Form Card -->
         <div class="card dashboard-card">
             <div class="card-header">
@@ -88,6 +89,26 @@
                             <i class="fas fa-tags" style="color: #667eea;"></i> Tags (Optional)
                         </h6>
                         {{ form.tags|as_crispy_field }}
+                    </div>
+                    
+                    <!-- Privacy Settings -->
+                    <div class="mb-4">
+                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                            <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
+                        </h6>
+                        <div class="soft-panel">
+                            <div class="form-check form-switch">
+                                {{ form.is_public }}
+                                <label class="form-check-label" for="{{ form.is_public.id_for_label }}" style="margin-left: 0.5rem;">
+                                    {{ form.is_public.label }}
+                                </label>
+                            </div>
+                            <div class="alert alert-info alert-soft-primary mt-3 mb-0">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Public:</strong> Visible in "All Resources" after verification. 
+                                <strong>Private:</strong> Only visible to you in "My Resources".
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Errors -->

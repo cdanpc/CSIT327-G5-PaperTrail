@@ -8,6 +8,7 @@ from django.db.models import Q
 from .models import Resource, Tag, Bookmark, Rating, Comment
 from .forms import ResourceUploadForm, RatingForm, CommentForm
 from .supabase_storage import supabase_storage
+from django.utils.timesince import timesince
 
 
 # --- General Views ---
@@ -47,12 +48,27 @@ def resource_upload(request):
                     messages.error(request, f'File upload failed: {error}')
                     return render(request, 'resources/resource_upload.html', {'form': form})
             
-            # Auto-approve resources from professors
+            # Approval / verification logic:
+            # Professors: auto-verify regardless of visibility.
+            # Non-professors:
+            #   - If uploaded as private (is_public=False): treat as verified immediately (no approval needed).
+            #   - If uploaded as public (is_public=True): mark as pending until professor approval.
             if getattr(request.user, 'is_professor', False):
                 resource.verification_status = 'verified'
                 resource.approved = True
                 resource.verification_by = request.user
                 resource.verified_at = timezone.now()
+            else:
+                if resource.is_public:
+                    resource.verification_status = 'pending'
+                    resource.approved = False
+                    resource.verification_by = None
+                    resource.verified_at = None
+                else:  # private upload -> auto verified
+                    resource.verification_status = 'verified'
+                    resource.approved = True
+                    resource.verification_by = request.user  # owner acts as implicit verifier
+                    resource.verified_at = timezone.now()
             
             resource.save()
             form.save_m2m()  # Save tags
@@ -72,48 +88,31 @@ def resource_upload(request):
 
 @login_required
 def resource_detail(request, pk):
-    """View a specific resource"""
+    """View a specific resource with a concise layout (stats + actions)."""
     resource = get_object_or_404(Resource, pk=pk)
-    
+
+    # Restrict access to private resources to uploader only
+    if not resource.is_public and resource.uploader != request.user:
+        messages.error(request, 'This resource is private.')
+        return redirect('resources:resource_list')
+
     # Restrict access to unverified resources to uploader or professors
     if resource.verification_status != 'verified':
         if not (resource.uploader == request.user or getattr(request.user, 'is_professor', False)):
             messages.error(request, 'This resource is pending verification.')
             return redirect('resources:resource_list')
-    
+
     # Increment view count
     resource.increment_view_count()
-    
-    # Check if user has bookmarked this resource
+
+    # Bookmark state for current user (shows toggle button)
     is_bookmarked = False
     if request.user.is_authenticated:
-        is_bookmarked = Bookmark.objects.filter(
-            user=request.user, 
-            resource=resource
-        ).exists()
-    
-    # Get user's rating if exists
-    user_rating = None
-    if request.user.is_authenticated:
-        try:
-            user_rating = Rating.objects.get(user=request.user, resource=resource)
-        except Rating.DoesNotExist:
-            pass
-    
-    # Get all comments
-    comments = resource.comments.all().select_related('user')
-    
-    # Initialize forms
-    rating_form = RatingForm(instance=user_rating)
-    comment_form = CommentForm()
-    
+        is_bookmarked = Bookmark.objects.filter(user=request.user, resource=resource).exists()
+
     context = {
         'resource': resource,
         'is_bookmarked': is_bookmarked,
-        'user_rating': user_rating,
-        'rating_form': rating_form,
-        'comment_form': comment_form,
-        'comments': comments,
     }
     return render(request, 'resources/resource_detail.html', context)
 
@@ -122,19 +121,35 @@ def resource_detail(request, pk):
 def my_resources(request):
     """List all resources uploaded by the current user"""
     resources = Resource.objects.filter(uploader=request.user).order_by('-created_at')
+    bookmarked_ids = set()
+    if request.user.is_authenticated:
+        bookmarked_ids = set(
+            Bookmark.objects.filter(user=request.user, resource__in=resources)
+            .values_list('resource_id', flat=True)
+        )
     context = {
         'resources': resources,
         'is_my_resources': True,
+        'bookmarked_ids': bookmarked_ids,
     }
     return render(request, 'resources/resource_list.html', context)
 
 
 @login_required
 def resource_list(request):
-    """List resources: show verified to everyone, plus the uploader's own."""
+    """List resources: 'All Resources' shows:
+    - Professors: verified + pending public resources.
+    - Regular users: verified public resources only.
+    Private resources never shown here.
+    """
     from django.core.paginator import Paginator
     
-    resources = Resource.objects.filter(Q(verification_status='verified') | Q(uploader=request.user))
+    if getattr(request.user, 'is_professor', False):
+        resources = Resource.objects.filter(is_public=True).filter(
+            Q(verification_status='verified') | Q(verification_status='pending')
+        )
+    else:
+        resources = Resource.objects.filter(is_public=True, verification_status='verified')
     
     # Filter by resource type if provided
     resource_type = request.GET.get('resource_type')
@@ -161,12 +176,93 @@ def resource_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    tags_list = Tag.objects.all().order_by('name')
     context = {
         'resources': page_obj,
         'search_query': search_query,
         'tag_filter': tag_filter,
+        'bookmarked_ids': set(
+            Bookmark.objects.filter(user=request.user, resource__in=page_obj.object_list)
+            .values_list('resource_id', flat=True)
+        ) if request.user.is_authenticated else set(),
+        'tags_list': tags_list,
     }
     return render(request, 'resources/resource_list.html', context)
+
+@login_required
+def resource_list_api(request):
+    """JSON API: filtered/paginated resources for reactive front-end.
+    Scope rules:
+            - all: verified public resources (plus pending public for professors)
+      - mine: all resources uploaded by the user (public or private, any verification status)
+    """
+    from django.core.paginator import Paginator
+
+    scope = request.GET.get('scope', 'all')
+    if scope == 'mine':
+        # Show only user's uploads (any verification status, any visibility)
+        resources_qs = Resource.objects.filter(uploader=request.user)
+    else:
+        # All scope with professor pending access
+        if getattr(request.user, 'is_professor', False):
+            resources_qs = Resource.objects.filter(is_public=True).filter(
+                Q(verification_status='verified') | Q(verification_status='pending')
+            )
+        else:
+            resources_qs = Resource.objects.filter(is_public=True, verification_status='verified')
+
+    resource_type = request.GET.get('resource_type')
+    if resource_type:
+        resources_qs = resources_qs.filter(resource_type=resource_type)
+
+    tag_filter = request.GET.get('tag')
+    if tag_filter:
+        resources_qs = resources_qs.filter(tags__name__iexact=tag_filter)
+
+    search_query = request.GET.get('q')
+    if search_query:
+        resources_qs = resources_qs.filter(
+            Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        )
+
+    resources_qs = resources_qs.order_by('-created_at').distinct()
+
+    page_size = int(request.GET.get('page_size', 12))
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(resources_qs, page_size)
+    page_obj = paginator.get_page(page_number)
+
+    data = []
+    for r in page_obj.object_list.select_related('uploader').prefetch_related('tags'):
+        data.append({
+            'id': r.id,
+            'title': r.title,
+            'resource_type': r.resource_type,
+            'verification_status': r.verification_status,
+            'is_public': r.is_public,
+            'views_count': r.views_count,
+            'download_count': r.download_count,
+            'average_rating': r.get_average_rating(),
+            'rating_count': r.get_rating_count(),
+            'tags': [t.name for t in r.tags.all()[:6]],
+            'tags_extra': max(r.tags.count() - 6, 0),
+            'uploader': getattr(r.uploader, 'get_full_name', lambda: r.uploader.username)() or r.uploader.username,
+            'created_at': r.created_at.isoformat(),
+            'created_since': timesince(r.created_at) + ' ago',
+            'bookmarked': request.user.is_authenticated and Bookmark.objects.filter(user=request.user, resource=r).exists(),
+        })
+
+    return JsonResponse({
+        'success': True,
+        'results': data,
+        'page': page_obj.number,
+        'num_pages': paginator.num_pages,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'total': paginator.count,
+    })
+
+# bookmark_toggle view removed (feature deprecated)
 
 
 @login_required
@@ -241,6 +337,11 @@ def resource_edit(request, pk):
     """Edit an existing resource"""
     resource = get_object_or_404(Resource, pk=pk)
     
+    # Restrict access to private resources to uploader only
+    if not resource.is_public and resource.uploader != request.user:
+        messages.error(request, 'This resource is private.')
+        return redirect('resources:resource_list')
+    
     # Only uploader can edit
     if resource.uploader != request.user:
         messages.error(request, 'You can only edit your own resources.')
@@ -249,6 +350,13 @@ def resource_edit(request, pk):
     if request.method == 'POST':
         form = ResourceUploadForm(request.POST, request.FILES, instance=resource)
         if form.is_valid():
+            # Save core fields but handle tags manually to support comma input UI
+            resource_obj = form.save(commit=False)
+
+            # Track original visibility to detect changes
+            original_public = resource.is_public
+            new_public = resource_obj.is_public
+
             # Handle new file upload if provided
             if 'file' in request.FILES:
                 uploaded_file = request.FILES['file']
@@ -264,17 +372,51 @@ def resource_edit(request, pk):
                 )
                 
                 if success:
-                    resource.file_url = file_url
-                    resource.original_filename = uploaded_file.name
-                    resource.file_size = uploaded_file.size
+                    resource_obj.file_url = file_url
+                    resource_obj.original_filename = uploaded_file.name
+                    resource_obj.file_size = uploaded_file.size
                 else:
                     messages.error(request, f'File upload failed: {error}')
                     return render(request, 'resources/resource_edit.html', {
                         'form': form,
                         'resource': resource
                     })
-            
-            form.save()
+
+            # Visibility transition logic for non-professor uploader:
+            # - private -> public: set to pending (requires approval)
+            # - public -> private: auto-verify if not already verified
+            if not getattr(request.user, 'is_professor', False) and resource.uploader == request.user:
+                if (not original_public) and new_public:
+                    resource_obj.verification_status = 'pending'
+                    resource_obj.approved = False
+                    resource_obj.verification_by = None
+                    resource_obj.verified_at = None
+                elif original_public and (not new_public):
+                    # Moving to private; verification no longer depends on professor approval
+                    if resource_obj.verification_status != 'verified':
+                        resource_obj.verification_status = 'verified'
+                        resource_obj.approved = True
+                        resource_obj.verification_by = request.user
+                        resource_obj.verified_at = timezone.now()
+
+            # Persist main changes
+            resource_obj.save()
+
+            # Tags: prefer comma-separated input if provided
+            tags_text = request.POST.get('tags_text', None)
+            if tags_text is not None:
+                tag_names = [t.strip() for t in tags_text.split(',') if t.strip()]
+                tag_objs = []
+                for name in tag_names:
+                    tag, _ = Tag.objects.get_or_create(name=name)
+                    tag_objs.append(tag)
+                resource_obj.tags.set(tag_objs)
+            else:
+                # Fall back to form's m2m if our custom field wasn't used
+                form.save_m2m()
+
+            # Refresh instance for template usage/redirect
+            resource = resource_obj
             messages.success(request, 'Resource updated successfully!')
             return redirect('resources:resource_detail', pk=pk)
     else:
@@ -291,6 +433,11 @@ def resource_edit(request, pk):
 def resource_delete(request, pk):
     """Delete a resource"""
     resource = get_object_or_404(Resource, pk=pk)
+    
+    # Restrict access to private resources to uploader only
+    if not resource.is_public and resource.uploader != request.user:
+        messages.error(request, 'This resource is private.')
+        return redirect('resources:resource_list')
     
     # Only uploader or admin can delete
     if resource.uploader != request.user and not request.user.is_staff:
@@ -314,6 +461,11 @@ def resource_download(request, pk):
     """Track download and redirect to file"""
     resource = get_object_or_404(Resource, pk=pk)
     
+    # Restrict access to private resources to uploader only
+    if not resource.is_public and resource.uploader != request.user:
+        messages.error(request, 'This resource is private.')
+        return redirect('resources:resource_list')
+    
     # Increment download count
     resource.increment_download_count()
     
@@ -331,6 +483,15 @@ def resource_download(request, pk):
 def rate_resource(request, pk):
     """Rate a resource"""
     resource = get_object_or_404(Resource, pk=pk)
+    
+    # Restrict access to private resources to uploader only
+    if not resource.is_public and resource.uploader != request.user:
+        messages.error(request, 'This resource is private.')
+        return redirect('resources:resource_list')
+    # Prevent owner from rating own resource
+    if resource.uploader == request.user:
+        messages.error(request, 'You cannot rate your own resource.')
+        return redirect('resources:resource_detail', pk=pk)
     
     if request.method == 'POST':
         stars = request.POST.get('stars')
@@ -383,6 +544,15 @@ def rate_resource(request, pk):
 def add_comment(request, pk):
     """Add a comment to a resource"""
     resource = get_object_or_404(Resource, pk=pk)
+    
+    # Restrict access to private resources to uploader only
+    if not resource.is_public and resource.uploader != request.user:
+        messages.error(request, 'This resource is private.')
+        return redirect('resources:resource_list')
+    # Prevent owner from commenting on own resource
+    if resource.uploader == request.user:
+        messages.error(request, 'You cannot comment on your own resource.')
+        return redirect('resources:resource_detail', pk=pk)
     
     if request.method == 'POST':
         form = CommentForm(request.POST)

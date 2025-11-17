@@ -1,7 +1,7 @@
 {% extends 'base_dashboard.html' %}
 {% load static %}
 
-{% block title %}Quiz Results - {{ quiz.title }}{% endblock %}
+{% block title %}Quizzes{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/quizzes.css' %}">
@@ -13,8 +13,8 @@
 
 {% block header %}
 <div class="dashboard-title-section">
-    <h1 class="dashboard-title">Quiz Results</h1>
-    <p class="dashboard-date">{{ quiz.title }}</p>
+    <h1 class="dashboard-title">Quizzes</h1>
+    <p class="dashboard-date">Results for {{ quiz.title }}</p>
 </div>
 <div class="dashboard-actions">
     <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary-soft">

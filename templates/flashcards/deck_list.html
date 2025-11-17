@@ -1,113 +1,114 @@
 {% extends 'base_dashboard.html' %}
-{% load static %}
+{% load static humanize %}
 
-{% block title %}Flashcards - My Decks{% endblock %}
+{% block title %}Flashcards{% endblock %}
+{% block page_title %}Flashcards{% endblock %}
+
+{% block header_actions %}
+<div class="dashboard-actions d-flex align-items-center gap-2">
+  <form method="get" action="" class="search-box-inline">
+    <i class="fas fa-search"></i>
+    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search decks..." aria-label="Search decks">
+  </form>
+  <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
+    <i class="fas fa-bell"></i>
+  </button>
+  <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-2 profile-link" title="Profile" style="text-decoration:none;">
+    {% if user.profile_picture %}
+      <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
+    {% else %}
+      <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
+        <i class="fas fa-user"></i>
+      </span>
+    {% endif %}
+  </a>
+</div>
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
-{% endblock %}
-
-{% block header %}
-<div class="dashboard-title-section">
-    <h1 class="dashboard-title">My Flashcard Decks</h1>
-    <p class="dashboard-date">Create decks and study with interactive cards</p>
-</div>
-<div class="dashboard-actions">
-    <a href="#createDeck" class="btn btn-gradient-primary" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="createDeck">
-        <i class="fas fa-plus"></i> New Deck
-    </a>
-</div>
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
 {% endblock %}
 
 {% block content %}
-<div class="row g-3">
-    <div class="col-12">
-        <form method="get" class="card dashboard-card mb-3 p-3">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label">Search</label>
-                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search decks...">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Category</label>
-                    <select name="category" class="form-select">
-                        <option value="">All Categories</option>
-                        {% for value,label in form.category.field.choices %}
-                            <option value="{{ value }}" {% if value == selected_category %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-gradient-primary flex-grow-1"><i class="fas fa-search"></i> Filter</button>
-                    <a href="{% url 'flashcards:deck_list' %}" class="btn btn-outline-primary-soft"><i class="fas fa-undo"></i></a>
-                </div>
-            </div>
-        </form>
+<div class="fc-container fc-list">
+  <div class="resources-tabs-row d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div class="resources-tabs flashcards-tabs" role="tablist" aria-label="Flashcards scope">
+      <a href="{% url 'flashcards:deck_create' %}" class="btn-upload-pill" role="button" title="Create a new deck">+ New Deck</a>
+      <a href="{% url 'flashcards:deck_list' %}?scope=all" class="rtab {% if scope != 'mine' %}active{% endif %}" role="tab" aria-selected="{% if scope != 'mine' %}true{% else %}false{% endif %}">All Decks</a>
+      <a href="{% url 'flashcards:deck_list' %}?scope=mine" class="rtab {% if scope == 'mine' %}active{% endif %}" role="tab" aria-selected="{% if scope == 'mine' %}true{% else %}false{% endif %}">My Decks</a>
     </div>
-    <div class="col-12">
-        <div id="createDeck" class="collapse">
-            <div class="card dashboard-card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-folder-plus"></i> Create a new deck</h5>
-                    <form method="post" class="row g-3 mt-2">
-                        {% csrf_token %}
-                        <div class="col-md-6">
-                            {{ form.title.label_tag }}
-                            {{ form.title }}
-                        </div>
-                        <div class="col-md-12">
-                            {{ form.description.label_tag }}
-                            {{ form.description }}
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-gradient-primary">
-                                <i class="fas fa-save"></i> Create Deck
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <div class="d-flex align-items-center gap-2" aria-label="Filter decks">
+      <form method="get" action="" class="d-flex align-items-center gap-2">
+        {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+        {% if scope %}<input type="hidden" name="scope" value="{{ scope }}">{% endif %}
+        <select name="category" class="filter-select" aria-label="Filter by category" onchange="this.form.submit()">
+          <option value="" {% if not selected_category %}selected{% endif %}>All Categories</option>
+          <option value="general" {% if selected_category == 'general' %}selected{% endif %}>General</option>
+          <option value="definitions" {% if selected_category == 'definitions' %}selected{% endif %}>Definitions</option>
+          <option value="formulas" {% if selected_category == 'formulas' %}selected{% endif %}>Formulas</option>
+          <option value="concepts" {% if selected_category == 'concepts' %}selected{% endif %}>Concepts</option>
+          <option value="language" {% if selected_category == 'language' %}selected{% endif %}>Language</option>
+        </select>
+      </form>
     </div>
+  </div>
+  <div class="d-flex justify-content-end mb-2">
+    <div class="text-muted small">{% if scope == 'mine' %}Showing your decks{% else %}Showing public decks{% endif %}</div>
+  </div>
 
-    {% if decks %}
-        {% for deck in decks %}
-            <div class="col-md-6 col-lg-4">
-                <div class="card dashboard-card h-100">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title mb-1">
-                            <i class="fas fa-layer-group"></i> {{ deck.title }}
-                        </h5>
-                        <div class="mb-1"><span class="badge bg-primary-soft">{{ deck.get_category_display }}</span></div>
-                        <p class="text-muted small mb-2">{{ deck.description|default:'No description' }}</p>
-                        <p class="mb-4"><span class="badge bg-secondary-soft">{{ deck.cards_count }} cards</span></p>
-                        <div class="mt-auto d-flex gap-2">
-                            <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft w-100">
-                                <i class="fas fa-edit"></i> Manage
-                            </a>
-                            <a href="{% url 'flashcards:study' deck.pk %}" class="btn btn-gradient-primary w-100">
-                                <i class="fas fa-play"></i> Study
-                            </a>
-                            <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="btn btn-outline-primary-soft"><i class="fas fa-pencil"></i></a>
-                            <a href="{% url 'flashcards:deck_delete' deck.pk %}" class="btn btn-outline-danger"><i class="fas fa-trash"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    {% else %}
-        <div class="col-12">
-            <div class="card dashboard-card">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-layer-group empty-icon" style="font-size: 4rem;"></i>
-                    <h5 class="text-muted">No decks yet</h5>
-                    <p class="text-muted">Create your first deck to start studying.</p>
-                    <a href="#createDeck" class="btn btn-gradient-primary" data-bs-toggle="collapse">
-                        <i class="fas fa-plus"></i> New Deck
-                    </a>
-                </div>
-            </div>
+  {% if decks %}
+  <div class="fc-grid">
+    {% for deck in decks %}
+    <div class="fc-card">
+      <div class="fc-card-header">
+        <div class="fc-card-icon" aria-hidden="true">
+          {% if deck.category == 'language' %}<i class="fas fa-globe"></i>
+          {% elif deck.category == 'concepts' %}<i class="fas fa-book"></i>
+          {% elif deck.category == 'definitions' %}<i class="fas fa-list"></i>
+          {% elif deck.category == 'formulas' %}<i class="fas fa-superscript"></i>
+          {% else %}<i class="fas fa-layer-group"></i>{% endif %}
         </div>
+        <form method="post" action="{% url 'flashcards:bookmark_toggle' deck.pk %}" class="fc-card-bookmark" title="Bookmark" aria-label="Bookmark deck">
+          {% csrf_token %}
+          {% if deck.is_bookmarked %}<i class="fas fa-bookmark"></i>{% else %}<i class="far fa-bookmark"></i>{% endif %}
+        </form>
+      </div>
+      <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="stretched-link" style="text-decoration:none"></a>
+      <div class="fc-card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+          <div class="fc-card-title">{{ deck.title }}</div>
+          {% if deck.visibility == 'public' %}
+            {% if deck.verification_status == 'verified' %}
+              <span class="badge badge-verified badge-sm" style="font-size:0.65rem; flex-shrink:0;"><i class="fas fa-check-circle"></i> Verified</span>
+            {% else %}
+              <span class="badge badge-pending badge-sm" style="font-size:0.65rem; flex-shrink:0;"><i class="fas fa-clock"></i> Pending</span>
+            {% endif %}
+          {% else %}
+            <span class="badge bg-secondary badge-sm" style="font-size:0.65rem; flex-shrink:0;"><i class="fas fa-lock"></i> Private</span>
+          {% endif %}
+        </div>
+        <div class="fc-card-count">{{ deck.cards_count }} card{% if deck.cards_count != 1 %}s{% endif %}</div>
+        <p class="fc-card-desc">{{ deck.description|default:'No description yet.'|truncatechars:90 }}</p>
+        <div class="fc-card-footer">
+          <span>{{ deck.get_category_display }}</span>
+          <span>{% if deck.last_studied_at %}Last studied: {{ deck.last_studied_at|timesince }} ago{% else %}Not studied yet{% endif %}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="fc-empty">
+    {% if scope == 'mine' %}
+      <strong>You haven't created any decks yet</strong>
+      <div class="mt-2">Create a deck to start studying.</div>
+    {% else %}
+      <strong>No public decks available yet</strong>
+      <div class="mt-2">Please check back later.</div>
     {% endif %}
+    <div class="mt-3"><a href="{% url 'flashcards:deck_create' %}" class="fc-btn fc-btn-primary"><i class="fas fa-plus"></i><span> New Deck</span></a></div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

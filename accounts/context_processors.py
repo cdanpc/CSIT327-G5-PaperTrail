@@ -3,7 +3,6 @@ Context processors for accounts app
 """
 from django.contrib.auth import get_user_model
 from resources.models import Resource, Bookmark
-from flashcards.models import FlashcardSet
 from quizzes.models import Quiz
 
 User = get_user_model()
@@ -19,8 +18,7 @@ def user_activity(request):
         # Get user's activity counts
         resources_uploaded = Resource.objects.filter(uploader=user).count()
         bookmarks_count = Bookmark.objects.filter(user=user).count()
-        flashcards_created = FlashcardSet.objects.filter(owner=user).count()
-        quizzes_created = Quiz.objects.filter(owner=user).count()
+    quizzes_created = Quiz.objects.filter(owner=user).count()
         
         # Get reviews written (verifications for professors)
         reviews_written = 0
@@ -30,7 +28,6 @@ def user_activity(request):
         context.update({
             'user_resources_uploaded': resources_uploaded,
             'user_bookmarks_count': bookmarks_count,
-            'user_flashcards_created': flashcards_created,
             'user_quizzes_created': quizzes_created,
             'user_reviews_written': reviews_written,
         })

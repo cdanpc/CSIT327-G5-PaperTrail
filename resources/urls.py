@@ -9,6 +9,7 @@ urlpatterns = [
     
     # Resource CRUD
     path('list/', views.resource_list, name='resource_list'),
+    path('api/list/', views.resource_list_api, name='resource_list_api'),
     path('my-resources/', views.my_resources, name='my_resources'),
     path('upload/', views.resource_upload, name='resource_upload'),
     path('<int:pk>/', views.resource_detail, name='resource_detail'),

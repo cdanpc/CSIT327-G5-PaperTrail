@@ -6,8 +6,8 @@
 {% block header %}
 <div class="dashboard-header">
     <div class="dashboard-title-section">
-        <h1 class="dashboard-title">Welcome back, {{ user.first_name }}!</h1>
-        <p class="dashboard-date">Keep moving forward—small wins today become big results this semester.</p>
+    <h1 class="dashboard-title">Welcome back, {{ user.first_name }}!</h1>
+    <p class="dashboard-date">{{ dashboard_date_str }}</p>
     </div>
     {% block header_actions %}
     <div class="dashboard-actions">
@@ -33,14 +33,22 @@
 </div>
 {% endblock %}
 
+<!-- In-progress Toast -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index:1080">
+    <div id="inProgressToast" class="toast align-items-center text-bg-secondary border-0" role="status" aria-live="polite" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">This feature is in progress.</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 {% block content %}
-<!-- Stats Cards Row (clean, minimal) -->
-<div class="row g-3 mb-4">
-    <div class="col-lg-3 col-md-6">
-        <div class="stat-card stat-card-purple">
-            <div class="stat-icon">
-                <i class="fas fa-folder"></i>
-            </div>
+<!-- Stats Row (4 cards) -->
+<div class="row g-3 mb-3">
+    <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+        <div class="stat-card stat-card-purple h-100">
+            <div class="stat-icon"><i class="fas fa-folder"></i></div>
             <div class="stat-content">
                 <div class="stat-label">Total Resources</div>
                 <div class="stat-value" data-target="{{ total_resources }}">0</div>
@@ -48,11 +56,19 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="stat-card stat-card-blue">
-            <div class="stat-icon">
-                <i class="fas fa-bookmark"></i>
+    <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+        <div class="stat-card stat-card-green h-100">
+            <div class="stat-icon"><i class="fas fa-question-circle"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Total Quizzes</div>
+                <div class="stat-value" data-target="{{ total_quizzes_posted|default:0 }}">0</div>
+                <div class="stat-sublabel">Available quizzes</div>
             </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+        <div class="stat-card stat-card-blue h-100">
+            <div class="stat-icon"><i class="fas fa-bookmark"></i></div>
             <div class="stat-content">
                 <div class="stat-label">Bookmarks</div>
                 <div class="stat-value" data-target="{{ total_bookmarks }}">0</div>
@@ -60,107 +76,118 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="stat-card stat-card-teal">
-            <div class="stat-icon">
-                <i class="fas fa-layer-group"></i>
-            </div>
+    <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+        <div class="stat-card stat-card-teal h-100">
+            <div class="stat-icon"><i class="fas fa-clone"></i></div>
             <div class="stat-content">
-                <div class="stat-label">Flashcards</div>
-                <div class="stat-value" data-target="{{ total_flashcards_posted|default:0 }}">0</div>
-                <div class="stat-sublabel">Decks created</div>
+                <div class="stat-label">Flashcard Decks</div>
+                <div class="stat-value" data-target="{{ total_flashcard_decks|default:0 }}">0</div>
+                <div class="stat-sublabel">Your study sets</div>
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="stat-card stat-card-green">
-            <div class="stat-icon">
-                <i class="fas fa-question-circle"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-label">Quizzes Posted</div>
-                <div class="stat-value" data-target="{{ total_quizzes_posted|default:0 }}">0</div>
-                <div class="stat-sublabel">Quizzes created</div>
-            </div>
-        </div>
-    </div>
-    
 </div>
 
-<!-- Main Content Grid -->
-<div class="row g-3">
-    <!-- Left Column -->
-    <div class="col-lg-8">
-        <!-- Quick Actions (gradient cards) -->
-        <div class="card dashboard-card mb-3">
-            <div class="card-header">
+<!-- Main Grid: Quick Actions (left) | Insights (center) | Latest Resources (right) -->
+<div class="row g-3 align-items-start">
+    <!-- Quick Actions -->
+    <div class="col-12 col-lg-4 col-xl-3">
+        <div class="card dashboard-card quick-actions-card equal-height">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Quick Actions</h5>
             </div>
-            <div class="card-body">
-                <div class="row g-3 qa-grid">
-                    <div class="col-6 col-lg-3">
-                        <a class="qa-tile qa-purple w-100" data-feature="in-progress" title="Flashcards coming soon">
-                            <div class="qa-icon"><i class="fas fa-layer-group"></i></div>
-                            <div class="qa-title mt-2">Flashcards</div>
-                        </a>
-                    </div>
-                    <div class="col-6 col-lg-3">
-                        <a class="qa-tile qa-blue w-100" href="{% url 'quizzes:quiz_create' %}">
-                            <div class="qa-icon"><i class="fas fa-plus-circle"></i></div>
-                            <div class="qa-title mt-2">Create Quiz</div>
-                        </a>
-                    </div>
-                    <div class="col-6 col-lg-3">
-                        <a class="qa-tile qa-green w-100" href="{% url 'resources:resource_upload' %}">
-                            <div class="qa-icon"><i class="fas fa-upload"></i></div>
-                            <div class="qa-title mt-2">Upload</div>
-                        </a>
-                    </div>
-                    <div class="col-6 col-lg-3">
-                        <a class="qa-tile qa-amber w-100" href="{% url 'resources:resource_list' %}">
-                            <div class="qa-icon"><i class="fas fa-book"></i></div>
-                            <div class="qa-title mt-2">Library</div>
-                        </a>
-                    </div>
+            <div class="card-body quick-actions-body">
+                <div class="qa-grid">
+                    <a class="qa-tile qa-green" href="{% url 'resources:resource_upload' %}" aria-label="Upload Resource">
+                        <div class="qa-icon"><i class="fas fa-upload"></i></div>
+                        <div class="qa-title">Upload</div>
+                    </a>
+                    <a class="qa-tile qa-amber" href="{% url 'resources:resource_list' %}" aria-label="Browse Library">
+                        <div class="qa-icon"><i class="fas fa-book"></i></div>
+                        <div class="qa-title">Library</div>
+                    </a>
+                    <a class="qa-tile qa-blue" href="{% url 'quizzes:quiz_create' %}" aria-label="Create Quiz">
+                        <div class="qa-icon"><i class="fas fa-plus-circle"></i></div>
+                        <div class="qa-title">Create Quiz</div>
+                    </a>
+                    <a class="qa-tile qa-purple" href="{% url 'flashcards:deck_list' %}" aria-label="Flashcards">
+                        <div class="qa-icon"><i class="fas fa-clone"></i></div>
+                        <div class="qa-title">Flashcards</div>
+                    </a>
                 </div>
             </div>
         </div>
-        <!-- Bookmarks Quick Access -->
-        <div class="card dashboard-card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Bookmarks</h5>
-                <a href="{% url 'resources:resource_list' %}" class="small text-decoration-none">All Resources</a>
+    </div>
+
+    <!-- Insights Center -->
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card dashboard-card insights-card equal-height">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <h5 class="card-title mb-0">Learning Insights</h5>
+                    <span class="badge bg-light text-dark small">Last 7 days</span>
+                </div>
+                <div class="metric-selector btn-group btn-group-sm" role="group" aria-label="Metric selector">
+                    <input type="radio" class="btn-check" name="metricType" id="metricUploads" value="uploads" checked autocomplete="off">
+                    <label class="btn metric-btn metric-uploads" for="metricUploads" title="Uploads"><span class="metric-dot uploads"></span>Uploads</label>
+                    <input type="radio" class="btn-check" name="metricType" id="metricQuizzes" value="quizzes" autocomplete="off">
+                    <label class="btn metric-btn metric-quizzes" for="metricQuizzes" title="Quizzes"><span class="metric-dot quizzes"></span>Quizzes</label>
+                    <input type="radio" class="btn-check" name="metricType" id="metricActivity" value="activity" autocomplete="off">
+                    <label class="btn metric-btn metric-activity" for="metricActivity" title="Activity"><span class="metric-dot activity"></span>Activity</label>
+                    <input type="radio" class="btn-check" name="metricType" id="metricFlashcards" value="flashcards" autocomplete="off">
+                    <label class="btn metric-btn metric-flashcards" for="metricFlashcards" title="Flashcards"><span class="metric-dot flashcards"></span>Flashcards</label>
+                    <input type="radio" class="btn-check" name="metricType" id="metricAll" value="all" autocomplete="off">
+                    <label class="btn metric-btn metric-all" for="metricAll" title="Show All"><span class="metric-dot multi"></span>All</label>
+                </div>
             </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    {% if recent_bookmarks %}
-                        {% for b in recent_bookmarks %}
-                            <li class="list-group-item d-flex justify-content-between align-items-start">
-                                <div class="me-2" style="flex:1;">
-                                    <a href="{% url 'resources:resource_detail' b.resource.pk %}" class="fw-semibold text-decoration-none" style="color:#4f46e5;">{{ b.resource.title|truncatechars:60 }}</a>
-                                    <div class="small text-muted mt-1">
-                                        {% with avg=b.resource.get_average_rating count=b.resource.get_rating_count %}
-                                            {% if count > 0 %}
-                                                <span title="Average rating">⭐ {{ avg|floatformat:1 }}</span>
-                                                <span class="ms-1">({{ count }})</span>
-                                            {% else %}
-                                                <span class="text-muted">No ratings</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    </div>
-                                </div>
-                                <a href="{% url 'resources:resource_detail' b.resource.pk %}" class="btn btn-sm btn-outline-primary">Open</a>
+            <div class="card-body">
+                <div class="chart-wrap">
+                    <canvas id="insightsChart" class="w-100" aria-label="Learning insights chart" role="img"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Uploads Sidebar -->
+    <div class="col-12 col-xl-3">
+    <div class="card dashboard-card latest-resources-card equal-height">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">New Uploads</h5>
+                <a href="{% url 'resources:resource_list' %}" class="small text-decoration-none" style="color:#4f46e5;">View All</a>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small latest-resources-list {% if not new_uploads %}empty{% endif %}">
+                    {% if new_uploads %}
+                        {% for item in new_uploads %}
+                            <li class="d-flex justify-content-between align-items-center mb-2 latest-resource-item">
+                                <span class="text-truncate d-flex align-items-center gap-2" style="max-width:70%;">
+                                    {% if item.type == 'resource' %}
+                                        <i class="fas fa-file" style="color:#6b7280;" aria-hidden="true"></i>
+                                    {% elif item.type == 'quiz' %}
+                                        <i class="fas fa-question-circle" style="color:#6b7280;" aria-hidden="true"></i>
+                                    {% elif item.type == 'flashcard' %}
+                                        <i class="fas fa-clone" style="color:#6b7280;" aria-hidden="true"></i>
+                                    {% else %}
+                                        <i class="fas fa-file" style="color:#6b7280;" aria-hidden="true"></i>
+                                    {% endif %}
+                                    <a href="{{ item.url }}" class="text-decoration-none" style="color:#4f46e5;">{{ item.title|truncatechars:60 }}</a>
+                                </span>
+                                <span class="text-muted" style="font-size:0.7rem;">{{ item.created_at|date:'M d' }}</span>
                             </li>
                         {% endfor %}
                     {% else %}
-                        <li class="list-group-item text-center text-muted py-4">No bookmarks yet.</li>
+                        <li class="text-muted">No recent uploads.</li>
                     {% endif %}
                 </ul>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Recent Uploads / Activity Feed -->
-        <div class="card dashboard-card">
+<!-- Bottom Row: Recent Activity (left) | Calendar (right) -->
+<div class="row g-3 mt-1">
+    <div class="col-12 col-xl-7">
+        <div class="card dashboard-card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Recent Activity</h5>
             </div>
@@ -169,7 +196,13 @@
                     {% if activity_feed %}
                         {% for ev in activity_feed %}
                         <li class="feed-item">
-                            <div class="feed-badge {% if ev.type == 'upload' %}pdf{% elif ev.type == 'rating' %}quiz{% else %}note{% endif %}"><i class="fas fa-{% if ev.icon %}{{ ev.icon }}{% else %}info-circle{% endif %}"></i></div>
+                            <div class="feed-badge 
+                                {% if ev.type == 'upload' or ev.type == 'flashcard_create' or ev.type == 'quiz_create' %}pdf
+                                {% elif ev.type == 'rating' or ev.type == 'quiz_complete' %}quiz
+                                {% elif ev.type == 'bookmark' or ev.type == 'flashcard_edit' or ev.type == 'card_create' %}note
+                                {% else %}note{% endif %}">
+                                <i class="fas fa-{% if ev.icon %}{{ ev.icon }}{% else %}info-circle{% endif %}"></i>
+                            </div>
                             <div class="feed-content">
                                 <div class="feed-title">{{ ev.title }}</div>
                                 <div class="feed-meta">You • {{ ev.meta }}</div>
@@ -177,208 +210,70 @@
                         </li>
                         {% endfor %}
                     {% else %}
-                        <li class="feed-item"><div class="feed-content"><div class="feed-title">No recent activity.</div><div class="feed-meta">Start uploading or rating resources.</div></div></li>
+                        <li class="feed-item"><div class="feed-content"><div class="feed-title">No recent activity.</div><div class="feed-meta">Start uploading, creating flashcards, or rating resources.</div></div></li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </div>
-
-    <!-- Right Column -->
-    <div class="col-lg-4">
-        <!-- Continue Studying -->
-        <div class="card dashboard-card mb-3">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Continue Studying</h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <h6 class="fw-semibold mb-2" style="color:#4f46e5;">Flashcard Decks</h6>
-                    {% if continue_decks %}
-                        <ul class="list-unstyled mb-0 small">
-                            {% for deck in continue_decks %}
-                                <li class="d-flex justify-content-between mb-2">
-                                    <span>{{ deck.title|truncatechars:30 }}</span>
-                                    <span class="text-muted">{{ deck.cards_count }} cards</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted small mb-0">No decks yet.</p>
-                    {% endif %}
-                </div>
-                <div>
-                    <h6 class="fw-semibold mb-2" style="color:#4f46e5;">In-Progress Quizzes</h6>
-                    {% if in_progress_quiz_attempts %}
-                        <ul class="list-unstyled mb-0 small">
-                            {% for attempt in in_progress_quiz_attempts %}
-                                <li class="d-flex justify-content-between mb-2">
-                                    <span>{{ attempt.quiz.title|truncatechars:30 }}</span>
-                                    <span class="text-muted">Started {{ attempt.started_at|date:'M d' }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted small mb-0">No active quiz attempts.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Learning Insights (chart) -->
-        <div class="card dashboard-card mb-3">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Learning Insights</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="uploadsChart" height="160" class="w-100"></canvas>
-            </div>
-        </div>
-
-        <!-- Trending Tags -->
-        <div class="card dashboard-card mb-3">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Trending Tags</h5>
-            </div>
-            <div class="card-body">
-                {% if trending_tags %}
-                    <div class="d-flex flex-wrap gap-2">
-                        {% for tag in trending_tags %}
-                            <span class="badge rounded-pill" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">{{ tag.name }}{% if tag.recent_count %}<span class="ms-1">×{{ tag.recent_count }}</span>{% endif %}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-muted small mb-0">No tag activity this week.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Top Rated Resources -->
-        <div class="card dashboard-card mb-3">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Top Rated Resources</h5>
-            </div>
-            <div class="card-body">
-                {% if top_rated_resources %}
-                    <ul class="list-unstyled mb-0 small">
-                        {% for res in top_rated_resources %}
-                            <li class="mb-2 d-flex justify-content-between">
-                                <span class="me-2" style="flex:1;">
-                                    <a href="{% url 'resources:resource_detail' res.pk %}" class="text-decoration-none" style="color:#4f46e5;">{{ res.title|truncatechars:40 }}</a>
-                                </span>
-                                <span title="Average rating">⭐ {{ res.avg_rating|floatformat:1 }} ({{ res.rating_count }})</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-muted small mb-0">Not enough ratings yet.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Upcoming Quizzes (Placeholder) -->
-        <div class="card dashboard-card mb-3">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Upcoming / Explore Quizzes</h5>
-            </div>
-            <div class="card-body">
-                {% if upcoming_quizzes %}
-                    <ul class="list-unstyled mb-0 small">
-                        {% for q in upcoming_quizzes %}
-                            <li class="mb-2 d-flex justify-content-between">
-                                <span class="me-2" style="flex:1;">{{ q.title|truncatechars:40 }}</span>
-                                <span class="text-muted">Created {{ q.created_at|date:'M d' }}</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-muted small mb-0">No quizzes available.</p>
-                {% endif %}
-                <p class="mt-2 mb-0 text-muted" style="font-size:0.75rem;">Scheduling fields not yet implemented—showing latest quizzes.</p>
-            </div>
-        </div>
-
-        <!-- Study Schedule / Reminders -->
-        <div class="card dashboard-card">
+    <div class="col-12 col-xl-5">
+        <div class="card dashboard-card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Study Reminders</h5>
+                <h5 class="card-title mb-0">Calendar</h5>
+                <span class="text-muted small">{{ current_month_label }}</span>
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'accounts:add_study_reminder' %}" class="mb-3 d-flex flex-wrap gap-2">
-                    {% csrf_token %}
-                    <input type="text" name="title" class="form-control flex-grow-1" placeholder="Reminder title" required>
-                    <input type="date" name="due_date" class="form-control" style="max-width:170px;">
-                    <button type="submit" class="btn btn-sm btn-gradient-primary"><i class="fas fa-plus"></i> Add</button>
-                </form>
-                <ul class="list-group small">
-                    {% if study_reminders %}
-                        {% for r in study_reminders %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center {% if r.completed %}text-muted{% endif %}">
-                            <div>
-                                <span class="{% if r.completed %}text-decoration-line-through{% endif %}">{{ r.title }}</span>
-                                {% if r.due_date %}
-                                    <span class="ms-2 badge bg-light text-dark">Due {{ r.due_date|date:'M d' }}</span>
+                <div class="calendar-grid" aria-label="Study calendar">
+                    <div class="calendar-header">Sun</div>
+                    <div class="calendar-header">Mon</div>
+                    <div class="calendar-header">Tue</div>
+                    <div class="calendar-header">Wed</div>
+                    <div class="calendar-header">Thu</div>
+                    <div class="calendar-header">Fri</div>
+                    <div class="calendar-header">Sat</div>
+                    {% for cell in calendar_cells %}
+                        {% if cell.blank %}
+                            <div class="calendar-day other-month"></div>
+                        {% else %}
+                            <div class="calendar-day {% if cell.is_today %}today{% endif %} {% if cell.events %}has-event{% endif %}" data-day="{{ cell.day }}" {% if cell.events %}data-event-count="{{ cell.events|length }}"{% endif %}>
+                                {{ cell.day }}
+                                {% if cell.is_today %}<span class="today-badge">Today</span>{% endif %}
+                                {% if cell.events %}
+                                    <div class="event-dot" title="{{ cell.events.0.title }}"></div>
+                                    {% if cell.events|length > 1 %}<span class="event-count-badge">+{{ cell.events|length }}</span>{% endif %}
                                 {% endif %}
                             </div>
-                            <div class="d-flex gap-1">
-                                <a href="{% url 'accounts:toggle_study_reminder' r.pk %}" class="btn btn-sm btn-outline-success" title="Toggle"><i class="fas fa-check"></i></a>
-                                <a href="{% url 'accounts:delete_study_reminder' r.pk %}" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Delete reminder?');"><i class="fas fa-trash"></i></a>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    {% else %}
-                        <li class="list-group-item text-muted">No reminders yet.</li>
-                    {% endif %}
-                </ul>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
+<!-- Calendar Events Modal -->
+<div class="modal fade" id="calendarEventsModal" tabindex="-1" aria-labelledby="calendarEventsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="calendarEventsModalLabel">Day Events</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-unstyled mb-0 small" id="calendarEventsList"></ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% block extra_js %}
 <!-- Chart.js for the small insights bar chart -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate stat counters
-        document.querySelectorAll('.stat-value[data-target]').forEach(function(el){
-            const target = parseInt(el.getAttribute('data-target') || '0', 10);
-            let current = 0;
-            const step = Math.max(1, Math.ceil(target / 40));
-            const timer = setInterval(() => {
-                current += step;
-                if (current >= target) { current = target; clearInterval(timer); }
-                el.textContent = current;
-            }, 20);
-        });
-
-        // Dynamic Learning Insights bar chart
-        const labels = JSON.parse('{{ weekly_upload_labels|safe|escapejs }}'.replace(/&quot;/g,'"'));
-        const counts = JSON.parse('{{ weekly_upload_counts|safe|escapejs }}'.replace(/&quot;/g,'"'));
-        const ctx = document.getElementById('uploadsChart');
-        if (ctx && window.Chart && labels.length === counts.length) {
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Uploads',
-                        data: counts,
-                        backgroundColor: labels.map((l,i) => i === labels.length-2 ? '#a78bfa' : '#c7d2fe'),
-                        borderRadius: 8,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: { grid: { color: 'rgba(102,126,234,0.1)' }, beginAtZero: true, ticks: { precision:0 } }
-                    }
-                }
-            });
-        }
-    });
-</script>
+{{ weekly_metrics|json_script:"weekly-metrics-data" }}
+{{ calendar_events|json_script:"calendar-events-data" }}
+<script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

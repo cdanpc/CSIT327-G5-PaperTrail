@@ -77,7 +77,6 @@ class User(AbstractUser):
         ('student', 'Student Dashboard'),
         ('overview', 'Overview'),
         ('resources', 'Resources'),
-        ('flashcards', 'Flashcards'),
         ('quizzes', 'Quizzes'),
     ]
     
