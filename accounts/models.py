@@ -477,3 +477,38 @@ class StudyReminder(models.Model):
     def mark_incomplete(self):
         self.completed = False
         self.save(update_fields=['completed'])
+
+# --- Profile Backend Additions ---
+class UserStats(models.Model):
+    """Tracks user activity and engagement for profile impact/summary cards."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='stats')
+    resources_uploaded = models.IntegerField(default=0)
+    quizzes_created = models.IntegerField(default=0)
+    flashcards_created = models.IntegerField(default=0)
+    students_helped = models.IntegerField(default=0)  # Views/downloads of user's content
+    total_study_time = models.IntegerField(default=0)  # In minutes
+    quizzes_completed = models.IntegerField(default=0)
+    active_streak = models.IntegerField(default=0)  # Days
+    last_activity = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'User Stats'
+        verbose_name_plural = 'User Stats'
+
+    def __str__(self):
+        return f"Stats for {self.user.get_display_name()}"
+
+class UserPreferences(models.Model):
+    """Stores user profile customization and preferences."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preferences')
+    theme = models.CharField(max_length=50, default='Default')
+    font_style = models.CharField(max_length=50, default='System')
+    layout = models.CharField(max_length=50, default='Standard')
+    dark_mode = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'User Preferences'
+        verbose_name_plural = 'User Preferences'
+
+    def __str__(self):
+        return f"Preferences for {self.user.get_display_name()}"

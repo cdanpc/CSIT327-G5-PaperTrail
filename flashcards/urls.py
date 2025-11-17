@@ -19,5 +19,6 @@ urlpatterns = [
     # Moderation
     path("moderation/", views.deck_moderation_list, name="deck_moderation_list"),
     path("moderation/approve/<int:pk>/", views.approve_deck, name="approve_deck"),
+    path("moderation/reject/<int:pk>/", views.reject_deck, name="reject_deck"),
     path("moderation/bulk-verify/", views.bulk_verify_decks, name="bulk_verify_decks"),
 ]

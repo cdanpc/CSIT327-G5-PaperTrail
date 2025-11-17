@@ -13,65 +13,7 @@
     <link rel="stylesheet" href="{% static 'css/feature-popup.css' %}?v=1.0">
 </head>
 <body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay"></div>
-
-    <!-- Unified Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <!-- PaperTrail Brand/Toggle -->
-        <div class="sidebar-brand-toggle" id="sidebarToggle">
-            <i class="fas fa-book-reader"></i>
-            <span class="sidebar-text">PaperTrail</span>
-        </div>
-
-        <!-- Sidebar Content -->
-        <div class="sidebar-content">
-            <!-- Main Navigation -->
-            <nav class="sidebar-nav">
-                <a href="{% url 'accounts:professor_dashboard' %}" class="sidebar-item active">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-text">Dashboard</span>
-                </a>
-                <a href="{% url 'resources:resource_list' %}" class="sidebar-item">
-                    <i class="fas fa-book"></i>
-                    <span class="sidebar-text">Resources</span>
-                </a>
-                <a href="{% url 'resources:moderation_list' %}" class="sidebar-item">
-                    <i class="fas fa-check-circle"></i>
-                    <span class="sidebar-text">Verify Content</span>
-                </a>
-                <a href="{% url 'resources:resource_upload' %}" class="sidebar-item">
-                    <i class="fas fa-upload"></i>
-                    <span class="sidebar-text">Upload Resource</span>
-                </a>
-                <a href="{% url 'quizzes:quiz_list' %}" class="sidebar-item">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span class="sidebar-text">Quizzes</span>
-                </a>
-            </nav>
-
-            <!-- Sidebar Footer (Profile, Settings, Sign Out) -->
-            <div class="sidebar-footer">
-                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
-                    <i class="fas fa-user"></i>
-                    <span class="sidebar-text">Profile</span>
-                </a>
-                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Settings</span>
-                </a>
-                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="sidebar-text">Sign Out</span>
-                </a>
-            </div>
-        </div>
-    </div>
+    {% include "includes/sidebar.html" %}
     
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
@@ -84,17 +26,24 @@
                         <p class="dashboard-date">Manage resources, verify student content, and track engagement</p>
                     </div>
                     
-                    <div class="dashboard-actions">
+                    <div class="dashboard-actions d-flex align-items-center gap-2">
                         <!-- Search Box -->
                         <div class="search-box-inline">
                             <i class="fas fa-search"></i>
                             <input type="text" class="form-control" placeholder="Search..." aria-label="Search">
                         </div>
-                        
                         <!-- Notification Bell -->
                         <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
                             <i class="fas fa-bell"></i>
                         </button>
+                        <!-- Profile Icon -->
+                        <a href="{% url 'accounts:profile' %}" class="icon-btn" aria-label="Profile" style="margin-left: 8px;">
+                            {% if request.user.profile_pic %}
+                                <img src="{{ request.user.profile_pic.url }}" alt="Profile" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;">
+                            {% else %}
+                                <i class="fas fa-user-circle" style="font-size: 1.7rem;"></i>
+                            {% endif %}
+                        </a>
                     </div>
                 </div>
                 
@@ -107,7 +56,7 @@
                             </div>
                             <div class="stat-content">
                                 <div class="stat-label">Pending Verifications</div>
-                                <div class="stat-value" data-target="{{ pending_verifications.count }}">0</div>
+                                <div class="stat-value" data-target="{{ total_pending }}">0</div>
                                 <div class="stat-sublabel">Awaiting review</div>
                             </div>
                         </div>
@@ -131,7 +80,7 @@
                             </div>
                             <div class="stat-content">
                                 <div class="stat-label">Recently Verified</div>
-                                <div class="stat-value" data-target="{{ recently_verified.count }}">0</div>
+                                <div class="stat-value" data-target="{{ total_recently_verified }}">0</div>
                                 <div class="stat-sublabel">Verified this period</div>
                             </div>
                         </div>
@@ -148,6 +97,11 @@
                                 </div>
                                 <h5 class="card-title">Upload Resource</h5>
                                 <p class="text-muted">Share educational materials with students</p>
+                                {% if professor_resources %}
+                                    <span class="badge bg-info text-dark mt-2">{{ professor_resources.count }} uploaded</span>
+                                {% else %}
+                                    <span class="badge bg-secondary mt-2">No resources yet</span>
+                                {% endif %}
                             </div>
                         </a>
                     </div>
@@ -159,6 +113,11 @@
                                 </div>
                                 <h5 class="card-title">Verify Content</h5>
                                 <p class="text-muted">Review and verify student submissions</p>
+                                {% if total_pending > 0 %}
+                                    <span class="badge bg-warning text-dark mt-2">{{ total_pending }} pending</span>
+                                {% else %}
+                                    <span class="badge bg-success mt-2">All caught up</span>
+                                {% endif %}
                             </div>
                         </a>
                     </div>
@@ -170,6 +129,11 @@
                                 </div>
                                 <h5 class="card-title">Create Quiz</h5>
                                 <p class="text-muted">Build quizzes to test student knowledge</p>
+                                {% if quizzes %}
+                                    <span class="badge bg-info text-dark mt-2">{{ quizzes.count }} quizzes</span>
+                                {% else %}
+                                    <span class="badge bg-secondary mt-2">No quizzes yet</span>
+                                {% endif %}
                                 <button class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600;" data-feature="in-progress">
                                     <i class="fas fa-plus"></i> Create
                                 </button>
@@ -190,43 +154,77 @@
                                 </a>
                             </div>
                             <div class="card-body">
-                                {% if pending_verifications %}
-                                    {% for resource in pending_verifications %}
-                                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
-                                        <div style="flex: 1;">
-                                            <h6 class="mb-1" style="font-weight: 600; color: #1a1a1a;">
-                                                <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none;">
-                                                    {{ resource.title }}
-                                                </a>
-                                            </h6>
-                                            <small class="text-muted d-block">
-                                                <i class="fas fa-user"></i> by {{ resource.uploader.get_display_name }}
-                                                <span class="ms-2"><i class="fas fa-calendar"></i> {{ resource.created_at|date:"M d, Y" }}</span>
-                                            </small>
-                                        </div>
-                                        <div class="btn-group ms-2">
-                                            <form method="post" action="{% url 'resources:approve_resource' resource.pk %}?next={{ request.path }}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button class="btn btn-sm" type="submit" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none;" title="Approve">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                            <form method="post" action="{% url 'resources:reject_resource' resource.pk %}?next={{ request.path }}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <div class="text-center py-4">
-                                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
-                                        <p class="text-muted mb-0">No resources pending verification.</p>
-                                        <small class="text-muted">All caught up!</small>
-                                    </div>
-                                {% endif %}
+                                <h6 class="mb-2" style="font-weight: 600; color: #1a1a1a;">Pending Verifications (Quick View)</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Date</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for resource in pending_verifications %}
+                                            <tr>
+                                                <td><a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">{{ resource.title }}</a></td>
+                                                <td>{{ resource.created_at|date:"M d, Y" }}</td>
+                                                <td>
+                                                    <form method="post" action="{% url 'resources:approve_resource' resource.pk %}?next={{ request.path }}" style="display:inline-block">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-gradient-primary" title="Approve"><i class="fas fa-check"></i></button>
+                                                    </form>
+                                                    <form method="post" action="{% url 'resources:reject_resource' resource.pk %}?next={{ request.path }}" style="display:inline-block; margin-left: 4px;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject"><i class="fas fa-times"></i></button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% for quiz in pending_quizzes %}
+                                            <tr>
+                                                <td><a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="text-decoration-none">{{ quiz.title }}</a></td>
+                                                <td>{{ quiz.created_at|date:"M d, Y" }}</td>
+                                                <td>
+                                                    <form method="post" action="{% url 'quizzes:approve_quiz' quiz.pk %}?next={{ request.path }}" style="display:inline-block">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-gradient-primary" title="Approve"><i class="fas fa-check"></i></button>
+                                                    </form>
+                                                    <form method="post" action="{% url 'quizzes:reject_quiz' quiz.pk %}?next={{ request.path }}" style="display:inline-block; margin-left: 4px;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject"><i class="fas fa-times"></i></button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% for deck in pending_decks %}
+                                            <tr>
+                                                <td><a href="{% url 'flashcards:deck_detail' deck.pk %}" class="text-decoration-none">{{ deck.title }}</a></td>
+                                                <td>{{ deck.created_at|date:"M d, Y" }}</td>
+                                                <td>
+                                                    <form method="post" action="{% url 'flashcards:approve_deck' deck.pk %}?next={{ request.path }}" style="display:inline-block">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-gradient-primary" title="Approve"><i class="fas fa-check"></i></button>
+                                                    </form>
+                                                    <form method="post" action="{% url 'flashcards:reject_deck' deck.pk %}?next={{ request.path }}" style="display:inline-block; margin-left: 4px;">
+                                                        {% csrf_token %}
+                                                        <input type="text" name="reason" class="form-control form-control-sm d-inline-block" style="width: 100px; display: inline-block; margin-right: 4px;" placeholder="Reason">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject"><i class="fas fa-times"></i></button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% if not pending_verifications and not pending_quizzes and not pending_decks %}
+                                            <tr>
+                                                <td colspan="3" class="text-center py-4">
+                                                    <i class="fas fa-check-circle" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem;"></i>
+                                                    <p class="text-muted mb-0">No content pending verification.</p>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>

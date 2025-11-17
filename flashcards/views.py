@@ -351,6 +351,40 @@ def approve_deck(request: HttpRequest, pk: int) -> HttpResponse:
     return redirect('flashcards:deck_moderation_list')
 
 
+# Deck rejection view for moderation
+@login_required
+@require_http_methods(["POST"])
+def reject_deck(request: HttpRequest, pk: int) -> HttpResponse:
+    """Reject a single deck (professor/staff only)."""
+    if not (getattr(request.user, 'is_professor', False) or request.user.is_staff):
+        messages.error(request, 'Permission denied.')
+        return redirect('flashcards:deck_list')
+    deck = get_object_or_404(Deck, pk=pk)
+    if deck.verification_status == 'rejected':
+        messages.info(request, 'Deck already rejected.')
+        return redirect('flashcards:deck_moderation_list')
+    reason = request.POST.get('reason', '').strip()
+    deck.verification_status = 'rejected'
+    deck.verification_by = request.user
+    deck.verified_at = timezone.now()
+    deck.save(update_fields=['verification_status', 'verification_by', 'verified_at'])
+    # Notify owner via email
+    owner = deck.owner
+    if getattr(owner, 'email_notifications', False) and getattr(owner, 'email', ''):
+        try:
+            send_mail(
+                subject='Your deck has been rejected',
+                message=f'Your deck "{deck.title}" was rejected by a professor. Reason: {reason if reason else "No reason provided."}',
+                from_email=None,
+                recipient_list=[owner.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+    messages.success(request, f'"{deck.title}" rejected successfully.')
+    return redirect('flashcards:deck_moderation_list')
+
+
 @login_required
 @require_http_methods(["POST"])
 def bulk_verify_decks(request: HttpRequest) -> HttpResponse:

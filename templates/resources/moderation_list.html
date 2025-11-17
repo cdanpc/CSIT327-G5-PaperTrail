@@ -1,6 +1,7 @@
 {% extends 'base_dashboard.html' %}
+{% load static %}
 
-{% block title %}Moderate Resources{% endblock %}
+{% block title %}Pending Verifications{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
 {% endblock %}
@@ -8,8 +9,8 @@
 {% block header %}
 <div class="dashboard-header">
     <div class="dashboard-title-section">
-        <h1 class="dashboard-title">Pending Resources</h1>
-        <p class="dashboard-date">Approve or reject submissions from students</p>
+        <h1 class="dashboard-title">Pending Verifications</h1>
+        <p class="dashboard-date">Approve or reject resources, quizzes, and flashcards from students</p>
     </div>
     <div class="dashboard-actions">
         <a href="{% url 'accounts:professor_dashboard' %}" class="btn btn-outline-secondary">
@@ -20,14 +21,14 @@
 {% endblock %}
 
 {% block content %}
-{% if pending_resources %}
+
 <div class="table-responsive">
     <table class="table table-hover align-middle">
         <thead>
             <tr>
+                <th>Type</th>
                 <th>Title</th>
                 <th>Uploader</th>
-                <th>Type</th>
                 <th>Uploaded</th>
                 <th class="text-end">Actions</th>
             </tr>
@@ -35,9 +36,9 @@
         <tbody>
             {% for r in pending_resources %}
             <tr>
-                <td><a href="{% url 'resources:resource_detail' r.pk %}">{{ r.title }}</a></td>
+                <td><span class="badge bg-primary" style="color: #000;">Resource</span></td>
+                <td><a href="{% url 'resources:resource_detail' r.pk %}" style="color: #000;">{{ r.title }}</a></td>
                 <td>{{ r.uploader.get_display_name }}</td>
-                <td>{{ r.resource_type|title }}</td>
                 <td>{{ r.created_at|date:"M d, Y" }}</td>
                 <td class="text-end">
                     <form method="post" action="{% url 'resources:approve_resource' r.pk %}" style="display:inline-block;">
@@ -51,15 +52,53 @@
                 </td>
             </tr>
             {% endfor %}
+            {% for q in pending_quizzes %}
+            <tr>
+                <td><span class="badge bg-warning" style="color: #000;">Quiz</span></td>
+                <td><a href="{% url 'quizzes:quiz_detail' q.pk %}" style="color: #000;">{{ q.title }}</a></td>
+                <td>{{ q.creator.get_display_name }}</td>
+                <td>{{ q.created_at|date:"M d, Y" }}</td>
+                <td class="text-end">
+                    <form method="post" action="{% url 'quizzes:approve_quiz' q.pk %}" style="display:inline-block;">
+                        {% csrf_token %}
+                        <button class="btn btn-success btn-sm" type="submit">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'quizzes:reject_quiz' q.pk %}" style="display:inline-block;">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm" type="submit">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            {% for d in pending_decks %}
+            <tr>
+                <td><span class="badge bg-purple" style="color: #000;">Flashcards</span></td>
+                <td><a href="{% url 'flashcards:deck_detail' d.pk %}" style="color: #000;">{{ d.title }}</a></td>
+                <td>{{ d.owner.get_display_name }}</td>
+                <td>{{ d.created_at|date:"M d, Y" }}</td>
+                <td class="text-end">
+                    <form method="post" action="{% url 'flashcards:approve_deck' d.pk %}" style="display:inline-block;">
+                        {% csrf_token %}
+                        <button class="btn btn-success btn-sm" type="submit">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'flashcards:reject_deck' d.pk %}" style="display:inline-block;">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm" type="submit">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not pending_resources and not pending_quizzes and not pending_decks %}
+            <tr>
+                <td colspan="5" class="text-center py-5">
+                    <h5 class="text-muted">No content pending verification</h5>
+                    <p class="text-muted">All caught up!</p>
+                </td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>
-{% else %}
-<div class="text-center py-5">
-    <h5 class="text-muted">No resources pending verification</h5>
-    <p class="text-muted">All caught up!</p>
-</div>
-{% endif %}
 {% endblock %}
 
 
