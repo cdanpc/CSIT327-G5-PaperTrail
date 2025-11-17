@@ -56,7 +56,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Serve static files via WhiteNoise on Render/production
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -93,30 +92,20 @@ SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')
 SUPABASE_BUCKET = config('SUPABASE_BUCKET', default='papertrail-storage')
 
 # Use SQLite for local development, PostgreSQL for production
-USE_POSTGRES = config('USE_POSTGRES', default=False, cast=bool)
 
-if USE_POSTGRES:
-    # PostgreSQL configuration (for production/Supabase)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': config('DB_NAME', default='postgres'),
-            'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
-            # Optional: pool mode for Supabase pooler
-            # 'OPTIONS': {'pool_mode': config('POOL_MODE', default='transaction')}
-        }
+# Switch to Supabase/PostgreSQL only
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': config('DB_NAME', default='postgres'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
+        # Optional: pool mode for Supabase pooler
+        # 'OPTIONS': {'pool_mode': config('POOL_MODE', default='transaction')}
     }
-else:
-    # SQLite configuration (for local development)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 
 # If DATABASE_URL is present (Render), prefer it

@@ -63,6 +63,11 @@
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-gradient-primary" onclick="return confirm('Verify this deck?')"><i class="fas fa-check"></i></button>
               </form>
+              <form method="post" action="{% url 'flashcards:reject_deck' deck.pk %}" style="display:inline-block; margin-left: 4px;">
+                {% csrf_token %}
+                <input type="text" name="reason" class="form-control form-control-sm d-inline-block" style="width: 100px; display: inline-block; margin-right: 4px;" placeholder="Reason">
+                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Reject this deck?')" title="Reject"><i class="fas fa-times"></i></button>
+              </form>
             </td>
           </tr>
           {% endfor %}

@@ -11,7 +11,7 @@ from .forms import (
     ProfileUpdateForm,
     CustomPasswordChangeForm
 )
-from .models import User
+from .models import User, UserStats, UserPreferences
 from resources.models import Resource, Bookmark, Tag, Rating, Comment
 from flashcards.models import Deck, Card
 from flashcards import services as flashcard_services
@@ -477,12 +477,15 @@ def add_study_reminder(request):
             try:
                 # Parse date (YYYY-MM-DD) into datetime midnight
                 from datetime import datetime
-                parsed = datetime.strptime(due_date_raw, '%Y-%m-%d')
-                due_dt = timezone.make_aware(parsed)
-            except ValueError:
+                due_dt = datetime.strptime(due_date_raw, "%Y-%m-%d")
+            except Exception:
                 due_dt = None
-        if title:
+        
+        if title and due_dt:
             StudyReminder.objects.create(user=request.user, title=title, due_date=due_dt)
+            messages.success(request, 'Study reminder added successfully!')
+        else:
+            messages.error(request, 'Please provide a valid title and due date.')
     return redirect('accounts:student_dashboard')
 
 
@@ -510,26 +513,68 @@ def professor_dashboard(request):
     if not request.user.is_professor:
         messages.error(request, 'Access denied. Professor privileges required.')
         return redirect(request.user.get_dashboard_url())
-    
+
     # Get resources awaiting verification
     pending_verifications = Resource.objects.filter(
         verification_status='pending'
     ).order_by('-created_at')[:10]
-    
+
+    # Get quizzes awaiting verification
+    from quizzes.models import Quiz
+    pending_quizzes = Quiz.objects.filter(
+        verification_status='pending'
+    ).order_by('-created_at')[:10]
+
+    # Get flashcard decks awaiting verification
+    from flashcards.models import Deck
+    pending_decks = Deck.objects.filter(
+        verification_status='pending', visibility='public'
+    ).order_by('-created_at')[:10]
+
     # Get professor's uploaded resources
     professor_resources = Resource.objects.filter(uploader=request.user).order_by('-created_at')[:5]
-    
-    # Get recently verified resources by this professor
-    recently_verified = Resource.objects.filter(
+
+    # Calculate total pending verifications (resources + quizzes + decks)
+    total_pending = pending_verifications.count() + pending_quizzes.count() + pending_decks.count()
+
+    # Get recently verified resources, quizzes, and decks by this professor
+    from quizzes.models import Quiz
+    from flashcards.models import Deck
+    recently_verified_resources = Resource.objects.filter(
         verification_by=request.user,
         verification_status='verified'
-    ).order_by('-verified_at')[:5]
+    )
+    recently_verified_quizzes = Quiz.objects.filter(
+        verification_by=request.user,
+        verification_status='verified'
+    )
+    recently_verified_decks = Deck.objects.filter(
+        verification_by=request.user,
+        verification_status='verified'
+    )
     
+    # Calculate total recently verified count
+    total_recently_verified = recently_verified_resources.count() + recently_verified_quizzes.count() + recently_verified_decks.count()
+    
+    # Combine and order by verified_at descending, limit to 5 most recent
+    from itertools import chain
+    combined_verified = list(chain(
+        recently_verified_resources,
+        recently_verified_quizzes,
+        recently_verified_decks
+    ))
+    combined_verified.sort(key=lambda obj: getattr(obj, 'verified_at', None) or getattr(obj, 'created_at', None), reverse=True)
+    recently_verified = combined_verified[:5]
+
     context = {
         'user': request.user,
         'pending_verifications': pending_verifications,
+        'pending_quizzes': pending_quizzes,
+        'pending_decks': pending_decks,
         'professor_resources': professor_resources,
         'recently_verified': recently_verified,
+        'total_pending': total_pending,
+        'total_recently_verified': total_recently_verified,
     }
     return render(request, 'accounts/professor_dashboard.html', context)
 
@@ -612,15 +657,49 @@ def profile(request):
     # Check for profile completion unlocks
     profile_complete = request.user.check_profile_completion()
     completion_percentage = request.user.get_profile_completion_percentage()
+
+    # Get or create UserStats and UserPreferences
+    stats, _ = UserStats.objects.get_or_create(user=request.user)
+    preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
+
+    # Impact Card Data
+    impact_data = {
+        'resources_uploaded': stats.resources_uploaded,
+        'quizzes_created': stats.quizzes_created,
+        'flashcards_created': stats.flashcards_created,
+        'students_helped': stats.students_helped,
+    }
+
+    # Learning Summary Data
+    learning_summary = {
+        'study_progress': stats.total_study_time,
+        'active_streak': stats.active_streak,
+        'recent_activities': [],  # To be filled with recent actions
+        'quizzes_completed': stats.quizzes_completed,
+    }
+
+    # Achievements & Badges
+    achievements = user_achievements
+
+    # Preferences
+    customization = {
+        'theme': preferences.theme,
+        'font_style': preferences.font_style,
+        'layout': preferences.layout,
+        'dark_mode': preferences.dark_mode,
+    }
     
     context = {
         'form': form,
         'user': request.user,
         'user_resources': user_resources,
         'user_bookmarks': user_bookmarks,
-        'user_achievements': user_achievements,
+        'user_achievements': achievements,
         'profile_complete': profile_complete,
         'completion_percentage': completion_percentage,
+        'impact_data': impact_data,
+        'learning_summary': learning_summary,
+        'customization': customization,
     }
     return render(request, 'accounts/profile.html', context)
 
@@ -853,6 +932,9 @@ def analytics_view(request):
     # Engagement metrics
     total_downloads = sum(r.downloads for r in user_resources)
     avg_views_per_resource = total_views / total_resources if total_resources > 0 else 0
+
+    # Get or create UserStats
+    stats, _ = UserStats.objects.get_or_create(user=request.user)
     
     context = {
         'total_resources': total_resources,
@@ -864,6 +946,7 @@ def analytics_view(request):
         'recent_uploads': recent_uploads,
         'recent_bookmarks': recent_bookmarks,
         'top_resources': top_resources,
+        'stats': stats,
     }
     
     return render(request, 'accounts/analytics.html', context)
@@ -881,11 +964,19 @@ def customization_view(request):
         messages.warning(request, 'Complete your profile to unlock Profile Customization!')
         return redirect('accounts:profile')
     
+    preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
     if request.method == 'POST':
-        # Handle theme customization (to be implemented with user preferences model)
-        messages.success(request, 'Customization saved! (Feature coming soon)')
+        theme = request.POST.get('theme', preferences.theme)
+        font_style = request.POST.get('font_style', preferences.font_style)
+        layout = request.POST.get('layout', preferences.layout)
+        dark_mode = request.POST.get('dark_mode', 'off') == 'on'
+        preferences.theme = theme
+        preferences.font_style = font_style
+        preferences.layout = layout
+        preferences.dark_mode = dark_mode
+        preferences.save()
+        messages.success(request, 'Customization saved!')
         return redirect('accounts:customization')
-    
     context = {
         'themes': [
             {'name': 'Default', 'primary': '#667eea', 'secondary': '#764ba2'},
@@ -893,9 +984,9 @@ def customization_view(request):
             {'name': 'Sunset', 'primary': '#fa709a', 'secondary': '#fee140'},
             {'name': 'Forest', 'primary': '#43e97b', 'secondary': '#38f9d7'},
             {'name': 'Royal Purple', 'primary': '#8b5cf6', 'secondary': '#7c3aed'},
-        ]
+        ],
+        'preferences': preferences,
     }
-    
     return render(request, 'accounts/customization.html', context)
 
 

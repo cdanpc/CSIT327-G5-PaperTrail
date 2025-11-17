@@ -267,12 +267,24 @@ def resource_list_api(request):
 
 @login_required
 def moderation_list(request):
-    """List pending resources for professors to review"""
+    """List pending resources, quizzes, and flashcards for professors to review"""
     if not getattr(request.user, 'is_professor', False):
         messages.error(request, 'You do not have permission to access moderation.')
         return redirect('resources:resource_list')
-    pending = Resource.objects.filter(verification_status='pending').order_by('-created_at')
-    return render(request, 'resources/moderation_list.html', { 'pending_resources': pending })
+    
+    # Get all pending items for moderation
+    from quizzes.models import Quiz
+    from flashcards.models import Deck
+    pending_resources = Resource.objects.filter(verification_status='pending').order_by('-created_at')
+    pending_quizzes = Quiz.objects.filter(verification_status='pending').order_by('-created_at')
+    pending_decks = Deck.objects.filter(verification_status='pending', visibility='public').order_by('-created_at')
+    
+    context = {
+        'pending_resources': pending_resources,
+        'pending_quizzes': pending_quizzes,
+        'pending_decks': pending_decks,
+    }
+    return render(request, 'resources/moderation_list.html', context)
 
 
 @login_required
