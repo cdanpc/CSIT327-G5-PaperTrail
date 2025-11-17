@@ -33,7 +33,8 @@
 .container-fluid {
     max-width: 100%;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    /* Minimal horizontal padding to eliminate excessive side whitespace */
+    padding: 0 0.5rem;
 }
 
 /* ==========================================
@@ -99,7 +100,7 @@
     }
     
     .container-fluid {
-        padding: 0 2rem;
+        padding: 0 0.75rem;
     }
     
     .dashboard-title,
@@ -119,7 +120,7 @@
     }
     
     .container-fluid {
-        padding: 0 1.5rem;
+        padding: 0 0.75rem;
     }
     
     .dashboard-title,
@@ -145,6 +146,6 @@
     }
     
     .container-fluid {
-        padding: 0 1rem;
+        padding: 0 0.5rem;
     }
 }

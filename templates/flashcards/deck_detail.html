@@ -1,92 +1,220 @@
 {% extends 'base_dashboard.html' %}
-{% load static %}
-
+{% load static humanize %}
 {% block title %}Manage Deck - {{ deck.title }}{% endblock %}
-
+{% block page_title %}Flashcards{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
-{% endblock %}
-
-{% block header %}
-<div class="dashboard-title-section">
-    <h1 class="dashboard-title">{{ deck.title }}</h1>
-    <p class="dashboard-date">{{ deck.cards_count }} cards</p>
-</div>
-<div class="dashboard-actions">
-    <a href="{% url 'flashcards:study' deck.pk %}" class="btn btn-gradient-primary">
-        <i class="fas fa-play"></i> Study Deck
-    </a>
-    <a href="{% url 'quizzes:generate_from_deck' deck.pk %}" class="btn btn-outline-primary-soft">
-        <i class="fas fa-clipboard-list"></i> Generate Quiz
-    </a>
-    <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="btn btn-outline-primary-soft">
-        <i class="fas fa-pencil"></i> Edit Deck
-    </a>
-    <a href="{% url 'flashcards:deck_delete' deck.pk %}" class="btn btn-outline-danger">
-        <i class="fas fa-trash"></i> Delete Deck
-    </a>
-    <a href="{% url 'flashcards:deck_list' %}" class="btn btn-outline-primary-soft">
-        <i class="fas fa-arrow-left"></i> Back to Decks
-    </a>
-</div>
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
 {% endblock %}
 
 {% block content %}
-<div class="row g-3">
-    <div class="col-lg-5">
-        <div class="card dashboard-card h-100">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-plus"></i> Add Card</h5>
-                <form method="post" class="mt-3">
+<div class="fc-container fc-tight-top">
+    <div class="mb-2 bookmarks-header-row"><a href="{% url 'flashcards:deck_list' %}" class="btn btn-outline-primary-soft btn-pill"><i class="fas fa-arrow-left"></i> Back</a></div>
+    <div class="fc-detail-header">
+            <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h1 class="m-0">{{ deck.title }}</h1>
+                {% if deck.visibility == 'public' %}
+                    {% if deck.verification_status == 'verified' %}
+                        <span class="badge badge-verified badge-sm"><i class="fas fa-check-circle"></i> Verified</span>
+                    {% else %}
+                        <span class="badge badge-pending badge-sm"><i class="fas fa-clock"></i> Pending</span>
+                    {% endif %}
+                {% else %}
+                    <span class="badge bg-secondary badge-sm"><i class="fas fa-lock"></i> Private</span>
+                {% endif %}
+            </div>
+            <div class="fc-detail-actions">
+                {% if deck.cards_count > 0 %}
+                    <a href="{% url 'flashcards:study' deck.pk %}" class="fc-btn fc-btn-primary" title="Study deck"><i class="fas fa-play"></i><span> Study</span></a>
+                {% else %}
+                    <button type="button" class="fc-btn fc-btn-primary" id="emptyDeckStudyBtn" title="Study deck"><i class="fas fa-play"></i><span> Study</span></button>
+                {% endif %}
+                <form method="post" action="{% url 'flashcards:bookmark_toggle' deck.pk %}" style="display:inline-block;">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        {{ card_form.front_text.label_tag }}
-                        {{ card_form.front_text }}
-                    </div>
-                    <div class="mb-3">
-                        {{ card_form.back_text.label_tag }}
-                        {{ card_form.back_text }}
-                    </div>
-                    <button type="submit" class="btn btn-gradient-primary">
-                        <i class="fas fa-save"></i> Add Card
-                    </button>
+                    <button type="submit" class="fc-icon-btn-round" title="Bookmark Deck">{% if deck.is_bookmarked %}<i class="fas fa-bookmark"></i>{% else %}<i class="far fa-bookmark"></i>{% endif %}</button>
                 </form>
+                <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="fc-icon-btn-round" title="Edit Deck"><i class="fas fa-edit"></i></a>
+                <button type="button" class="fc-icon-btn-round" title="Delete Deck" data-bs-toggle="modal" data-bs-target="#deckDeleteModal"><i class="fas fa-trash"></i></button>
             </div>
         </div>
+        <div class="fc-detail-meta">Category: {{ deck.get_category_display }} | {{ deck.cards_count }} card{% if deck.cards_count != 1 %}s{% endif %} | {% if deck.last_studied_at %}Last studied {{ deck.last_studied_at|timesince }} ago{% else %}Not studied yet{% endif %}</div>
     </div>
-    <div class="col-lg-7">
-        <div class="card dashboard-card h-100">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-list"></i> Cards</h5>
-                {% if cards %}
-                    <div class="list-group list-group-flush mt-3">
-                        {% for card in cards %}
-                        <div class="list-group-item">
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <small class="text-muted">Front</small>
-                                    <div class="prewrap">{{ card.front_text }}</div>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="fc-section">
+                <div class="fc-section-header">
+                    <h2>Add New Card</h2>
+                </div>
+                <form method="post" class="fc-card-form">
+                    {% csrf_token %}
+                    <div class="mb-2">{{ card_form.front_text.label_tag }}{{ card_form.front_text }}</div>
+                    <div class="mb-2">{{ card_form.back_text.label_tag }}{{ card_form.back_text }}</div>
+                    <button type="submit" class="btn-upload-pill btn-pill mt-1"><i class="fas fa-plus"></i><span> Add New Card</span></button>
+                </form>
+            </div>
+            {% if deck.visibility == 'public' and deck.verification_status == 'verified' and user != deck.owner %}
+            <div class="fc-section mt-4">
+                <div class="fc-section-header"><h2>Rate & Comment</h2></div>
+                <form method="post" action="{% url 'flashcards:rate_deck' deck.pk %}" class="mb-3 d-flex align-items-end gap-2">
+                    {% csrf_token %}
+                    <div style="flex:1;">
+                        <label for="ratingStars" class="form-label mb-1">Rating</label>
+                        <select id="ratingStars" name="stars" class="form-select" required>
+                            <option value="" disabled selected>Select rating</option>
+                            {% for i in "12345" %}
+                              <option value="{{ i }}" {% if user_rating and user_rating.stars|stringformat:"s" == i %}selected{% endif %}>{{ i }} star{% if i != '1' %}s{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                        {% if user_rating %}<small class="text-muted">Your rating: {{ user_rating.stars }} star{{ user_rating.stars|pluralize }}</small>{% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-gradient-primary btn-sm">{% if user_rating %}Update{% else %}Submit{% endif %}</button>
+                </form>
+                <form method="post" action="{% url 'flashcards:add_deck_comment' deck.pk %}" class="mb-3">
+                    {% csrf_token %}
+                    <textarea name="text" class="form-control" rows="3" placeholder="Share your thoughts..." required></textarea>
+                    <div class="mt-2"><button type="submit" class="btn btn-outline-primary-soft btn-sm"><i class="fas fa-paper-plane"></i> Post Comment</button></div>
+                </form>
+                <div>
+                    <h6 class="page-meta mb-2">Comments</h6>
+                    {% if comments %}
+                        {% for c in comments %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="d-flex gap-3 flex-grow-1">
+                                    <div class="avatar-circle avatar-40"><span class="text-white small fw-bold">{{ c.user.get_display_name|first|upper }}</span></div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1"><strong class="title-strong">{{ c.user.get_display_name }}</strong>{% if c.user.is_professor %}<span class="badge badge-professor badge-sm">Professor</span>{% endif %}</div>
+                                        <small class="text-muted d-block mb-2">{{ c.created_at|date:"M d, Y \a\t g:i A" }}</small>
+                                        <p class="mb-0 para-muted lh-16">{{ c.text|linebreaks }}</p>
+                                    </div>
                                 </div>
-                                <div class="col-sm-6">
-                                    <small class="text-muted">Back</small>
-                                    <div class="prewrap">{{ card.back_text }}</div>
-                                </div>
-                            </div>
-                            <div class="mt-2 d-flex gap-2">
-                                <a href="{% url 'flashcards:card_edit' deck.pk card.pk %}" class="btn btn-sm btn-outline-primary-soft"><i class="fas fa-pencil"></i> Edit</a>
-                                <a href="{% url 'flashcards:card_delete' deck.pk card.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i> Delete</a>
+                                {% if c.user == user %}
+                                <form method="post" action="{% url 'flashcards:delete_deck_comment' deck.pk c.pk %}" onsubmit="return confirm('Delete this comment?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                </form>
+                                {% endif %}
                             </div>
                         </div>
                         {% endfor %}
-                    </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No comments yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-md-7">
+            <div class="fc-section">
+                <div class="fc-section-header">
+                    <h2>Cards</h2>
+                    <div class="fc-section-sub">Total: {{ deck.cards_count }}</div>
+                </div>
+                {% if cards %}
+                    <ul class="fc-manage-cards">
+                        {% for card in cards %}
+                        <li class="fc-manage-item">
+                            <div class="fc-manage-text">
+                                <strong>Front:</strong> {{ card.front_text|truncatechars:160 }}<br>
+                                <strong>Back:</strong> {{ card.back_text|truncatechars:160 }}
+                            </div>
+                            <div class="fc-manage-actions">
+                                <a href="{% url 'flashcards:card_edit' deck.pk card.pk %}" class="fc-manage-action-btn" title="Edit Card"><i class="fas fa-edit"></i></a>
+                                <button type="button" class="fc-manage-action-btn" title="Delete Card" data-bs-toggle="modal" data-bs-target="#deleteCardModal-{{ card.pk }}"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-note-sticky empty-icon" style="font-size: 3rem;"></i>
-                        <p class="text-muted mb-0">No cards yet. Add your first card using the form.</p>
-                    </div>
+                    <p class="text-muted mb-0">No cards yet.</p>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Toast for empty deck -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="emptyDeckToast" class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-exclamation-triangle me-2"></i>This deck has no cards yet. Add cards before studying.
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emptyDeckBtn = document.getElementById('emptyDeckStudyBtn');
+    if (emptyDeckBtn) {
+        emptyDeckBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const toastEl = document.getElementById('emptyDeckToast');
+            const toast = new bootstrap.Toast(toastEl, {
+                autohide: true,
+                delay: 4000
+            });
+            toast.show();
+        });
+    }
+});
+</script>
+<!-- Deck Delete Modal -->
+<div class="modal fade" id="deckDeleteModal" tabindex="-1" aria-labelledby="deckDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deckDeleteModalLabel"><i class="fas fa-trash"></i> Delete Deck</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">This action cannot be undone. All cards in <strong>{{ deck.title }}</strong> will be permanently removed.</p>
+                <ul class="list-unstyled small text-muted mb-0">
+                    <li><strong>Cards:</strong> {{ deck.cards_count }}</li>
+                    <li><strong>Category:</strong> {{ deck.get_category_display }}</li>
+                    <li><strong>Visibility:</strong> {% if deck.visibility == 'private' %}Private{% else %}Public{% endif %}</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'flashcards:deck_delete' deck.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete Deck</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card Delete Modals -->
+{% for card in cards %}
+<div class="modal fade" id="deleteCardModal-{{ card.pk }}" tabindex="-1" aria-labelledby="deleteCardModalLabel-{{ card.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCardModalLabel-{{ card.pk }}"><i class="fas fa-trash"></i> Delete Card</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">Are you sure you want to delete this card from <strong>{{ deck.title }}</strong>? This cannot be undone.</p>
+                <div class="small text-muted pre-wrap">
+                    <strong>Front:</strong> {{ card.front_text|truncatechars:140 }}<br>
+                    <strong>Back:</strong> {{ card.back_text|truncatechars:140 }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'flashcards:card_delete' deck.pk card.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete Card</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}

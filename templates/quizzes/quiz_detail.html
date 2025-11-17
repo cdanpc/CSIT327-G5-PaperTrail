@@ -1,7 +1,7 @@
 {% extends 'base_dashboard.html' %}
 {% load static %}
 
-{% block title %}{{ quiz.title }}{% endblock %}
+{% block title %}Quizzes{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/quizzes.css' %}?v=1.0">
@@ -10,8 +10,8 @@
 {% block header %}
 <div class="dashboard-header">
     <div class="dashboard-title-section">
-        <h1 class="dashboard-title">{{ quiz.title }}</h1>
-        <p class="dashboard-date">Created by {{ quiz.creator.get_display_name }}</p>
+        <h1 class="dashboard-title">Quizzes</h1>
+        <p class="dashboard-date">{{ quiz.title }} • Created by {{ quiz.creator.get_display_name }}</p>
     </div>
     <div class="dashboard-actions">
         <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary-soft">
@@ -35,7 +35,7 @@
                 {% if quiz.description %}
                 <p class="mb-3">{{ quiz.description }}</p>
                 {% endif %}
-                <div class="d-flex gap-4 mb-3">
+                <div class="d-flex gap-4 mb-3 flex-wrap">
                     <div>
                         <i class="fas fa-question-circle text-primary"></i>
                         <strong>{{ quiz.total_questions }}</strong> questions
@@ -47,6 +47,15 @@
                     <div>
                         <i class="fas fa-check-circle text-success"></i>
                         <span class="badge bg-success">Verified</span>
+                    </div>
+                    <div>
+                        {% if not quiz.is_public %}
+                            <i class="fas fa-lock"></i>
+                            <span class="badge bg-secondary">Private</span>
+                        {% else %}
+                            <i class="fas fa-globe"></i>
+                            <span class="badge bg-success">Public</span>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -71,9 +80,30 @@
                 <h5 class="card-title mb-0"><i class="fas fa-list"></i> Quick Actions</h5>
             </div>
             <div class="card-body">
+                <form method="post" action="{% url 'quizzes:toggle_quiz_bookmark' quiz.pk %}" class="d-grid gap-2 mb-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="btn w-100 btn-outline-primary-soft">
+                        <i class="{% if is_bookmarked %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                        {% if is_bookmarked %}Remove Bookmark{% else %}Add Bookmark{% endif %}
+                    </button>
+                </form>
                 <a href="{% url 'quizzes:quiz_history' %}" class="btn w-100 mb-2 btn-outline-primary-soft">
                     <i class="fas fa-history"></i> View My Results
                 </a>
+                {% if quiz.creator == user or user.is_professor %}
+                <div class="d-flex gap-2">
+                    <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn w-100 btn-outline-primary-soft">
+                        <i class="fas fa-pen"></i> Edit Quiz
+                    </a>
+                    <form method="post" action="{% url 'quizzes:quiz_delete' quiz.pk %}" onsubmit="return confirm('Delete this quiz? This action cannot be undone.');" class="w-100">
+                        {% csrf_token %}
+                        <button type="submit" class="btn w-100 btn-outline-primary-soft text-danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

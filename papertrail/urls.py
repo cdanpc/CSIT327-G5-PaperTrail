@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.conf.urls.static import static
@@ -38,6 +39,12 @@ urlpatterns = [
     path('quizzes/', include('quizzes.urls')),
     path('flashcards/', include('flashcards.urls')),
     path('bookmarks/', include('bookmarks.urls')),
+    # Prototype draft dashboard (frontend-only)
+    path(
+        'prototypes/dashboard/',
+        TemplateView.as_view(template_name='prototypes/student_dashboard_draft.html'),
+        name='prototype-dashboard'
+    ),
     path('', home_view, name='home'),  # Custom home view with authentication check
 ]
 

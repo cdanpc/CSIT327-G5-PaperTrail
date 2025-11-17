@@ -1,0 +1,66 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}Flashcards{% endblock %}
+{% block page_title %}Flashcards{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+{% endblock %}
+{% block content %}
+<div class="fc-container fc-create-center fc-tight-top">
+  <div class="mb-3 align-self-start bookmarks-header-row"><a href="{% url 'flashcards:deck_list' %}" class="btn btn-outline-primary-soft btn-pill"><i class="fas fa-arrow-left"></i> Back</a></div>
+  <div class="fc-create-panel">
+    <h1 class="fc-title mb-1">Create New Deck</h1>
+    <p class="fc-subtitle mb-3">Build a new set of flashcards.</p>
+  <form id="deckForm" method="post" class="fc-form">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+        {{ form.title }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        {{ form.description }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Category</label>
+        {{ form.category }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Tags</label>
+        {{ form.tags }}
+      </div>
+      <div class="mb-4">
+        <h6 style="font-weight:700; color:#1a1a1a; margin-bottom:1rem; padding-bottom:.5rem; border-bottom:2px solid rgba(102,126,234,.1);">
+          <i class="fas fa-lock" style="color:#667eea;"></i> Privacy Settings
+        </h6>
+        <div class="soft-panel">
+          <!-- Custom toggle replicating resources privacy design -->
+          <div class="form-check form-switch" style="display:flex; align-items:center; gap:.5rem;">
+            <input class="form-check-input" type="checkbox" id="deckVisibilityToggle" checked>
+            <label class="form-check-label" for="deckVisibilityToggle" style="margin-left:.25rem; font-weight:600;">Make this deck public (visible to all students)</label>
+          </div>
+          <!-- Hidden input that actually submits visibility value -->
+          <input type="hidden" name="visibility" id="deckVisibilityValue" value="public">
+          <div class="alert alert-info alert-soft-primary mt-3 mb-0">
+            <i class="fas fa-info-circle"></i>
+            <strong>Public:</strong> Appears in "All Decks" after verification (professor uploads verify immediately). <strong>Private:</strong> Only visible to you under "My Decks".
+          </div>
+        </div>
+      </div>
+      <div class="d-flex mt-2">
+        <button type="submit" class="btn-upload-pill btn-pill"><i class="fas fa-save"></i><span> Create Deck</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+// Sync toggle to hidden visibility value
+document.addEventListener('DOMContentLoaded', function(){
+  const toggle = document.getElementById('deckVisibilityToggle');
+  const hidden = document.getElementById('deckVisibilityValue');
+  function sync(){ hidden.value = toggle.checked ? 'public' : 'private'; }
+  toggle.addEventListener('change', sync); sync();
+});
+</script>
+{% endblock %}

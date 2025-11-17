@@ -5,18 +5,46 @@ from django.utils import timezone
 from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .models import Quiz, Question, Option, QuizAttempt, QuizAttemptAnswer
-from flashcards.models import Deck, Card
+from django.db.models import Q
+from .models import Quiz, Question, Option, QuizAttempt, QuizAttemptAnswer, QuizBookmark
 from .forms import QuizForm, QuestionForm, QuizAttemptForm
+from django.core.mail import send_mail
 import json
 
 
 @login_required
 def quiz_list(request):
-    """List all verified quizzes"""
-    quizzes = Quiz.objects.filter(verification_status='verified').order_by('-created_at')
+    """List quizzes with All/My scopes and optional search.
+
+    - All: verified AND public quizzes (plus pending for professors)
+    - My: quizzes created by current user (any verification, any visibility)
+    - Search: filter by title or description substring (case-insensitive)
+    """
+    scope = request.GET.get('scope', 'all')
+    q = request.GET.get('q', '').strip()
+    if scope == 'mine':
+        quizzes = Quiz.objects.filter(creator=request.user).order_by('-created_at')
+    else:
+        if getattr(request.user, 'is_professor', False):
+            quizzes = Quiz.objects.filter(is_public=True).filter(
+                Q(verification_status='verified') | Q(verification_status='pending')
+            ).order_by('-created_at')
+        else:
+            quizzes = Quiz.objects.filter(verification_status='verified', is_public=True).order_by('-created_at')
+    if q:
+        quizzes = quizzes.filter(Q(title__icontains=q) | Q(description__icontains=q))
+    # Bookmarks for current user
+    bookmarked_ids = set()
+    if request.user.is_authenticated:
+        bookmarked_ids = set(
+            QuizBookmark.objects.filter(user=request.user, quiz__in=quizzes).values_list('quiz_id', flat=True)
+        )
+
     context = {
         'quizzes': quizzes,
+        'scope': scope,
+        'query': q,
+        'bookmarked_ids': bookmarked_ids,
     }
     return render(request, 'quizzes/quiz_list.html', context)
 
@@ -30,12 +58,22 @@ def quiz_create(request):
         if quiz_form.is_valid():
             quiz = quiz_form.save(commit=False)
             quiz.creator = request.user
-            
-            # Auto-approve quizzes from professors
+            # Verification workflow
             if request.user.is_professor:
+                # Professors: auto-verify regardless of visibility
                 quiz.verification_status = 'verified'
                 quiz.verification_by = request.user
                 quiz.verified_at = timezone.now()
+            else:
+                # Students: public -> pending, private -> verified
+                if quiz.is_public:
+                    quiz.verification_status = 'pending'
+                    quiz.verification_by = None
+                    quiz.verified_at = None
+                else:
+                    quiz.verification_status = 'verified'
+                    quiz.verification_by = request.user
+                    quiz.verified_at = timezone.now()
             
             quiz.save()
             
@@ -68,11 +106,6 @@ def quiz_create(request):
                                     order=opt_idx
                                 )
                 
-                if request.user.is_professor:
-                    messages.success(request, 'Quiz created and published successfully!')
-                else:
-                    messages.success(request, 'Quiz created successfully! It is pending verification.')
-                
                 return redirect('quizzes:quiz_detail', pk=quiz.pk)
             except json.JSONDecodeError:
                 messages.error(request, 'Error processing questions. Please try again.')
@@ -88,19 +121,78 @@ def quiz_create(request):
 
 
 @login_required
+def quiz_edit(request, pk):
+    """Edit an existing quiz with visibility/verification transitions"""
+    quiz = get_object_or_404(Quiz, pk=pk)
+    if quiz.creator != request.user:
+        messages.error(request, 'You can only edit your own quizzes.')
+        return redirect('quizzes:quiz_detail', pk=pk)
+    if request.method == 'POST':
+        quiz_form = QuizForm(request.POST, instance=quiz)
+        if quiz_form.is_valid():
+            original_public = quiz.is_public
+            quiz = quiz_form.save(commit=False)
+            new_public = quiz.is_public
+            # Professor editing
+            if getattr(request.user, 'is_professor', False):
+                if new_public:
+                    quiz.verification_status = 'verified'
+                    quiz.verification_by = request.user
+                    quiz.verified_at = timezone.now()
+                else:
+                    # Private quizzes auto-verified
+                    quiz.verification_status = 'verified'
+                    quiz.verification_by = request.user
+                    quiz.verified_at = timezone.now()
+            else:
+                # Student editing transitions
+                if (not original_public) and new_public:
+                    quiz.verification_status = 'pending'
+                    quiz.verification_by = None
+                    quiz.verified_at = None
+                elif original_public and (not new_public):
+                    # Moving to private -> auto verify if not already
+                    if quiz.verification_status != 'verified':
+                        quiz.verification_status = 'verified'
+                        quiz.verification_by = request.user
+                        quiz.verified_at = timezone.now()
+            quiz.save()
+            return redirect('quizzes:quiz_detail', pk=quiz.pk)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        quiz_form = QuizForm(instance=quiz)
+    return render(request, 'quizzes/quiz_edit.html', {
+        'form': quiz_form,
+        'quiz': quiz,
+    })
+
+
+@login_required
 def quiz_detail(request, pk):
     """View quiz details"""
     quiz = get_object_or_404(Quiz, pk=pk)
+    # Privacy: Only owner can view private quizzes
+    if not quiz.is_public and quiz.creator != request.user:
+        return redirect('quizzes:quiz_list')
+    # Pending public quizzes: only creator or professors can view until verified
+    if quiz.is_public and quiz.verification_status != 'verified' and quiz.creator != request.user and not getattr(request.user, 'is_professor', False):
+        return redirect('quizzes:quiz_list')
     
     # Check if user has already attempted this quiz
     user_attempts = QuizAttempt.objects.filter(quiz=quiz, student=request.user)
     has_attempted = user_attempts.exists()
     best_attempt = user_attempts.order_by('-score').first() if has_attempted else None
     
+    is_bookmarked = False
+    if request.user.is_authenticated:
+        is_bookmarked = QuizBookmark.objects.filter(user=request.user, quiz=quiz).exists()
+
     context = {
         'quiz': quiz,
         'has_attempted': has_attempted,
         'best_attempt': best_attempt,
+        'is_bookmarked': is_bookmarked,
     }
     return render(request, 'quizzes/quiz_detail.html', context)
 
@@ -109,10 +201,12 @@ def quiz_detail(request, pk):
 def quiz_attempt(request, pk):
     """Start or continue a quiz attempt"""
     quiz = get_object_or_404(Quiz, pk=pk)
-    
-    # Only verified quizzes can be attempted
-    if quiz.verification_status != 'verified':
-        messages.error(request, 'This quiz is not available yet.')
+    # Privacy: Only owner can attempt private quizzes
+    if not quiz.is_public and quiz.creator != request.user:
+        return redirect('quizzes:quiz_list')
+
+    # Only verified quizzes can be attempted by others; creators/professors may attempt pending
+    if quiz.verification_status != 'verified' and not (quiz.creator == request.user or getattr(request.user, 'is_professor', False)):
         return redirect('quizzes:quiz_list')
     
     # Get or create an attempt
@@ -267,42 +361,6 @@ def quiz_moderation_list(request):
 
 
 @login_required
-def generate_quiz_from_deck(request, deck_pk):
-    """Generate a quiz automatically from a flashcard deck.
-
-    Each card becomes a fill-in-the-blank question where the front side is the question
-    and the back side is the correct answer. Minimal UI: one-click generation.
-    """
-    deck = get_object_or_404(Deck, pk=deck_pk, owner=request.user)
-    cards = deck.cards.all()
-    if not cards.exists():
-        messages.error(request, 'Deck has no cards; add cards before generating a quiz.')
-        return redirect('flashcards:deck_detail', pk=deck.pk)
-
-    # Create quiz
-    quiz = Quiz.objects.create(
-        title=f"Deck: {deck.title}",
-        description=f"Auto-generated from deck '{deck.title}'.",
-        creator=request.user,
-        verification_status='verified' if getattr(request.user, 'is_professor', False) else 'pending',
-        verification_by=request.user if getattr(request.user, 'is_professor', False) else None,
-        verified_at=timezone.now() if getattr(request.user, 'is_professor', False) else None,
-    )
-
-    # Bulk create questions
-    question_objs = []
-    for order, card in enumerate(cards):
-        question_objs.append(Question(
-            quiz=quiz,
-            question_text=card.front_text[:500],  # enforce reasonable length
-            question_type='fill_in_blank',
-            correct_answer=card.back_text[:500],
-            order=order,
-        ))
-    Question.objects.bulk_create(question_objs)
-
-    messages.success(request, f"Quiz '{quiz.title}' generated with {len(question_objs)} questions.")
-    return redirect('quizzes:quiz_detail', pk=quiz.pk)
 
 
 @login_required
@@ -318,6 +376,19 @@ def approve_quiz(request, pk):
     quiz.verification_by = request.user
     quiz.verified_at = timezone.now()
     quiz.save(update_fields=['verification_status', 'verification_by', 'verified_at'])
+    # Notification email to creator
+    creator = quiz.creator
+    if getattr(creator, 'email_notifications', False) and getattr(creator, 'email', ''):
+        try:
+            send_mail(
+                subject='Your quiz has been verified',
+                message=f'Your quiz "{quiz.title}" is now verified and visible to all students.',
+                from_email=None,
+                recipient_list=[creator.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
     
     messages.success(request, f'"{quiz.title}" approved and published.')
     return redirect('quizzes:quiz_moderation_list')
@@ -339,4 +410,31 @@ def reject_quiz(request, pk):
     
     messages.info(request, f'"{quiz.title}" has been rejected.')
     return redirect('quizzes:quiz_moderation_list')
+
+
+@login_required
+@require_http_methods(["POST"])
+def toggle_quiz_bookmark(request, pk):
+    """Toggle bookmark for a quiz"""
+    quiz = get_object_or_404(Quiz, pk=pk)
+    bookmark, created = QuizBookmark.objects.get_or_create(user=request.user, quiz=quiz)
+    if not created:
+        bookmark.delete()
+    # Redirect back
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'quizzes:quiz_list'
+    return redirect(next_url)
+
+
+@login_required
+@require_http_methods(["POST"])
+def quiz_delete(request, pk):
+    """Delete a quiz (creator or professor)"""
+    quiz = get_object_or_404(Quiz, pk=pk)
+    if not (quiz.creator == request.user or getattr(request.user, 'is_professor', False)):
+        messages.error(request, 'You do not have permission to delete this quiz.')
+        return redirect('quizzes:quiz_detail', pk=pk)
+    title = quiz.title
+    quiz.delete()
+    messages.success(request, f'Quiz "{title}" deleted.')
+    return redirect('quizzes:quiz_list')
 

@@ -65,6 +65,9 @@ class Resource(models.Model):
     )
     verified_at = models.DateTimeField(null=True, blank=True)
     
+    # Privacy
+    is_public = models.BooleanField(default=True, help_text='If True, visible to all users. If False, only visible to uploader.')
+    
     # Statistics
     views_count = models.PositiveIntegerField(default=0)
     download_count = models.PositiveIntegerField(default=0)

@@ -1,64 +1,49 @@
 {% extends 'base_dashboard.html' %}
 {% load static %}
-
-{% block title %}Study - {{ deck.title }}{% endblock %}
-
+{% block title %}Study: {{ deck.title }}{% endblock %}
+{% block page_title %}Flashcards{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
 {% endblock %}
-
-{% block header %}
-<div class="dashboard-title-section">
-    <h1 class="dashboard-title">Study: {{ deck.title }}</h1>
-    <p class="dashboard-date">{{ total_cards }} cards</p>
-</div>
-<div class="dashboard-actions">
-    <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft">
-        <i class="fas fa-arrow-left"></i> Back to Deck
-    </a>
-</div>
-{% endblock %}
-
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card dashboard-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>Card <span id="currentIndex">1</span> / <span id="totalCount">{{ total_cards }}</span></div>
-                    <div class="progress" style="height: 8px; width: 200px;">
-                        <div class="progress-bar" id="studyProgress" data-width="0"></div>
-                    </div>
-                </div>
+<div class="fc-container fc-tight-top">
+    <div class="mb-2 bookmarks-header-row"><a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft btn-pill"><i class="fas fa-arrow-left"></i> Back</a></div>
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <h1 class="fc-title mb-0">Study: {{ deck.title }}</h1>
+        <div class="d-flex align-items-center gap-2">
+            <button id="flipBtn" class="fc-btn fc-btn-outline" type="button"><i class="fas fa-sync"></i><span> Flip</span></button>
+            <button id="prevBtn" class="fc-btn fc-btn-outline" type="button" disabled><i class="fas fa-chevron-left"></i></button>
+            <button id="nextBtn" class="fc-btn fc-btn-primary" type="button"><i class="fas fa-chevron-right"></i><span> Next</span></button>
+        </div>
+    </div>
+    <p class="text-muted small">Card <span id="cardIndex">1</span> / {{ total_cards }}</p>
 
-                <div class="flashcard-container">
-                    <div class="flashcard" id="flashcard">
-                        <div class="flashcard-inner" id="flashcardInner">
-                            <div class="flashcard-front" id="cardFront"></div>
-                            <div class="flashcard-back" id="cardBack"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-center gap-2 mt-4">
-                    <button class="btn btn-outline-primary-soft" id="prevBtn" disabled>
-                        <i class="fas fa-chevron-left"></i> Previous
-                    </button>
-                    <button class="btn btn-gradient-primary" id="flipBtn">
-                        <i class="fas fa-retweet"></i> Flip
-                    </button>
-                    <button class="btn btn-outline-primary-soft" id="nextBtn">
-                        Next <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
+    <div class="flashcard-container mb-4">
+        <div class="flashcard" id="studyCard">
+            <div class="flashcard-inner">
+                <div class="flashcard-front"><div id="frontContent"></div></div>
+                <div class="flashcard-back"><div id="backContent"></div></div>
             </div>
         </div>
     </div>
+    
+    
+    <script>
+        const cards = JSON.parse('{{ cards_json|escapejs }}');
+        let idx = 0; let flipped = false;
+        function render(){
+            const c = cards[idx];
+            document.getElementById('frontContent').textContent = c.front_text;
+            document.getElementById('backContent').textContent = c.back_text;
+            document.getElementById('cardIndex').textContent = idx+1;
+            document.querySelector('.flashcard-inner').style.transform = flipped ? 'rotateY(180deg)' : 'none';
+            document.getElementById('prevBtn').disabled = idx === 0;
+        }
+        document.getElementById('flipBtn').onclick = ()=>{ flipped = !flipped; render(); };
+        document.getElementById('nextBtn').onclick = ()=>{ if(idx < cards.length-1){ idx++; flipped=false; render(); } };
+        document.getElementById('prevBtn').onclick = ()=>{ if(idx>0){ idx--; flipped=false; render(); } };
+        render();
+    </script>
 </div>
-
-<script id="cardsData" type="application/json">{{ cards_json|safe }}</script>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'js/flashcards.js' %}"></script>
 {% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base_dashboard.html' %}
+{% load static humanize %}
+
+{% block title %}Deck Moderation{% endblock %}
+{% block page_title %}Flashcards Moderation{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="fc-container fc-list">
+  <div class="resources-tabs-row d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div class="resources-tabs" role="tablist" aria-label="Moderation navigation">
+      <a href="{% url 'flashcards:deck_list' %}?scope=all" class="rtab" role="tab">All Decks</a>
+      <a href="{% url 'flashcards:deck_list' %}?scope=mine" class="rtab" role="tab">My Decks</a>
+      <span class="rtab active" role="tab" aria-selected="true">Moderation</span>
+    </div>
+    <div class="d-flex align-items-center gap-2 small text-muted">
+      <i class="fas fa-shield-alt"></i> Pending public decks awaiting verification
+    </div>
+  </div>
+
+  {% if pending_decks %}
+  <form method="post" action="{% url 'flashcards:bulk_verify_decks' %}" class="mb-3 soft-panel" id="bulkVerifyForm">
+    {% csrf_token %}
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="fw-semibold"><i class="fas fa-clock"></i> {{ pending_decks|length }} pending deck{% if pending_decks|length != 1 %}s{% endif %}</div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="submit" class="btn-upload-pill btn-pill" onclick="return confirm('Verify selected decks?')"><i class="fas fa-check-circle"></i><span> Bulk Verify Selected</span></button>
+        <a href="{% url 'flashcards:deck_moderation_list' %}" class="btn btn-outline-primary-soft btn-pill"><i class="fas fa-sync"></i> Refresh</a>
+      </div>
+    </div>
+    <div class="table-responsive mt-3">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="width:32px"><input type="checkbox" id="selectAll" aria-label="Select all"></th>
+            <th>Title</th>
+            <th>Owner</th>
+            <th>Created</th>
+            <th>Cards</th>
+            <th>Status</th>
+            <th style="width:140px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for deck in pending_decks %}
+          <tr>
+            <td><input type="checkbox" name="deck_ids" value="{{ deck.pk }}" class="deck-select" aria-label="Select deck {{ deck.title }}"></td>
+            <td class="fw-semibold">
+              <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="text-decoration-none">{{ deck.title }}</a>
+            </td>
+            <td>{{ deck.owner.get_display_name }}</td>
+            <td>{{ deck.created_at|naturaltime }}</td>
+            <td>{{ deck.cards_count }}</td>
+            <td>
+              {% if deck.visibility == 'public' %}<span class="badge badge-pending"><i class="fas fa-clock"></i> Pending</span>{% endif %}
+            </td>
+            <td>
+              <form method="post" action="{% url 'flashcards:approve_deck' deck.pk %}" style="display:inline-block">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-gradient-primary" onclick="return confirm('Verify this deck?')"><i class="fas fa-check"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </form>
+  {% else %}
+  <div class="fc-empty">
+    <strong>No pending decks 🎉</strong>
+    <div class="mt-2">All public decks are verified.</div>
+  </div>
+  {% endif %}
+</div>
+<script>
+// Bulk select handling
+document.addEventListener('DOMContentLoaded', function(){
+  const selectAll = document.getElementById('selectAll');
+  if(!selectAll) return;
+  const checkboxes = document.querySelectorAll('.deck-select');
+  selectAll.addEventListener('change', function(){
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+  });
+});
+</script>
+{% endblock %}

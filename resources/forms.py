@@ -23,7 +23,7 @@ class ResourceUploadForm(forms.ModelForm):
     
     class Meta:
         model = Resource
-        fields = ['title', 'description', 'resource_type', 'file', 'external_url', 'tags']
+        fields = ['title', 'description', 'resource_type', 'file', 'external_url', 'tags', 'is_public']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -41,6 +41,12 @@ class ResourceUploadForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'https://example.com (optional if uploading file)'
             }),
+            'is_public': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+        labels = {
+            'is_public': 'Make this resource public (visible to all students)'
         }
     
     def clean(self):
@@ -48,14 +54,19 @@ class ResourceUploadForm(forms.ModelForm):
         cleaned_data = super().clean()
         file = cleaned_data.get('file')
         external_url = cleaned_data.get('external_url')
+        # If editing an existing resource that already has content (file_url or external_url),
+        # allow submitting without providing these again.
+        has_existing_content = False
+        if self.instance and getattr(self.instance, 'pk', None):
+            has_existing_content = bool(getattr(self.instance, 'file_url', None) or getattr(self.instance, 'external_url', None))
         
         # Handle N/A values
         if external_url and str(external_url).lower().strip() in ['n/a', 'na', 'none', '']:
             cleaned_data['external_url'] = None
             external_url = None
         
-        # At least one must be provided
-        if not file and not external_url:
+        # At least one must be provided when creating new resources
+        if not file and not external_url and not has_existing_content:
             raise forms.ValidationError(
                 'Please either upload a file or provide an external URL.'
             )

@@ -13,9 +13,12 @@ from .forms import (
 )
 from .models import User
 from resources.models import Resource, Bookmark, Tag, Rating, Comment
+from flashcards.models import Deck, Card
+from flashcards import services as flashcard_services
 from quizzes.models import QuizAttempt, Quiz
-from flashcards.models import Deck
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg, Q, F
+from django.db import models
+from zoneinfo import ZoneInfo
 from datetime import timedelta
 from .models import StudyReminder
 
@@ -93,7 +96,6 @@ def student_dashboard(request):
     #   - In-progress quizzes: attempts started but not completed
     #   - Flashcards: most recently updated decks (simulates ongoing study)
     in_progress_quiz_attempts = QuizAttempt.objects.filter(student=request.user, completed_at__isnull=True).select_related('quiz')[:3]
-    continue_decks = Deck.objects.filter(owner=request.user).order_by('-updated_at')[:3]
 
     # Trending Tags (top 6 by resource count in last 7 days)
     cutoff = timezone.now() - timedelta(days=7)
@@ -114,11 +116,16 @@ def student_dashboard(request):
     # Study Reminders
     study_reminders = StudyReminder.objects.filter(user=request.user).order_by('completed', 'due_date')[:8]
 
-    # Dynamic Activity Feed (limit 8 most recent actions by user)
-    recent_ratings = Rating.objects.filter(user=request.user).select_related('resource').order_by('-created_at')[:5]
-    recent_comments = Comment.objects.filter(user=request.user).select_related('resource').order_by('-created_at')[:5]
-    recent_uploads = Resource.objects.filter(uploader=request.user).order_by('-created_at')[:5]
+    # Philippines-local cutoff for 'recent' items (last 2 days)
+    ph_tz = ZoneInfo('Asia/Manila')
+    manila_now = timezone.localtime(timezone.now(), ph_tz)
+    cutoff_2d = manila_now - timedelta(days=2)
+
+    # Dynamic Activity Feed - comprehensive user actions (limit 10 most recent)
     feed_events = []
+    
+    # Resource uploads
+    recent_uploads = Resource.objects.filter(uploader=request.user, created_at__gte=cutoff_2d).order_by('-created_at')[:10]
     for r in recent_uploads:
         feed_events.append({
             'timestamp': r.created_at,
@@ -127,6 +134,9 @@ def student_dashboard(request):
             'title': f'Uploaded "{r.title}"',
             'meta': r.created_at.strftime('%b %d')
         })
+    
+    # Resource ratings
+    recent_ratings = Rating.objects.filter(user=request.user, created_at__gte=cutoff_2d).select_related('resource').order_by('-created_at')[:10]
     for rt in recent_ratings:
         feed_events.append({
             'timestamp': rt.created_at,
@@ -135,6 +145,9 @@ def student_dashboard(request):
             'title': f'Rated "{rt.resource.title}" {rt.stars}★',
             'meta': rt.created_at.strftime('%b %d')
         })
+    
+    # Resource comments
+    recent_comments = Comment.objects.filter(user=request.user, created_at__gte=cutoff_2d).select_related('resource').order_by('-created_at')[:10]
     for c in recent_comments:
         feed_events.append({
             'timestamp': c.created_at,
@@ -143,11 +156,55 @@ def student_dashboard(request):
             'title': f'Commented on "{c.resource.title}"',
             'meta': c.created_at.strftime('%b %d')
         })
+    
+    # Bookmarks created
+    recent_bookmarks_activity = Bookmark.objects.filter(user=request.user, created_at__gte=cutoff_2d).select_related('resource').order_by('-created_at')[:10]
+    for bm in recent_bookmarks_activity:
+        feed_events.append({
+            'timestamp': bm.created_at,
+            'type': 'bookmark',
+            'icon': 'bookmark',
+            'title': f'Bookmarked "{bm.resource.title}"',
+            'meta': bm.created_at.strftime('%b %d')
+        })
+    
+    # Flashcard events (moved to flashcards.services for separation of concerns)
+    flashcard_events = flashcard_services.get_flashcard_feed_events(request.user, limit=10)
+    # Keep only events within the last 2 days
+    flashcard_events = [ev for ev in flashcard_events if ev.get('timestamp') and ev['timestamp'] >= cutoff_2d]
+    feed_events.extend(flashcard_events)
+    
+    # Quiz creations
+    recent_quizzes = Quiz.objects.filter(creator=request.user, created_at__gte=cutoff_2d).order_by('-created_at')[:10]
+    for quiz in recent_quizzes:
+        feed_events.append({
+            'timestamp': quiz.created_at,
+            'type': 'quiz_create',
+            'icon': 'question-circle',
+            'title': f'Created quiz "{quiz.title}"',
+            'meta': quiz.created_at.strftime('%b %d')
+        })
+    
+    # Quiz attempts completed
+    completed_attempts = QuizAttempt.objects.filter(student=request.user, completed_at__isnull=False, completed_at__gte=cutoff_2d).select_related('quiz').order_by('-completed_at')[:10]
+    for attempt in completed_attempts:
+        score = f"{attempt.score}/{attempt.total_questions}" if hasattr(attempt, 'score') else ''
+        feed_events.append({
+            'timestamp': attempt.completed_at,
+            'type': 'quiz_complete',
+            'icon': 'check-circle',
+            'title': f'Completed quiz "{attempt.quiz.title}" {score}',
+            'meta': attempt.completed_at.strftime('%b %d')
+        })
+    
+    # Sort all events by timestamp and take top 10
     feed_events.sort(key=lambda e: e['timestamp'], reverse=True)
-    activity_feed = feed_events[:8]
+    activity_feed = feed_events[:10]
 
-    # Weekly Upload Stats (last 7 days)
-    today = timezone.now().date()
+    # Weekly Upload Stats (last 7 days) - base on Philippines time
+    ph_tz = ZoneInfo('Asia/Manila')
+    manila_now = timezone.localtime(timezone.now(), ph_tz)
+    today = manila_now.date()
     weekly_labels = []
     weekly_upload_counts = []
     for i in range(6, -1, -1):
@@ -156,6 +213,211 @@ def student_dashboard(request):
         count = Resource.objects.filter(uploader=request.user, created_at__date=day).count()
         weekly_labels.append(label)
         weekly_upload_counts.append(count)
+
+    # Extended multi-metric Learning Insights (uploads, quizzes, flashcards, activity count)
+    # Reuse weekly_labels for all metrics to avoid recalculating.
+    weekly_quiz_counts = []
+    weekly_views_counts = []
+    weekly_flashcard_counts = []
+    date_sequence = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        date_sequence.append(day)
+        # Quizzes: count both quizzes created AND quiz attempts completed that day
+        quiz_created = Quiz.objects.filter(creator=request.user, created_at__date=day).count()
+        quiz_completed = QuizAttempt.objects.filter(student=request.user, completed_at__date=day).count()
+        weekly_quiz_counts.append(quiz_created + quiz_completed)
+        # Activity count: ratings, comments, bookmarks created that day (user engagement)
+        activity_count = (
+            Rating.objects.filter(user=request.user, created_at__date=day).count() +
+            Comment.objects.filter(user=request.user, created_at__date=day).count() +
+            Bookmark.objects.filter(user=request.user, created_at__date=day).count()
+        )
+        weekly_views_counts.append(activity_count)
+    # Flashcards weekly counts via service
+    weekly_flashcard_counts = flashcard_services.get_weekly_flashcard_counts(request.user, date_sequence)
+
+    # Compute per-metric and overall maxima for the period
+    max_uploads = max(weekly_upload_counts) if weekly_upload_counts else 0
+    max_quizzes = max(weekly_quiz_counts) if weekly_quiz_counts else 0
+    max_flashcards = max(weekly_flashcard_counts) if weekly_flashcard_counts else 0
+    max_activity = max(weekly_views_counts) if weekly_views_counts else 0
+    max_overall = max(max_uploads, max_quizzes, max_flashcards, max_activity)
+
+    weekly_metrics = {
+        'labels': weekly_labels,
+        'uploads': weekly_upload_counts,
+        'quizzes': weekly_quiz_counts,
+        'flashcards': weekly_flashcard_counts,
+        'activity': weekly_views_counts,  # Renamed from 'views' to 'activity' for clarity
+        'max_values': {
+            'uploads': max_uploads,
+            'quizzes': max_quizzes,
+            'flashcards': max_flashcards,
+            'activity': max_activity,
+            'overall': max_overall,
+        },
+        'palette': {
+            'uploads': '#0d6efd',
+            'quizzes': '#ffc107',
+            'flashcards': '#0dcaf0',
+            'activity': '#198754'  # Green for activity (ratings, comments, bookmarks)
+        }
+    }
+
+    # Flashcards summary for dashboard widgets
+    flashcard_summary = flashcard_services.get_flashcard_summary(request.user)
+    total_flashcard_decks = flashcard_summary['total_decks']
+    total_flashcard_cards = flashcard_summary['total_cards']
+    recent_decks = flashcard_summary['recent_decks']
+    last_studied_deck = flashcard_summary['last_studied_deck']
+
+    # New Uploads (last 2 days) - unified list across Resources, Quizzes, Flashcards
+    # Priority: include user's own recent uploads (any status/visibility), then fill with verified+public uploads from others
+    from django.urls import reverse
+    new_uploads_raw = []
+
+    # User's recent resources
+    user_recent_resources = Resource.objects.filter(
+        uploader=request.user,
+        created_at__gte=cutoff_2d
+    ).order_by('-created_at')
+    for r in user_recent_resources:
+        new_uploads_raw.append({
+            'type': 'resource',
+            'title': r.title,
+            'created_at': r.created_at,
+            'url': reverse('resources:resource_detail', args=[r.pk]),
+        })
+
+    # User's recent quizzes
+    user_recent_quizzes = Quiz.objects.filter(
+        creator=request.user,
+        created_at__gte=cutoff_2d
+    ).order_by('-created_at')
+    for q in user_recent_quizzes:
+        new_uploads_raw.append({
+            'type': 'quiz',
+            'title': q.title,
+            'created_at': q.created_at,
+            'url': reverse('quizzes:quiz_detail', args=[q.pk]),
+        })
+
+    # User's recent flashcard decks
+    user_recent_decks = Deck.objects.filter(
+        owner=request.user,
+        created_at__gte=cutoff_2d
+    ).order_by('-created_at')
+    for d in user_recent_decks:
+        new_uploads_raw.append({
+            'type': 'flashcard',
+            'title': d.title,
+            'created_at': d.created_at,
+            'url': reverse('flashcards:deck_detail', args=[d.pk]),
+        })
+
+    # Others' verified/public resources
+    other_resources = Resource.objects.filter(
+        approved=True,
+        is_public=True,
+        created_at__gte=cutoff_2d
+    ).exclude(uploader=request.user).order_by('-created_at')
+    for r in other_resources:
+        new_uploads_raw.append({
+            'type': 'resource',
+            'title': r.title,
+            'created_at': r.created_at,
+            'url': reverse('resources:resource_detail', args=[r.pk]),
+        })
+
+    # Others' verified/public quizzes
+    other_quizzes = Quiz.objects.filter(
+        verification_status='verified',
+        is_public=True,
+        created_at__gte=cutoff_2d
+    ).exclude(creator=request.user).order_by('-created_at')
+    for q in other_quizzes:
+        new_uploads_raw.append({
+            'type': 'quiz',
+            'title': q.title,
+            'created_at': q.created_at,
+            'url': reverse('quizzes:quiz_detail', args=[q.pk]),
+        })
+
+    # Others' verified/public flashcard decks
+    other_decks = Deck.objects.filter(
+        verification_status='verified',
+        visibility='public',
+        created_at__gte=cutoff_2d
+    ).exclude(owner=request.user).order_by('-created_at')
+    for d in other_decks:
+        new_uploads_raw.append({
+            'type': 'flashcard',
+            'title': d.title,
+            'created_at': d.created_at,
+            'url': reverse('flashcards:deck_detail', args=[d.pk]),
+        })
+
+    # Sort combined items by created_at desc and limit to 6
+    new_uploads_raw.sort(key=lambda it: it['created_at'], reverse=True)
+    new_uploads = new_uploads_raw[:6]
+
+    # Calendar events aggregation (reminders, quiz creations, resource verifications)
+    from collections import defaultdict
+    events_by_day = defaultdict(list)
+    current_month = today.month
+    current_year = today.year
+    # Study reminders with due_date in current month/year
+    reminder_qs = StudyReminder.objects.filter(user=request.user, due_date__month=current_month, due_date__year=current_year)
+    for r in reminder_qs:
+        if r.due_date:
+            events_by_day[r.due_date.day].append({'title': r.title, 'type': 'reminder'})
+    # Quizzes created by others this month (explore)
+    quiz_qs_other = Quiz.objects.filter(created_at__month=current_month, created_at__year=current_year).exclude(creator=request.user)
+    for q in quiz_qs_other:
+        events_by_day[q.created_at.day].append({'title': q.title, 'type': 'quiz_explore'})
+    # User's own quiz creations
+    quiz_qs_user = Quiz.objects.filter(creator=request.user, created_at__month=current_month, created_at__year=current_year)
+    for q in quiz_qs_user:
+        events_by_day[q.created_at.day].append({'title': f'My Quiz: {q.title}', 'type': 'quiz_created'})
+    # User resource uploads this month
+    resource_uploads = Resource.objects.filter(uploader=request.user, created_at__month=current_month, created_at__year=current_year)
+    for res in resource_uploads:
+        events_by_day[res.created_at.day].append({'title': f'Uploaded: {res.title}', 'type': 'resource_upload'})
+    
+    # Flashcard calendar events via service and merge
+    flashcard_calendar = flashcard_services.get_flashcard_calendar_events(request.user, current_month, current_year)
+    for day, fl_events in flashcard_calendar.items():
+        events_by_day[day].extend(fl_events)
+    
+    # User bookmarks created this month
+    bookmarks_created = Bookmark.objects.filter(user=request.user, created_at__month=current_month, created_at__year=current_year).select_related('resource')
+    for bm in bookmarks_created:
+        events_by_day[bm.created_at.day].append({'title': f'Bookmarked: {bm.resource.title}', 'type': 'bookmark_created'})
+    
+    # Resources verified this month
+    resource_verified_qs = Resource.objects.filter(verified_at__isnull=False, verified_at__month=current_month, verified_at__year=current_year, uploader=request.user)
+    for res in resource_verified_qs:
+        events_by_day[res.verified_at.day].append({'title': f'Verified: {res.title}', 'type': 'resource_verified'})
+    
+    # Convert to regular dict for template JSON serialization
+    calendar_events = dict(events_by_day)
+
+    # Build calendar cells for current month (with leading blanks)
+    import calendar as _cal
+    first_weekday, days_in_month = _cal.monthrange(current_year, current_month)  # Monday=0
+    # Adjust first_weekday to Sunday=0 for our display
+    # If first_weekday is 0 (Monday) we need 1 blank; mapping: (Mon->1, Tue->2,... Sun->0)
+    sunday_based_offset = (first_weekday + 1) % 7
+    calendar_cells = []
+    for _ in range(sunday_based_offset):
+        calendar_cells.append({'blank': True})
+    for day_num in range(1, days_in_month + 1):
+        calendar_cells.append({
+            'day': day_num,
+            'events': calendar_events.get(day_num, []),
+            'is_today': day_num == today.day,
+        })
     
     # Phase 8: Profile completion integration
     profile_completion = request.user.get_profile_completion_percentage()
@@ -166,7 +428,6 @@ def student_dashboard(request):
     total_bookmarks = Bookmark.objects.filter(user=request.user).count()
     quizzes_completed = QuizAttempt.objects.filter(student=request.user, completed_at__isnull=False).count()
     # Newly added counts (Tasks 1 & 2)
-    total_flashcards_posted = Deck.objects.filter(owner=request.user).count()
     total_quizzes_posted = Quiz.objects.filter(creator=request.user).count()
     
     context = {
@@ -178,11 +439,9 @@ def student_dashboard(request):
         'total_resources': total_resources,
         'total_bookmarks': total_bookmarks,
         'quizzes_completed': quizzes_completed,
-        'total_flashcards_posted': total_flashcards_posted,
         'total_quizzes_posted': total_quizzes_posted,
         # Panels 3-7 context
         'in_progress_quiz_attempts': in_progress_quiz_attempts,
-        'continue_decks': continue_decks,
         'trending_tags': trending_tags,
         'top_rated_resources': top_rated_resources,
         'upcoming_quizzes': upcoming_quizzes,
@@ -190,6 +449,19 @@ def student_dashboard(request):
         'activity_feed': activity_feed,
         'weekly_upload_labels': weekly_labels,
         'weekly_upload_counts': weekly_upload_counts,
+        # New consolidated metrics & feeds
+        'weekly_metrics': weekly_metrics,
+        'new_uploads': new_uploads,
+        'calendar_events': calendar_events,
+        'calendar_cells': calendar_cells,
+    'current_month_label': manila_now.strftime('%B %Y'),
+    'dashboard_date_str': manila_now.strftime('%B %d'),
+        'today': today,
+        # Flashcards context
+        'total_flashcard_decks': total_flashcard_decks,
+        'total_flashcard_cards': total_flashcard_cards,
+        'recent_decks': recent_decks,
+        'last_studied_deck': last_studied_deck,
     }
     return render(request, 'accounts/student_dashboard.html', context)
 

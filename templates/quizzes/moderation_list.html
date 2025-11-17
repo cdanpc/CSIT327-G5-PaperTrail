@@ -77,8 +77,8 @@
             <div class="container-fluid">
                 <div class="dashboard-header">
                     <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">Quiz Moderation</h1>
-                        <p class="dashboard-date">Review and approve pending quizzes</p>
+                        <h1 class="dashboard-title">Quizzes</h1>
+                        <p class="dashboard-date">Moderation • Review and approve pending quizzes</p>
                     </div>
                     <div class="dashboard-actions">
                         <a href="{% url 'quizzes:quiz_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
@@ -104,30 +104,19 @@
                         {% if pending_quizzes %}
                             {% for quiz in pending_quizzes %}
                             <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
-                                <div style="flex: 1;">
-                                    <h6 class="mb-1">{{ quiz.title }}</h6>
+                                <div style="flex:1;">
+                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                        <h6 class="mb-0">{{ quiz.title }}</h6>
+                                        <span class="badge badge-pending" style="font-size:0.65rem;"><i class="fas fa-clock"></i> Pending</span>
+                                    </div>
                                     {% if quiz.description %}
-                                    <p class="text-muted small mb-2">{{ quiz.description|truncatewords:20 }}</p>
+                                      <p class="text-muted small mb-2">{{ quiz.description|truncatewords:20 }}</p>
                                     {% endif %}
-                                    <small class="text-muted">
-                                        <i class="fas fa-user"></i> by {{ quiz.creator.get_display_name }} |
-                                        <i class="fas fa-question-circle"></i> {{ quiz.total_questions }} questions |
-                                        <i class="fas fa-calendar"></i> {{ quiz.created_at|date:"M d, Y" }}
-                                    </small>
+                                    <small class="text-muted d-block mb-1"><i class="fas fa-user"></i> {{ quiz.creator.get_display_name }} | <i class="fas fa-question-circle"></i> {{ quiz.total_questions }} Q | <i class="fas fa-calendar"></i> {{ quiz.created_at|date:"M d, Y" }}</small>
                                 </div>
                                 <div class="btn-group ms-2">
-                                    <form method="post" action="{% url 'quizzes:approve_quiz' quiz.pk %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button class="btn btn-sm" type="submit" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none;" title="Approve">
-                                            <i class="fas fa-check"></i>
-                                        </button>
-                                    </form>
-                                    <form method="post" action="{% url 'quizzes:reject_quiz' quiz.pk %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button class="btn btn-sm btn-outline-danger" type="submit" title="Reject">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </form>
+                                    <form method="post" action="{% url 'quizzes:approve_quiz' quiz.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm" type="submit" style="background:linear-gradient(135deg,#48bb78 0%,#38a169 100%);color:#fff;border:none;" title="Approve"><i class="fas fa-check"></i></button></form>
+                                    <form method="post" action="{% url 'quizzes:reject_quiz' quiz.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit" title="Reject"><i class="fas fa-times"></i></button></form>
                                 </div>
                             </div>
                             {% endfor %}

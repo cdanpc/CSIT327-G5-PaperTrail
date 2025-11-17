@@ -36,24 +36,19 @@
                 {% block header %}
                 <div class="dashboard-header">
                     <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                        <h1 class="dashboard-title mb-0">{% block page_title %}Dashboard{% endblock %}</h1>
                     </div>
-                    
+
                     {% block header_actions %}
-                    <div class="dashboard-actions">
-                        <!-- Search Box -->
+                    <div class="dashboard-actions d-flex align-items-center gap-2">
                         <div class="search-box-inline">
                             <i class="fas fa-search"></i>
                             <input type="text" class="form-control" placeholder="Search..." aria-label="Search">
                         </div>
-                        
-                        <!-- Notification Bell -->
                         <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
                             <i class="fas fa-bell"></i>
                         </button>
-
-                        <!-- Profile (direct link to profile page) -->
-                        <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-3 profile-link" title="Profile">
+                        <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-2 profile-link" title="Profile" style="text-decoration:none;">
                             {% if user.profile_picture %}
                                 <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
                             {% else %}

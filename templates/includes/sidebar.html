@@ -25,12 +25,7 @@
                     <span class="nav-text">Resources</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="{% url 'bookmarks:bookmark_list' %}" class="nav-link {% if 'bookmarks' in request.path %}active{% endif %}" title="Bookmarks">
-                    <i class="fas fa-star"></i>
-                    <span class="nav-text">Bookmarks</span>
-                </a>
-            </li>
+            
             <li class="nav-item">
                 <a href="{% url 'flashcards:deck_list' %}" class="nav-link {% if 'flashcards' in request.path %}active{% endif %}" title="Flashcards">
                     <i class="fas fa-layer-group"></i>
@@ -43,7 +38,12 @@
                     <span class="nav-text">Quizzes</span>
                 </a>
             </li>
-           
+           <li class="nav-item">
+                <a href="{% url 'bookmarks:bookmark_list' %}" class="nav-link {% if 'bookmarks' in request.path %}active{% endif %}" title="Bookmarks">
+                    <i class="fas fa-star"></i>
+                    <span class="nav-text">Bookmarks</span>
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-divider"></div>

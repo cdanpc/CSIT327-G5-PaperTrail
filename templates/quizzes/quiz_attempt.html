@@ -1,76 +1,55 @@
 {% extends 'base_dashboard.html' %}
 {% load static %}
 
-{% block title %}Taking Quiz - {{ quiz.title }}{% endblock %}
+{% block title %}Quizzes{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/quizzes.css' %}">
 {% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/quizzes.js' %}"></script>
-{% endblock %}
-
-{% block header %}
-<div class="dashboard-title-section">
-    <h1 class="dashboard-title">{{ quiz.title }}</h1>
-    <p class="dashboard-date">Question {{ question_number }} of {{ total_questions }}</p>
-    <div class="d-flex align-items-center gap-2">
-        <div class="progress" style="width: 200px; height: 8px;">
-            <div class="progress-bar" role="progressbar" data-width="{{ progress_percentage }}" aria-valuenow="{{ question_number }}" aria-valuemin="0" aria-valuemax="{{ total_questions }}"></div>
-        </div>
-    </div>
-{% endblock %}
+{# Intentionally leave header empty to match the clean card-only layout #}
+{% block header %}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card dashboard-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-question-circle"></i> Question {{ question_number }}
-                </h5>
+<div class="qa-local-nav">
+    <div class="qa-local-nav-inner">
+        <h1 class="qa-local-nav-title">Quizzes</h1>
+    </div>
+</div>
+<div class="qa-attempt-wrap">
+    <div class="qa-card">
+        <div class="qa-card-head">
+            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="qa-quiz-link">Quiz: {{ quiz.title }}</a>
+            <div class="qa-progress">
+                <div class="qa-progress-bar" style="width: {{ progress_percentage }}%;"></div>
             </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-
-                    <div class="mb-4">
-                        <h4 class="mb-3">{{ question.question_text }}</h4>
-
-                        {% if question.question_type == 'multiple_choice' %}
-                            <div class="multiple-choice-options">
-                                {% for option in question.options.all %}
-                                <div class="form-check mb-3 p-3 mc-option">
-                                    <input class="form-check-input" type="radio" name="answer" id="option_{{ option.id }}" value="{{ option.id }}" required>
-                                    <label class="form-check-label w-100" for="option_{{ option.id }}">
-                                        {{ option.option_text }}
-                                    </label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="fill-in-blank">
-                                {{ form.answer }}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-outline-primary-soft">
-                            <i class="fas fa-times"></i> Cancel
-                        </a>
-                        <button type="submit" class="btn btn-gradient-primary">
-                            {% if question_number == total_questions %}
-                                <i class="fas fa-check"></i> Submit Quiz
-                            {% else %}
-                                <i class="fas fa-arrow-right"></i> Next Question
-                            {% endif %}
-                        </button>
-                    </div>
-                </form>
-            </div>
+            <h2 class="qa-question-count">Question {{ question_number }} of {{ total_questions }}</h2>
         </div>
+
+        <form method="post" class="qa-form">
+            {% csrf_token %}
+            <div class="qa-question-text">{{ question.question_text }}</div>
+
+            {% if question.question_type == 'multiple_choice' %}
+                <div class="qa-options">
+                    {% for option in question.options.all %}
+                        <input type="radio" id="opt_{{ option.id }}" name="answer" value="{{ option.id }}" class="qa-opt-input" required>
+                        <label for="opt_{{ option.id }}" class="qa-opt-btn">{{ option.option_text }}</label>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="qa-fib">
+                    <input type="text" name="answer" class="qa-input" placeholder="Type your answer here…" required>
+                </div>
+            {% endif %}
+
+            <div class="qa-footer qa-footer-cluster">
+                <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="qa-cancel">Cancel Quiz</a>
+                <button type="submit" class="qa-next-btn">
+                    {% if question_number == total_questions %}Submit Quiz{% else %}Next Question{% endif %}
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
