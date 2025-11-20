@@ -177,6 +177,18 @@ def resource_list(request):
     page_obj = paginator.get_page(page_number)
     
     tags_list = Tag.objects.all().order_by('name')
+    
+    # Resource type filter options for component
+    resource_type_options = [
+        {'value': 'pdf', 'label': 'PDF'},
+        {'value': 'ppt', 'label': 'PPT'},
+        {'value': 'pptx', 'label': 'PPTX'},
+        {'value': 'docx', 'label': 'DOCX'},
+        {'value': 'image', 'label': 'Image'},
+        {'value': 'link', 'label': 'Link'},
+        {'value': 'txt', 'label': 'Text'},
+    ]
+    
     context = {
         'resources': page_obj,
         'search_query': search_query,
@@ -186,6 +198,7 @@ def resource_list(request):
             .values_list('resource_id', flat=True)
         ) if request.user.is_authenticated else set(),
         'tags_list': tags_list,
+        'resource_type_options': resource_type_options,
     }
     return render(request, 'resources/resource_list.html', context)
 

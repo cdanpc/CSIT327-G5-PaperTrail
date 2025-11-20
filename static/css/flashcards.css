@@ -60,20 +60,11 @@
 /* Flashcards Listing (Deck Index)                    */
 /* -------------------------------------------------- */
 
-.fc-container {
-  /* Remove max-width constraint to let content use available width */
-  max-width: none;
-  margin: 0 auto;
-  /* Minimal horizontal padding—just enough edge breathing room */
-  padding: 0.65rem 1.25rem 1.1rem; 
-  background: transparent;
-}
-/* Deck list: minimal side padding */
-.fc-container.fc-list { padding: 0.55rem 1.25rem 0.9rem; }
+
+
 .fc-container.fc-list .fc-actions { margin: 0; }
 /* Compact top spacing variant for detail/study/create pages */
 .fc-container.fc-tight-top { padding-top: .35rem; }
-.fc-container.fc-tight-top .bookmarks-header-row { margin-top: .6rem; }
 
 .fc-header {
   display: flex;
@@ -387,10 +378,5 @@
 .fc-list .fc-card-footer { margin-top:.25rem; }
 @media (min-width: 768px){ .fc-list .fc-card { min-height:auto; } }
 
-/* Flashcards header buttons: match dashboard corner radius (6px) */
-.flashcards-tabs .rtab,
-.flashcards-tabs .btn-upload-pill { border-radius:6px !important; }
-.flashcards-tabs .rtab { padding:.45rem .85rem; display:inline-flex; align-items:center; justify-content:center; min-height:var(--btn-h); line-height:1; }
-.flashcards-tabs .btn-upload-pill { padding:.5rem .95rem; box-shadow:0 6px 14px rgba(102,126,234,.22); }
-.flashcards-tabs .rtab.active { box-shadow:0 6px 14px rgba(102,126,234,.22); }
+/* Legacy .rtab and pill overrides removed - all tabs now use .btn-tab from components.css */
 

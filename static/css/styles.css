@@ -65,7 +65,7 @@
 
 /* Base styles */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    /* Font family inherited from globals.css */
     color: var(--text-primary);
     background-color: var(--bg-cream);
     line-height: 1.6;
@@ -393,14 +393,8 @@ h6 { font-size: var(--font-size-base); }
     color: var(--c-5);
 }
 
-/* Resource cards */
-.resource-card {
-    transition: transform 0.2s ease;
-}
-
-.resource-card:hover {
-    transform: translateY(-2px);
-}
+/* ========== LEGACY RESOURCE CARDS - REMOVED ========== */
+/* Replaced by .study-card component - see components.css */
 
 /* Search results */
 .search-result {

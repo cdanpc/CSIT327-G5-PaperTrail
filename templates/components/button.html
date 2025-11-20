@@ -1,0 +1,22 @@
+{% comment %}
+Reusable Button Component
+Usage:
+  {% include 'components/button.html' with 
+    text='Click Me'
+    url='/path/to/action/'
+    style='primary'|'secondary'
+    icon='fas fa-plus'
+    size='sm'|'md'|'lg'
+    block=True|False
+  %}
+{% endcomment %}
+
+{% if url %}
+<a href="{{ url }}" class="btn btn--{{ style|default:'primary' }}{% if size %} btn--{{ size }}{% endif %}{% if block %} btn--block{% endif %}" {% if title %}title="{{ title }}"{% endif %}>
+  {% if icon %}<i class="{{ icon }}"></i> {% endif %}{{ text }}
+</a>
+{% else %}
+<button type="{{ type|default:'button' }}" class="btn btn--{{ style|default:'primary' }}{% if size %} btn--{{ size }}{% endif %}{% if block %} btn--block{% endif %}" {% if title %}title="{{ title }}"{% endif %} {% if disabled %}disabled{% endif %}>
+  {% if icon %}<i class="{{ icon }}"></i> {% endif %}{{ text }}
+</button>
+{% endif %}

@@ -1,7 +1,6 @@
-from decouple import config  # legacy fallback (can be removed later)
+from decouple import config
 from pathlib import Path
 import os
-import sys
 from dotenv import load_dotenv
 import dj_database_url
  
@@ -59,6 +58,7 @@ INSTALLED_APPS = [
     # Third-party apps
     "crispy_forms",
     "crispy_bootstrap5",
+    'sslserver',
 ]
  
 MIDDLEWARE = [
@@ -72,7 +72,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'accounts.middleware.ForcePasswordChangeMiddleware',
     'accounts.middleware.UserRoleMiddleware',
-    'accounts.middleware.SessionTrackingMiddleware',  # Track user sessions
+    'accounts.middleware.SessionTrackingMiddleware',
 ]
  
 ROOT_URLCONF = 'papertrail.urls'
@@ -104,11 +104,14 @@ SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='')
  
 # Database (expects DATABASE_URL in Render or local .env)
 DATABASE_URL = os.environ.get('DATABASE_URL') or config('DATABASE_URL', default=None)
+if not DATABASE_URL and not ON_RENDER:
+    DATABASE_URL = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+
 DATABASES = {
     'default': dj_database_url.config(
         default=DATABASE_URL,
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=ON_RENDER
     )
 }
  
@@ -116,18 +119,10 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
  
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
  
  
@@ -199,7 +194,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')  # Gmail App Password from .env
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = 'PaperTrail <noreply@papertrail.com>'
  
 if os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True").lower() == "true":
