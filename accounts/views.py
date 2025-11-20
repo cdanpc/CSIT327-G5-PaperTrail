@@ -32,9 +32,17 @@ class RegisterView(CreateView):
     
     def form_valid(self, form):
         """Handle successful registration"""
-        user = form.save()
-        messages.success(self.request, 'Account created successfully! Please log in.')
-        return redirect(self.success_url)
+        try:
+            user = form.save()
+            messages.success(self.request, 'Account created successfully! Please log in.')
+            return redirect(self.success_url)
+        except Exception as e:
+            # Log the error and re-raise to display error page
+            import traceback
+            print(f"Registration error: {e}")
+            traceback.print_exc()
+            messages.error(self.request, f'An error occurred during registration: {str(e)}')
+            return self.form_invalid(form)
     
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
