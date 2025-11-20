@@ -4,13 +4,8 @@
 {% block title %}Edit Card - {{ deck.title }}{% endblock %}
 
 {% block header %}
-<div class="dashboard-title-section">
-  <h1 class="dashboard-title">Edit Card</h1>
-  <p class="dashboard-date">Deck: {{ deck.title }}</p>
-</div>
-<div class="dashboard-actions">
-  <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft btn-pill"><i class="fas fa-arrow-left"></i> Back</a>
-</div>
+{% url 'flashcards:deck_detail' deck.pk as deck_url %}
+{% include 'components/page_header.html' with page_title='Edit Card' back_url=deck_url show_moderate_btn=False %}
 {% endblock %}
 
 {% block content %}

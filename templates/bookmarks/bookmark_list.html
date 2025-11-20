@@ -19,9 +19,12 @@
             <a href="{% url 'flashcards:deck_list' %}" class="btn-tab" role="tab" title="Browse all flashcards"><i class="fas fa-layer-group"></i> Browse Flashcards</a>
             <a href="{% url 'quizzes:quiz_list' %}" class="btn-tab" role="tab" title="Browse all quizzes"><i class="fas fa-question-circle"></i> Browse Quizzes</a>
         </div>
-        <div>
-            {% include 'components/filter_sort.html' with filter_name="btype" filter_label="Filter by type" filter_options=filter_options selected_value=btype %}
-        </div>
+        <form method="get" action="{% url 'bookmarks:bookmark_list' %}" class="d-inline-block">
+            {% if request.GET.q %}
+                <input type="hidden" name="q" value="{{ request.GET.q }}">
+            {% endif %}
+            {% include 'components/filter_sort.html' with filter_name="btype" filter_label="All Types" filter_options=filter_options selected_value=btype %}
+        </form>
     </div>
     <div class="row g-3 mt-2" id="bookmarksGrid">
         {% for item in items %}
@@ -79,15 +82,21 @@
             </div>
         {% empty %}
             <div class="col-12">
-                <div class="study-card">
-                    <div class="study-card__body text-center py-5">
-                        <i class="fas fa-bookmark empty-state__icon"></i>
-                        <h5 class="text-muted">No bookmarks yet</h5>
-                        <p class="text-muted">Start bookmarking resources, quizzes, or flashcards to see them here.</p>
-                        <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
-                            <a href="{% url 'resources:resource_list' %}" class="btn btn--secondary"><i class="fas fa-folder"></i> Browse Resources</a>
-                            <a href="{% url 'quizzes:quiz_list' %}" class="btn btn--secondary"><i class="fas fa-question-circle"></i> Browse Quizzes</a>
-                            <a href="{% url 'flashcards:deck_list' %}" class="btn btn--secondary"><i class="fas fa-layer-group"></i> Browse Flashcards</a>
+                <div class="study-card" style="min-height: 500px;">
+                    <div class="study-card__body">
+                        {% include 'components/empty_state.html' with icon='fas fa-bookmark' main_message='No bookmarks yet' sub_message='Start bookmarking resources, quizzes, or flashcards to see them here.' show_action_buttons=True %}
+                        <div class="empty-state__actions">
+                            <div class="empty-state__secondary-actions">
+                                <a href="{% url 'resources:resource_list' %}" class="btn btn--secondary btn--sm">
+                                    <i class="fas fa-folder"></i> Browse Resources
+                                </a>
+                                <a href="{% url 'quizzes:quiz_list' %}" class="btn btn--secondary btn--sm">
+                                    <i class="fas fa-question-circle"></i> Browse Quizzes
+                                </a>
+                                <a href="{% url 'flashcards:deck_list' %}" class="btn btn--secondary btn--sm">
+                                    <i class="fas fa-layer-group"></i> Browse Flashcards
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

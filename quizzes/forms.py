@@ -1,5 +1,5 @@
 from django import forms
-from .models import Quiz, Question, Option, QuizAttempt, QuizAttemptAnswer
+from .models import Quiz, Question, Option, QuizAttempt, QuizAttemptAnswer, QuizRating, QuizComment
 
 
 class QuizForm(forms.ModelForm):
@@ -89,4 +89,33 @@ class QuizAttemptForm(forms.Form):
                 required=True
             )
             self.fields['answer'].label = ''
+
+
+class QuizRatingForm(forms.ModelForm):
+    """Form for rating a quiz"""
+    
+    class Meta:
+        model = QuizRating
+        fields = ['stars']
+        widgets = {
+            'stars': forms.RadioSelect(attrs={'class': 'star-rating-input'})
+        }
+
+
+class QuizCommentForm(forms.ModelForm):
+    """Form for commenting on a quiz"""
+    
+    class Meta:
+        model = QuizComment
+        fields = ['text']
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Share your thoughts...',
+                'rows': 3
+            })
+        }
+        labels = {
+            'text': ''
+        }
 

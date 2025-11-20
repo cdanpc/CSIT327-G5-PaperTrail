@@ -1,0 +1,46 @@
+<!-- Visibility Toggle Component -->
+<div class="visibility-toggle-wrapper">
+    <div class="form-check form-switch">
+        <input 
+            class="form-check-input" 
+            type="checkbox" 
+            id="{{ toggle_id|default:'visibilityToggle' }}" 
+            {% if field_name == 'visibility' %}
+                {% if is_public or is_public == 'public' %}checked{% endif %}
+            {% else %}
+                {% if is_public %}checked{% endif %}
+            {% endif %}
+        >
+        <label class="form-check-label" for="{{ toggle_id|default:'visibilityToggle' }}" style="margin-left: 0.5rem; font-weight: 500;">
+            {{ label|default:'Make this public' }}
+        </label>
+    </div>
+    <input type="hidden" name="{{ field_name|default:'is_public' }}" id="{{ hidden_id|default:'id_is_public' }}" 
+        value="{% if field_name == 'visibility' %}{% if is_public or is_public == 'public' %}public{% else %}private{% endif %}{% else %}{{ is_public|yesno:'True,False' }}{% endif %}">
+    <div class="alert alert-info alert-soft-primary mt-3 mb-0">
+        <i class="fas fa-info-circle"></i>
+        <strong>Public:</strong> {{ public_description|default:'Visible to all users after verification.' }}
+        <strong>Private:</strong> {{ private_description|default:'Only visible to you.' }}
+    </div>
+</div>
+
+<script>
+(function() {
+    const toggle = document.getElementById('{{ toggle_id|default:"visibilityToggle" }}');
+    const hidden = document.getElementById('{{ hidden_id|default:"id_is_public" }}');
+    const fieldName = '{{ field_name|default:"is_public" }}';
+    
+    function sync() {
+        if (fieldName === 'visibility') {
+            // For flashcards: public/private string values
+            hidden.value = toggle.checked ? 'public' : 'private';
+        } else {
+            // For resources/quizzes: True/False string values
+            hidden.value = toggle.checked ? 'True' : 'False';
+        }
+    }
+    
+    toggle.addEventListener('change', sync);
+    sync();
+})();
+</script>

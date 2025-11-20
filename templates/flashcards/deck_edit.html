@@ -9,13 +9,8 @@
 {% endblock %}
 
 {% block header %}
-<div class="dashboard-title-section">
-  <h1 class="dashboard-title">Flashcards</h1>
-  <p class="dashboard-date">Update details for "{{ deck.title }}"</p>
-</div>
-<div class="dashboard-actions">
-  <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft btn-pill"><i class="fas fa-arrow-left"></i> Back</a>
-</div>
+{% url 'flashcards:deck_detail' deck.pk as detail_url %}
+{% include 'components/page_header.html' with page_title='Edit Flashcard Deck' back_url=detail_url show_moderate_btn=False %}
 {% endblock %}
 
 {% block content %}
@@ -29,22 +24,17 @@
           <div class="mb-3">{{ form.title.label_tag }}{{ form.title }}</div>
           <div class="mb-3">{{ form.description.label_tag }}{{ form.description }}</div>
           <div class="mb-3">{{ form.category.label_tag }}{{ form.category }}</div>
+          
+          <!-- Privacy Settings -->
           <div class="mb-4">
-            <h6 style="font-weight:700; color:#1a1a1a; margin-bottom:1rem; padding-bottom:.5rem; border-bottom:2px solid rgba(102,126,234,.1);">
-              <i class="fas fa-lock" style="color:#667eea;"></i> Privacy Settings
+            <h6 class="form-section-header">
+              <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
             </h6>
             <div class="soft-panel">
-              <div class="form-check form-switch" style="display:flex; align-items:center; gap:.5rem;">
-                <input class="form-check-input" type="checkbox" id="deckVisibilityToggleEdit" {% if deck.visibility == 'public' %}checked{% endif %}>
-                <label class="form-check-label" for="deckVisibilityToggleEdit" style="margin-left:.25rem; font-weight:600;">Make this deck public (visible to all students)</label>
-              </div>
-              <input type="hidden" name="visibility" id="deckVisibilityValueEdit" value="{{ deck.visibility }}">
-              <div class="alert alert-info alert-soft-primary mt-3 mb-0">
-                <i class="fas fa-info-circle"></i>
-                <strong>Public:</strong> Appears in "All Decks" after verification (professor uploads verify immediately). <strong>Private:</strong> Only visible to you under "My Decks".
-              </div>
+              {% include 'components/visibility_toggle.html' with toggle_id='deckVisibilityToggleEdit' hidden_id='deckVisibilityValueEdit' field_name='visibility' is_public=deck.visibility label='Make this deck public (visible to all students)' public_description='Appears in "All Decks" after verification (professor uploads verify immediately).' private_description='Only visible to you under "My Decks".' %}
             </div>
           </div>
+          
           <button type="submit" class="btn btn-gradient-primary"><i class="fas fa-save"></i> Save Changes</button>
           <a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft ms-2">Cancel</a>
         </form>
@@ -52,13 +42,4 @@
     </div>
   </div>
 </div>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const toggle = document.getElementById('deckVisibilityToggleEdit');
-  const hidden = document.getElementById('deckVisibilityValueEdit');
-  function sync(){ hidden.value = toggle.checked ? 'public' : 'private'; }
-  toggle.addEventListener('change', sync); sync();
-});
-</script>
 {% endblock %}

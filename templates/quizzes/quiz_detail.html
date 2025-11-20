@@ -84,12 +84,9 @@
                     <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn w-100 btn-outline-primary-soft">
                         <i class="fas fa-pen"></i> Edit Quiz
                     </a>
-                    <form method="post" action="{% url 'quizzes:quiz_delete' quiz.pk %}" onsubmit="return confirm('Delete this quiz? This action cannot be undone.');" class="w-100">
-                        {% csrf_token %}
-                        <button type="submit" class="btn w-100 btn-outline-primary-soft text-danger">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </form>
+                    <button type="button" class="btn w-100 btn-outline-primary-soft text-danger" onclick="showDeleteModal('{{ quiz.pk }}', '{{ quiz.title|escapejs }}', '{% url 'quizzes:quiz_delete' quiz.pk %}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
                 </div>
                 {% endif %}
             </div>
