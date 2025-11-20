@@ -1747,3 +1747,4 @@ def global_search_page(request):
     }
     return render(request, 'search/global_search_results.html', context)
 
+

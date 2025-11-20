@@ -1,0 +1,35 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Forum - Discussions{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forum.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="forum-container">
+  <div class="forum-header">
+    <h1 class="page-title">
+      <i class="fas fa-comments"></i> Forum
+    </h1>
+    <p class="page-subtitle">Explore CS/IT topics, share knowledge, and collaborate with peers</p>
+  </div>
+
+  <div class="forum-topics-grid" id="forumTopicsGrid">
+    <div class="loading-spinner" id="topicsLoading">
+      <i class="fas fa-spinner fa-spin"></i> Loading topics...
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/forum.js' %}"></script>
+<script>
+  // Initialize forum topics loading
+  document.addEventListener('DOMContentLoaded', function() {
+    ForumApp.loadTopics();
+  });
+</script>
+{% endblock %}

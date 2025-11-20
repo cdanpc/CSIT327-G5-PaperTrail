@@ -1,0 +1,42 @@
+{% comment %}
+Post Reply Form Component
+Uses unified textarea structure with .btn--primary
+{% endcomment %}
+
+<div class="forum-reply-form" id="replyForm" data-thread-id="{{ thread.id }}">
+  <div class="forum-reply-form__header">
+    <h4><i class="fas fa-comment-dots"></i> Post a Reply</h4>
+  </div>
+  
+  <form id="postReplyForm" class="forum-reply-form__form">
+    {% csrf_token %}
+    <input type="hidden" id="parentPostId" name="parent_post_id" value="">
+    
+    <div class="form-group">
+      <label for="replyContent" class="form-label">
+        Your Reply
+        <span class="form-label__required">*</span>
+      </label>
+      <textarea 
+        id="replyContent" 
+        name="content" 
+        class="form-control form-textarea" 
+        rows="6" 
+        placeholder="Write your reply... (Markdown and code blocks supported)"
+        required
+      ></textarea>
+      <small class="form-text">Supports Markdown formatting and code blocks</small>
+    </div>
+    
+    <div class="forum-reply-form__actions">
+      <button type="button" id="cancelReply" class="btn btn--secondary" style="display: none;">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn--primary">
+        <i class="fas fa-paper-plane"></i> Post Reply
+      </button>
+    </div>
+    
+    <div id="replyFormStatus" class="forum-reply-form__status" style="display: none;"></div>
+  </form>
+</div>

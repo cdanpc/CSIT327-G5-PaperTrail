@@ -296,53 +296,6 @@ class User(AbstractUser):
         return achievement
 
 
-class PasswordResetToken(models.Model):
-    """Model to store password reset tokens"""
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
-    email = models.EmailField(help_text='Email where the link was sent')
-    token = models.CharField(max_length=100, unique=True, help_text='Unique reset token', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(help_text='Token expires 1 hour after creation')
-    is_used = models.BooleanField(default=False, help_text='Whether the token has been used')
-    
-    class Meta:
-        db_table = 'accounts_password_reset_token'
-        verbose_name = 'Password Reset Token'
-        verbose_name_plural = 'Password Reset Tokens'
-        ordering = ['-created_at']
-    
-    def save(self, *args, **kwargs):
-        # Generate token if not set
-        if not self.token:
-            self.token = self.generate_token()
-        # Set expiry to 1 hour from creation
-        if not self.expires_at:
-            self.expires_at = timezone.now() + timedelta(hours=1)
-        super().save(*args, **kwargs)
-    
-    @staticmethod
-    def generate_token():
-        """Generate a secure random token"""
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=64))
-    
-    def is_valid(self):
-        """Check if the token is still valid (not expired and not used)"""
-        if self.is_used:
-            return False
-        if timezone.now() > self.expires_at:
-            return False
-        return True
-    
-    def mark_as_used(self):
-        """Mark the token as used"""
-        self.is_used = True
-        self.save()
-    
-    def __str__(self):
-        return f"Reset token for {self.user.get_display_name()} ({'Used' if self.is_used else 'Active' if self.is_valid() else 'Expired'})"
-
-
 class Badge(models.Model):
     """Model for profile badges"""
     

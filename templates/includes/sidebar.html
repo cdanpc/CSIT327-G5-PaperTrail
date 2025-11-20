@@ -58,6 +58,12 @@
                     <span class="nav-text">Quizzes</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'forum:home' %}" class="nav-link {% if 'forum' in request.path %}active{% endif %}" title="Forum">
+                    <i class="fas fa-comments"></i>
+                    <span class="nav-text">Forum</span>
+                </a>
+            </li>
            <li class="nav-item">
                 <a href="{% url 'bookmarks:bookmark_list' %}" class="nav-link {% if 'bookmarks' in request.path %}active{% endif %}" title="Bookmarks">
                     <i class="fas fa-star"></i>
