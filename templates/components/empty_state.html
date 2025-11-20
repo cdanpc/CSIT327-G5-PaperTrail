@@ -1,6 +1,6 @@
 {% comment %}
 Empty State Component
-Standardized message for empty lists
+Standardized message for empty lists with improved centering and visibility
 
 Usage:
   {% include 'components/empty_state.html' with 
@@ -12,14 +12,20 @@ Usage:
     primary_action_url='/resources/upload/'
     primary_action_icon='fas fa-upload'
   %}
+
+Features:
+- Fills available vertical space
+- Perfect horizontal and vertical centering
+- Dark, readable text colors
+- Larger, more prominent icons
 {% endcomment %}
 
 <div class="empty-state">
   <div class="empty-state__icon">
-    <i class="{{ icon|default:'fas fa-inbox' }}"></i>
+    <i class="{{ icon|default:'fas fa-inbox' }}" aria-hidden="true"></i>
   </div>
   
-  <h3 class="empty-state__title">{{ main_message }}</h3>
+  <h3 class="empty-state__title">{{ main_message|default:'Nothing here yet' }}</h3>
   
   {% if sub_message %}
   <p class="empty-state__message">{{ sub_message }}</p>

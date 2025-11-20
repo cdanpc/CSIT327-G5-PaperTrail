@@ -2,15 +2,17 @@
 {% load static %}
 
 {% block title %}{{ resource.title }}{% endblock %}
-{% block page_title %}
-<div class="d-flex align-items-center">
-    <a href="{% url 'resources:resource_list' %}" class="me-3 ms-2 text-decoration-none text-dark">
-        <h1 class="dashboard-title mb-0"><i class="fas fa-chevron-left"></i></h1>
-    </a>
-    <span class="ms-1">Resource Information</span>
-</div>
-{% endblock %}
+
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/resource_detail.js' %}?v=1.1"></script>
+{% endblock %}
+
+{% block header %}
+{% url 'resources:resource_list' as resources_url %}
+{% include 'components/page_header.html' with page_title='Resource Detail' back_url=resources_url show_moderate_btn=False %}
+{% endblock %}
 
 {% block content %}
 <div class="ri-container">
@@ -127,7 +129,9 @@
               </div>
             </div>
             {% if comment.user == user %}
-            <form method="post" action="{% url 'resources:delete_comment' comment.pk %}" onsubmit="return confirm('Delete this comment?');">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button></form>
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="showDeleteModal('{{ comment.pk }}', 'this comment', '{% url 'resources:delete_comment' comment.pk %}')">
+                <i class="fas fa-trash"></i>
+            </button>
             {% endif %}
           </div>
         </div>

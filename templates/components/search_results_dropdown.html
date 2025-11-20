@@ -1,0 +1,28 @@
+<!-- Search Results Dropdown Component -->
+<div id="searchResultsDropdown" class="search-results-dropdown" style="display: none;">
+    <div class="search-results-header">
+        <span class="search-results-title">Search Results</span>
+        <span id="searchResultsCount" class="search-results-count"></span>
+    </div>
+    
+    <div id="searchResultsContent" class="search-results-content">
+        <!-- Loading State -->
+        <div id="searchLoading" class="search-results-loading" style="display: none;">
+            <span class="spinner"></span> <span class="loading-text">Searching...</span>
+        </div>
+        
+        <!-- Empty State -->
+        <div id="searchEmpty" class="search-results-empty" style="display: none;">
+            <p class="empty-text">No results found</p>
+        </div>
+        
+        <!-- Results will be populated by JavaScript -->
+        <div id="searchResultsList"></div>
+    </div>
+    
+    <div class="search-results-footer">
+        <a href="#" id="viewAllSearchResults" class="search-results-view-all">
+            View all results <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</div>

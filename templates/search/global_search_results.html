@@ -1,0 +1,188 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Search{% endblock %}
+
+{% block header %}
+{% include 'components/page_header.html' with page_title='Search Results' search_value=query search_placeholder='Search...' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 mb-3">
+    <div class="card p-3">
+      {% if query %}
+        <h5 class="mb-1">Results for "{{ query }}"</h5>
+        <p class="text-muted small mb-0">{{ total_counts.resources|add:total_counts.quizzes|add:total_counts.flashcards }} total matches across all categories.</p>
+      {% else %}
+        <h5 class="mb-0">Enter a search term above to begin.</h5>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if query %}
+<div class="search-results-content">
+  <div class="category-results-box">
+    {% include 'components/search_results_section.html' with title='Resources' icon='file-alt' items=resources type='resource' %}
+  </div>
+  <div class="category-results-box">
+    {% include 'components/search_results_section.html' with title='Quizzes' icon='question-circle' items=quizzes type='quiz' %}
+  </div>
+  <div class="category-results-box">
+    {% include 'components/search_results_section.html' with title='Flashcard Decks' icon='layer-group' items=flashcards type='flashcard' %}
+  </div>
+</div>
+{% endif %}
+
+<style>
+/* Search Results Page Layout - Horizontal Equal-Height Cards */
+.search-results-content {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch; /* CRITICAL: Makes all children stretch to the height of the tallest item */
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.category-results-box {
+    flex-grow: 1;
+    flex-basis: 0; /* Ensures even distribution of space */
+    display: flex; /* Make the box itself a flex container */
+    flex-direction: column;
+}
+
+/* Search Section Styling */
+.search-section {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.04);
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Fill the parent container */
+}
+
+.search-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.search-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.search-section-count {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.search-section-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-grow: 1; /* Allow list to grow and fill space */
+}
+
+.search-item {
+    margin: 0;
+}
+
+.search-item-link {
+    display: flex;
+    gap: 14px;
+    text-decoration: none;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fafafa;
+    align-items: flex-start;
+    transition: background .15s, border-color .15s;
+}
+
+.search-item-link:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.search-item-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.search-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-item-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: #1f2937;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search-item-desc {
+    font-size: 13px;
+    color: #4b5563;
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.search-item-meta {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.search-item-badge {
+    color: #10b981;
+    font-size: 16px;
+    align-self: center;
+}
+
+.search-section-empty {
+    padding: 28px 12px;
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+    flex-grow: 1; /* Allow empty state to grow and center within the container */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive: Stack vertically on smaller screens */
+@media (max-width: 992px) {
+    .search-results-content {
+        flex-direction: column;
+    }
+    
+    .category-results-box {
+        flex-basis: auto;
+    }
+}
+</style>
+{% endblock %}

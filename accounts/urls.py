@@ -23,6 +23,9 @@ urlpatterns = [
     path('change-personal-email/', views.change_personal_email, name='change_personal_email'),
     path('change-university-email/', views.change_university_email, name='change_university_email'),
     
+    # Notifications
+    path('notifications/', views.notifications_page, name='notifications'),
+    
     # Session Management (Phase 5.3)
     path('sessions/view/', views.view_sessions, name='view_sessions'),
     path('sessions/logout-all/', views.logout_all_sessions, name='logout_all_sessions'),
@@ -37,6 +40,7 @@ urlpatterns = [
     path('export-data/', views.export_user_data, name='export_data'),
     path('delete-account/', views.delete_account, name='delete_account'),
     path('cancel-deletion/', views.cancel_deletion, name='cancel_deletion'),
+    
     # Study Reminders
     path('reminders/add/', views.add_study_reminder, name='add_study_reminder'),
     path('reminders/toggle/<int:pk>/', views.toggle_study_reminder, name='toggle_study_reminder'),

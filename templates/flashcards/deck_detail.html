@@ -1,14 +1,12 @@
 {% extends 'base_dashboard.html' %}
 {% load static humanize %}
-{% block title %}Manage Deck - {{ deck.title }}{% endblock %}
-{% block page_title %}
-<div class="d-flex align-items-center">
-    <a href="{% url 'flashcards:deck_list' %}" class="me-3 ms-2 text-decoration-none text-dark">
-        <h1 class="dashboard-title mb-0"><i class="fas fa-chevron-left"></i></h1>
-    </a>
-    <span class="ms-1">Flashcard Detail</span>
-</div>
+{% block title %}{{ deck.title }}{% endblock %}
+
+{% block header %}
+{% url 'flashcards:deck_list' as decks_url %}
+{% include 'components/page_header.html' with page_title='Flashcard Detail' back_url=decks_url show_moderate_btn=False %}
 {% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/flashcards.css' %}?v=1.1">
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
@@ -41,7 +39,7 @@
                     <button type="submit" class="fc-icon-btn-round" title="Bookmark Deck">{% if deck.is_bookmarked %}<i class="fas fa-bookmark"></i>{% else %}<i class="far fa-bookmark"></i>{% endif %}</button>
                 </form>
                 <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="fc-icon-btn-round" title="Edit Deck"><i class="fas fa-edit"></i></a>
-                <button type="button" class="fc-icon-btn-round" title="Delete Deck" data-bs-toggle="modal" data-bs-target="#deckDeleteModal"><i class="fas fa-trash"></i></button>
+                <button type="button" class="fc-icon-btn-round" title="Delete Deck" onclick="showDeleteModal('{{ deck.pk }}', '{{ deck.title|escapejs }}', '{% url 'flashcards:deck_delete' deck.pk %}')"><i class="fas fa-trash"></i></button>
             </div>
         </div>
         <div class="fc-detail-meta">Category: {{ deck.get_category_display }} | {{ deck.cards_count }} card{% if deck.cards_count != 1 %}s{% endif %} | {% if deck.last_studied_at %}Last studied {{ deck.last_studied_at|timesince }} ago{% else %}Not studied yet{% endif %}</div>
@@ -97,10 +95,9 @@
                                     </div>
                                 </div>
                                 {% if c.user == user %}
-                                <form method="post" action="{% url 'flashcards:delete_deck_comment' deck.pk c.pk %}" onsubmit="return confirm('Delete this comment?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="showDeleteModal('{{ c.pk }}', 'this comment', '{% url 'flashcards:delete_deck_comment' deck.pk c.pk %}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                                 {% endif %}
                             </div>
                         </div>
@@ -128,7 +125,7 @@
                             </div>
                             <div class="fc-manage-actions">
                                 <a href="{% url 'flashcards:card_edit' deck.pk card.pk %}" class="fc-manage-action-btn" title="Edit Card"><i class="fas fa-edit"></i></a>
-                                <button type="button" class="fc-manage-action-btn" title="Delete Card" data-bs-toggle="modal" data-bs-target="#deleteCardModal-{{ card.pk }}"><i class="fas fa-trash"></i></button>
+                                <button type="button" class="fc-manage-action-btn" title="Delete Card" onclick="showDeleteModal('{{ card.pk }}', 'Card: {{ card.front_text|truncatechars:30|escapejs }}', '{% url 'flashcards:card_delete' deck.pk card.pk %}')"><i class="fas fa-trash"></i></button>
                             </div>
                         </li>
                         {% endfor %}
@@ -169,58 +166,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-<!-- Deck Delete Modal -->
-<div class="modal fade" id="deckDeleteModal" tabindex="-1" aria-labelledby="deckDeleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deckDeleteModalLabel"><i class="fas fa-trash"></i> Delete Deck</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-2">This action cannot be undone. All cards in <strong>{{ deck.title }}</strong> will be permanently removed.</p>
-                <ul class="list-unstyled small text-muted mb-0">
-                    <li><strong>Cards:</strong> {{ deck.cards_count }}</li>
-                    <li><strong>Category:</strong> {{ deck.get_category_display }}</li>
-                    <li><strong>Visibility:</strong> {% if deck.visibility == 'private' %}Private{% else %}Public{% endif %}</li>
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form method="post" action="{% url 'flashcards:deck_delete' deck.pk %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete Deck</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Card Delete Modals -->
-{% for card in cards %}
-<div class="modal fade" id="deleteCardModal-{{ card.pk }}" tabindex="-1" aria-labelledby="deleteCardModalLabel-{{ card.pk }}" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteCardModalLabel-{{ card.pk }}"><i class="fas fa-trash"></i> Delete Card</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-2">Are you sure you want to delete this card from <strong>{{ deck.title }}</strong>? This cannot be undone.</p>
-                <div class="small text-muted pre-wrap">
-                    <strong>Front:</strong> {{ card.front_text|truncatechars:140 }}<br>
-                    <strong>Back:</strong> {{ card.back_text|truncatechars:140 }}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form method="post" action="{% url 'flashcards:card_delete' deck.pk card.pk %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete Card</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endfor %}
 {% endblock %}

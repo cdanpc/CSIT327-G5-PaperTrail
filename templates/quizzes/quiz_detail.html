@@ -1,27 +1,15 @@
 {% extends 'base_dashboard.html' %}
 {% load static %}
 
-{% block title %}Quizzes{% endblock %}
+{% block title %}{{ quiz.title }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/quizzes.css' %}?v=1.0">
 {% endblock %}
 
 {% block header %}
-<div class="dashboard-header">
-    <div class="dashboard-title-section">
-        <h1 class="dashboard-title">Quizzes</h1>
-        <p class="dashboard-date">{{ quiz.title }} • Created by {{ quiz.creator.get_display_name }}</p>
-    </div>
-    <div class="dashboard-actions">
-        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary-soft">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
-        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
-            <i class="fas fa-bell"></i>
-        </button>
-    </div>
-</div>
+{% url 'quizzes:quiz_list' as quizzes_url %}
+{% include 'components/page_header.html' with page_title='Quiz Detail' back_url=quizzes_url show_moderate_btn=False %}
 {% endblock %}
 
 {% block content %}
@@ -96,12 +84,9 @@
                     <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn w-100 btn-outline-primary-soft">
                         <i class="fas fa-pen"></i> Edit Quiz
                     </a>
-                    <form method="post" action="{% url 'quizzes:quiz_delete' quiz.pk %}" onsubmit="return confirm('Delete this quiz? This action cannot be undone.');" class="w-100">
-                        {% csrf_token %}
-                        <button type="submit" class="btn w-100 btn-outline-primary-soft text-danger">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </form>
+                    <button type="button" class="btn w-100 btn-outline-primary-soft text-danger" onclick="showDeleteModal('{{ quiz.pk }}', '{{ quiz.title|escapejs }}', '{% url 'quizzes:quiz_delete' quiz.pk %}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
                 </div>
                 {% endif %}
             </div>

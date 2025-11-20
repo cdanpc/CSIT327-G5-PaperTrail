@@ -4,33 +4,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block header %}
-<div class="dashboard-header">
-    <div class="dashboard-title-section">
-    <h1 class="dashboard-title">Welcome back, {{ user.first_name }}!</h1>
-    <p class="dashboard-date">{{ dashboard_date_str }}</p>
-    </div>
-    {% block header_actions %}
-    <div class="dashboard-actions">
-        <div class="search-box-inline">
-            <i class="fas fa-search"></i>
-            <input type="text" class="form-control" placeholder="Search..." aria-label="Search">
-        </div>
-        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
-            <i class="fas fa-bell"></i>
-        </button>
-        <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-3 profile-link" title="Profile">
-            {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
-            {% else %}
-                <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
-                    <i class="fas fa-user"></i>
-                </span>
-            {% endif %}
-        </a>
-    </div>
-    {% endblock %}
-    
-</div>
+{% include 'components/page_header.html' with page_title="Welcome back, "|add:user.first_name|add:"!" page_subtitle=dashboard_date_str search_placeholder="Search..." %}
 {% endblock %}
 
 <!-- In-progress Toast -->
@@ -131,11 +105,11 @@
                     <input type="radio" class="btn-check" name="metricType" id="metricUploads" value="uploads" checked autocomplete="off">
                     <label class="btn metric-btn metric-uploads" for="metricUploads" title="Uploads"><span class="metric-dot uploads"></span>Uploads</label>
                     <input type="radio" class="btn-check" name="metricType" id="metricQuizzes" value="quizzes" autocomplete="off">
-                    <label class="btn metric-btn metric-quizzes" for="metricQuizzes" title="Quizzes"><span class="metric-dot quizzes"></span>Quizzes</label>
-                    <input type="radio" class="btn-check" name="metricType" id="metricActivity" value="activity" autocomplete="off">
-                    <label class="btn metric-btn metric-activity" for="metricActivity" title="Activity"><span class="metric-dot activity"></span>Activity</label>
-                    <input type="radio" class="btn-check" name="metricType" id="metricFlashcards" value="flashcards" autocomplete="off">
-                    <label class="btn metric-btn metric-flashcards" for="metricFlashcards" title="Flashcards"><span class="metric-dot flashcards"></span>Flashcards</label>
+                    <label class="btn metric-btn metric-quizzes" for="metricQuizzes" title="Quizzes (Created vs Attempted)"><span class="metric-dot quizzes"></span>Quizzes</label>
+                    <input type="radio" class="btn-check" name="metricType" id="metricDecks" value="decks" autocomplete="off">
+                    <label class="btn metric-btn metric-flashcards" for="metricDecks" title="Decks (Cards Created vs Reviewed)"><span class="metric-dot flashcards"></span>Decks</label>
+                    <input type="radio" class="btn-check" name="metricType" id="metricBookmarks" value="bookmarks" autocomplete="off">
+                    <label class="btn metric-btn metric-activity" for="metricBookmarks" title="Bookmarks Activity"><span class="metric-dot activity"></span>Bookmarks</label>
                     <input type="radio" class="btn-check" name="metricType" id="metricAll" value="all" autocomplete="off">
                     <label class="btn metric-btn metric-all" for="metricAll" title="Show All"><span class="metric-dot multi"></span>All</label>
                 </div>
