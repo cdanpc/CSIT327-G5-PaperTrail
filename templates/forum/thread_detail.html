@@ -7,7 +7,12 @@
 <link rel="stylesheet" href="{% static 'css/forum.css' %}">
 {% endblock %}
 
+{% block header %}
+{% include 'components/page_header.html' with page_title=page_title back_url=back_url show_notifications=True show_profile=True search_placeholder='Search forum...' %}
+{% endblock %}
+
 {% block content %}
+
 <div class="forum-container">
   <div class="forum-breadcrumb">
     <a href="{% url 'forum:home' %}"><i class="fas fa-home"></i> Forum</a>
@@ -20,7 +25,6 @@
   <div class="forum-thread-detail">
     <!-- Main Thread Post -->
     <div class="forum-thread-main">
-      <h1 class="forum-thread-main__title">{{ thread.title }}</h1>
       
       <div class="forum-post forum-post--main">
         <div class="forum-post__header">

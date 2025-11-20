@@ -4,7 +4,24 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.db.models import Count, Q
+from django.urls import reverse
 import json
+
+
+def api_login_required(view_func):
+    """
+    Custom decorator for API endpoints that returns JSON error instead of redirecting to login
+    """
+    def wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'success': False,
+                'error': 'Authentication required. Please log in.',
+                'redirect': '/accounts/login/'
+            }, status=401)
+        return view_func(request, *args, **kwargs)
+    return wrapped_view
+
 
 from .models import ForumTopic, ForumThread, ForumPost
 
@@ -16,45 +33,132 @@ from .models import ForumTopic, ForumThread, ForumPost
 @login_required
 def forum_home(request):
     """Main forum page showing all topics"""
-    return render(request, 'forum/forum_home.html')
+    context = {
+        'page_title': 'Forum',
+        'page_subtitle': 'Explore CS/IT topics, share knowledge, and collaborate with peers'
+    }
+    return render(request, 'forum/forum_home.html', context)
 
 
 @login_required
 def topic_threads(request, topic_id):
     """Show all threads for a specific topic"""
     topic = get_object_or_404(ForumTopic, pk=topic_id)
-    return render(request, 'forum/topic_threads.html', {'topic': topic})
+    context = {
+        'topic': topic,
+        'page_title': topic.name,
+        'page_subtitle': topic.description,
+        'back_url': reverse('forum:home')
+    }
+    return render(request, 'forum/topic_threads.html', context)
 
 
 @login_required
 def thread_detail(request, thread_id):
     """Show thread with all posts/replies"""
     thread = get_object_or_404(ForumThread, pk=thread_id)
-    return render(request, 'forum/thread_detail.html', {'thread': thread})
+    context = {
+        'thread': thread,
+        'page_title': thread.title,
+        'back_url': reverse('forum:topic_threads', args=[thread.topic.id])
+    }
+    return render(request, 'forum/thread_detail.html', context)
 
 
 # ============================================================================
 # API Endpoints (JSON Responses)
 # ============================================================================
 
-@login_required
+@api_login_required
 @require_http_methods(["GET"])
 def api_get_topics(request):
     """
     API: GET /api/forum/topics/
     Fetch list of all forum topics with thread counts
     """
-    topics = ForumTopic.objects.annotate(
-        thread_count=Count('threads')
-    ).values('id', 'name', 'description', 'thread_count')
-    
-    return JsonResponse({
-        'success': True,
-        'topics': list(topics)
-    })
+    try:
+        topics = ForumTopic.objects.annotate(
+            thread_count=Count('threads')
+        ).values('id', 'name', 'description', 'thread_count')
+        
+        topics_list = list(topics)
+        print(f"API: Returning {len(topics_list)} topics")  # Debug log
+        
+        return JsonResponse({
+            'success': True,
+            'topics': topics_list,
+            'total_topics': len(topics_list)
+        })
+    except Exception as e:
+        print(f"Error in api_get_topics: {e}")  # Debug log
+        return JsonResponse({
+            'success': False,
+            'error': f'Failed to load topics: {str(e)}',
+            'topics': []
+        }, status=500)
 
 
-@login_required
+@api_login_required
+@require_http_methods(["GET"])
+def api_get_topic_threads(request, topic_id):
+    """
+    API: GET /api/forum/topic/<id>/threads/
+    Fetch all threads for a specific topic
+    """
+    try:
+        topic = get_object_or_404(ForumTopic, pk=topic_id)
+        
+        threads = topic.threads.select_related('starter').annotate(
+            reply_count=Count('posts')
+        ).order_by('-last_activity_at')
+        
+        threads_data = []
+        for thread in threads:
+            try:
+                starter_first = getattr(thread.starter, 'first_name', '') or ''
+                starter_last = getattr(thread.starter, 'last_name', '') or ''
+                starter_username = getattr(thread.starter, 'username', 'Unknown')
+                full_name = f"{starter_first} {starter_last}".strip() or starter_username
+                
+                threads_data.append({
+                    'id': thread.id,
+                    'title': thread.title or 'Untitled',
+                    'content': (thread.content[:200] + '...') if len(thread.content) > 200 else thread.content,
+                    'starter': {
+                        'id': thread.starter.id,
+                        'username': starter_username,
+                        'full_name': full_name
+                    },
+                    'reply_count': thread.reply_count,
+                    'created_at': thread.created_at.isoformat(),
+                    'last_activity_at': thread.last_activity_at.isoformat()
+                })
+            except Exception as thread_error:
+                print(f"Error serializing thread {thread.id}: {thread_error}")
+                continue
+        
+        print(f"API: Returning {len(threads_data)} threads for topic {topic_id}")  # Debug log
+        
+        return JsonResponse({
+            'success': True,
+            'topic': {
+                'id': topic.id,
+                'name': topic.name,
+                'description': topic.description
+            },
+            'threads': threads_data,
+            'total_threads': len(threads_data)
+        })
+    except Exception as e:
+        print(f"Error in api_get_topic_threads: {e}")  # Debug log
+        return JsonResponse({
+            'success': False,
+            'error': f'Failed to load threads: {str(e)}',
+            'threads': []
+        }, status=500)
+
+
+@api_login_required
 @require_http_methods(["POST"])
 def api_create_thread(request):
     """
@@ -107,58 +211,84 @@ def api_create_thread(request):
         }, status=500)
 
 
-@login_required
+@api_login_required
 @require_http_methods(["GET"])
 def api_get_thread_posts(request, thread_id):
     """
     API: GET /api/forum/thread/<id>/posts/
     Fetch all posts/replies for a specific thread
     """
-    thread = get_object_or_404(ForumThread, pk=thread_id)
-    
-    # Get all posts with author info
-    posts = thread.posts.select_related('author', 'parent_post').all()
-    
-    posts_data = []
-    for post in posts:
-        posts_data.append({
-            'id': post.id,
-            'content': post.content,
-            'author': {
-                'id': post.author.id,
-                'username': post.author.username,
-                'full_name': f"{post.author.first_name} {post.author.last_name}".strip() or post.author.username
+    try:
+        thread = get_object_or_404(ForumThread, pk=thread_id)
+        
+        # Get all posts with author info
+        posts = thread.posts.select_related('author', 'parent_post').all()
+        
+        posts_data = []
+        for post in posts:
+            try:
+                # Defensive data extraction
+                author_first = getattr(post.author, 'first_name', '') or ''
+                author_last = getattr(post.author, 'last_name', '') or ''
+                author_username = getattr(post.author, 'username', 'Unknown')
+                full_name = f"{author_first} {author_last}".strip() or author_username
+                
+                posts_data.append({
+                    'id': post.id,
+                    'content': post.content or '',
+                    'author': {
+                        'id': post.author.id,
+                        'username': author_username,
+                        'full_name': full_name
+                    },
+                    'parent_post_id': post.parent_post.id if post.parent_post else None,
+                    'reply_count': post.get_reply_count(),
+                    'created_at': post.created_at.isoformat(),
+                    'updated_at': post.updated_at.isoformat()
+                })
+            except Exception as post_error:
+                # Log but don't fail the entire request
+                print(f"Error serializing post {post.id}: {post_error}")
+                continue
+        
+        # Defensive data extraction for thread
+        starter_first = getattr(thread.starter, 'first_name', '') or ''
+        starter_last = getattr(thread.starter, 'last_name', '') or ''
+        starter_username = getattr(thread.starter, 'username', 'Unknown')
+        starter_full_name = f"{starter_first} {starter_last}".strip() or starter_username
+        
+        return JsonResponse({
+            'success': True,
+            'thread': {
+                'id': thread.id,
+                'title': thread.title or 'Untitled',
+                'content': thread.content or '',
+                'starter': {
+                    'id': thread.starter.id,
+                    'username': starter_username,
+                    'full_name': starter_full_name
+                },
+                'topic': {
+                    'id': thread.topic.id,
+                    'name': thread.topic.name
+                },
+                'created_at': thread.created_at.isoformat(),
+                'last_activity_at': thread.last_activity_at.isoformat()
             },
-            'parent_post_id': post.parent_post.id if post.parent_post else None,
-            'reply_count': post.get_reply_count(),
-            'created_at': post.created_at.isoformat(),
-            'updated_at': post.updated_at.isoformat()
+            'posts': posts_data,
+            'total_replies': len(posts_data)
         })
-    
-    return JsonResponse({
-        'success': True,
-        'thread': {
-            'id': thread.id,
-            'title': thread.title,
-            'content': thread.content,
-            'starter': {
-                'id': thread.starter.id,
-                'username': thread.starter.username,
-                'full_name': f"{thread.starter.first_name} {thread.starter.last_name}".strip() or thread.starter.username
-            },
-            'topic': {
-                'id': thread.topic.id,
-                'name': thread.topic.name
-            },
-            'created_at': thread.created_at.isoformat(),
-            'last_activity_at': thread.last_activity_at.isoformat()
-        },
-        'posts': posts_data,
-        'total_replies': len(posts_data)
-    })
+    except Exception as e:
+        # Return error response instead of crashing
+        return JsonResponse({
+            'success': False,
+            'error': f'Failed to load posts: {str(e)}',
+            'posts': [],
+            'total_replies': 0
+        }, status=500)
 
 
-@login_required
+@api_login_required
 @require_http_methods(["POST"])
 def api_create_post(request, thread_id):
     """
@@ -192,16 +322,22 @@ def api_create_post(request, thread_id):
         # Update thread's last activity
         thread.update_last_activity()
         
+        # Defensive data extraction for response
+        author_first = getattr(post.author, 'first_name', '') or ''
+        author_last = getattr(post.author, 'last_name', '') or ''
+        author_username = getattr(post.author, 'username', 'You')
+        full_name = f"{author_first} {author_last}".strip() or author_username
+        
         return JsonResponse({
             'success': True,
             'message': 'Reply posted successfully',
             'post': {
                 'id': post.id,
-                'content': post.content,
+                'content': post.content or '',
                 'author': {
                     'id': post.author.id,
-                    'username': post.author.username,
-                    'full_name': f"{post.author.first_name} {post.author.last_name}".strip() or post.author.username
+                    'username': author_username,
+                    'full_name': full_name
                 },
                 'parent_post_id': post.parent_post.id if post.parent_post else None,
                 'reply_count': 0,

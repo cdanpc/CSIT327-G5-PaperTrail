@@ -7,14 +7,13 @@
 <link rel="stylesheet" href="{% static 'css/forum.css' %}">
 {% endblock %}
 
+{% block header %}
+{% include 'components/page_header.html' with page_title=page_title page_subtitle=page_subtitle show_notifications=True show_profile=True search_placeholder='Search forum...' %}
+{% endblock %}
+
 {% block content %}
+
 <div class="forum-container">
-  <div class="forum-header">
-    <h1 class="page-title">
-      <i class="fas fa-comments"></i> Forum
-    </h1>
-    <p class="page-subtitle">Explore CS/IT topics, share knowledge, and collaborate with peers</p>
-  </div>
 
   <div class="forum-topics-grid" id="forumTopicsGrid">
     <div class="loading-spinner" id="topicsLoading">

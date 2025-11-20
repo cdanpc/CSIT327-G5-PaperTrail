@@ -7,19 +7,17 @@
 <link rel="stylesheet" href="{% static 'css/forum.css' %}">
 {% endblock %}
 
+{% block header %}
+{% include 'components/page_header.html' with page_title=page_title page_subtitle=page_subtitle back_url=back_url show_notifications=True show_profile=True search_placeholder='Search threads...' %}
+{% endblock %}
+
 {% block content %}
+
 <div class="forum-container">
   <div class="forum-breadcrumb">
     <a href="{% url 'forum:home' %}"><i class="fas fa-home"></i> Forum</a>
     <i class="fas fa-chevron-right"></i>
     <span>{{ topic.name }}</span>
-  </div>
-
-  <div class="forum-header">
-    <h1 class="page-title">
-      <i class="fas fa-layer-group"></i> {{ topic.name }}
-    </h1>
-    <p class="page-subtitle">{{ topic.description }}</p>
   </div>
 
   <div class="forum-actions">
