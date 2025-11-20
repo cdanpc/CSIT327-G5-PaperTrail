@@ -164,8 +164,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
  
-# WhiteNoise static files storage (no manifest required)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+# WhiteNoise static files storage (use manifest for cache busting)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
  
 # Honor X-Forwarded-Proto header set by Render's proxy
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
