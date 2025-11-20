@@ -122,16 +122,24 @@ class CustomAuthenticationForm(AuthenticationForm):
         if username_input and password:
             user = None
             stud_id_pattern = r'^(?:\d{2}-\d{4}-\d{3}|\d{4})$'
-            if re.fullmatch(stud_id_pattern, username_input):
-                try:
-                    user = User.objects.get(stud_id=username_input)
-                except User.DoesNotExist:
-                    user = None
-            elif '@' in username_input and username_input.lower().endswith('@cit.edu'):
-                try:
-                    user = User.objects.get(univ_email=username_input.lower())
-                except User.DoesNotExist:
-                    user = None
+            try:
+                if re.fullmatch(stud_id_pattern, username_input):
+                    try:
+                        user = User.objects.get(stud_id=username_input)
+                    except User.DoesNotExist:
+                        user = None
+                elif '@' in username_input and username_input.lower().endswith('@cit.edu'):
+                    try:
+                        user = User.objects.get(univ_email=username_input.lower())
+                    except User.DoesNotExist:
+                        user = None
+            except Exception as e:
+                # Catch any database errors
+                raise ValidationError(
+                    'An error occurred while processing your login. Please try again.',
+                    code='database_error'
+                )
+            
             if not user:
                 raise ValidationError(
                     self.error_messages['invalid_login'],

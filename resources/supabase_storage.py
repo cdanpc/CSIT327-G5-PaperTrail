@@ -16,12 +16,19 @@ class SupabaseStorage:
     def __init__(self):
         """Initialize Supabase client"""
         # Check if Supabase credentials are configured
-        supabase_url = getattr(settings, 'SUPABASE_URL', None)
-        supabase_key = getattr(settings, 'SUPABASE_SERVICE_KEY', None)
+        supabase_url = getattr(settings, 'SUPABASE_URL', None) or None
+        supabase_key = getattr(settings, 'SUPABASE_SERVICE_KEY', None) or None
         
+        # Only create client if both credentials are provided and non-empty
         if supabase_url and supabase_key:
-            self.supabase: Client = create_client(supabase_url, supabase_key)
-            self.bucket_name = getattr(settings, 'SUPABASE_BUCKET', None)
+            try:
+                self.supabase: Client = create_client(supabase_url, supabase_key)
+                self.bucket_name = getattr(settings, 'SUPABASE_BUCKET', None)
+            except Exception as e:
+                # If client creation fails, disable Supabase
+                print(f"Warning: Failed to initialize Supabase client: {e}")
+                self.supabase = None
+                self.bucket_name = None
         else:
             # Supabase not configured, set to None
             self.supabase = None
