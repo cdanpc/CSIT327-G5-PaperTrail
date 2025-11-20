@@ -28,6 +28,23 @@
                         Account Settings
                     </h1>
                     <p class="settings-subtitle">Manage your account preferences and security</p>
+                    
+                    <!-- Role Badge -->
+                    <div style="margin-top: 1rem;">
+                        {% if user.is_staff or user.is_superuser %}
+                            <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 8px;">
+                                <i class="fas fa-crown"></i> Admin
+                            </span>
+                        {% elif user.is_professor %}
+                            <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 8px;">
+                                <i class="fas fa-chalkboard-teacher"></i> Professor
+                            </span>
+                        {% else %}
+                            <span class="badge" style="background: rgba(108, 117, 125, 0.2); color: #6c757d; padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 8px;">
+                                <i class="fas fa-user-graduate"></i> Student
+                            </span>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <!-- Settings Content -->

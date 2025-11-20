@@ -88,7 +88,9 @@
                                         {% endif %}
                                         
                                         <span class="profile-role-badge">
-                                            {% if user.is_professor %}
+                                            {% if user.is_staff or user.is_superuser %}
+                                            <i class="fas fa-crown"></i> Admin
+                                            {% elif user.is_professor %}
                                             <i class="fas fa-chalkboard-teacher"></i> Professor
                                             {% else %}
                                             <i class="fas fa-user-graduate"></i> Student

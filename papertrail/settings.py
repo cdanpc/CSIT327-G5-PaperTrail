@@ -5,14 +5,18 @@ from dotenv import load_dotenv
 import dj_database_url
  
 BASE_DIR = Path(__file__).resolve().parent.parent
-ON_RENDER = os.environ.get("RENDER") == "true"
- 
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+
+# Load .env in local development (Render sets RENDER=true in its environment)
+ON_RENDER = os.environ.get("RENDER", "") == "true"
 if not ON_RENDER:
     load_dotenv()
- 
+
+# Core settings from environment (fall back only for dev convenience)
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY") or os.environ.get("SECRET_KEY") or "unsafe-dev-key"
-DEBUG = os.environ.get("DJANGO_DEBUG", os.environ.get("DEBUG", "True")).lower() == "true"
- 
+DEBUG = os.environ.get("DJANGO_DEBUG", os.environ.get("DEBUG", "False")).lower() == "true"
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
  
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1")).split(',') if h.strip()]

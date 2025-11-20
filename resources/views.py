@@ -293,8 +293,8 @@ def resource_list_api(request):
 
 @login_required
 def moderation_list(request):
-    """List pending resources, quizzes, and flashcards for professors to review"""
-    if not getattr(request.user, 'is_professor', False):
+    """List pending resources, quizzes, and flashcards for professors and admins to review"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to access moderation.')
         return redirect('resources:resource_list')
     
@@ -315,8 +315,8 @@ def moderation_list(request):
 
 @login_required
 def verified_resources_list(request):
-    """List recently verified resources for professors"""
-    if not getattr(request.user, 'is_professor', False):
+    """List recently verified resources for professors and admins"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('resources:resource_list')
     verified = Resource.objects.filter(
@@ -328,8 +328,8 @@ def verified_resources_list(request):
 
 @login_required
 def approve_resource(request, pk):
-    """Approve and verify a resource (professors only)"""
-    if not getattr(request.user, 'is_professor', False):
+    """Approve and verify a resource (professors and admins)"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to perform this action.')
         return redirect('resources:resource_list')
     resource = get_object_or_404(Resource, pk=pk)
@@ -350,8 +350,8 @@ def approve_resource(request, pk):
 
 @login_required
 def reject_resource(request, pk):
-    """Reject a resource (professors only)"""
-    if not getattr(request.user, 'is_professor', False):
+    """Reject a resource (professors and admins)"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to perform this action.')
         return redirect('resources:resource_list')
     resource = get_object_or_404(Resource, pk=pk)

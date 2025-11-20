@@ -15,7 +15,7 @@ from .forms import (
     ProfileUpdateForm,
     CustomPasswordChangeForm
 )
-from .models import User, UserStats, UserPreferences, Notification
+from .models import User, UserStats, UserPreferences, UserSession, Notification
 from resources.models import Resource, Bookmark, Tag, Rating, Comment
 from flashcards.models import Deck, Card
 from flashcards import services as flashcard_services
@@ -668,6 +668,157 @@ def admin_dashboard(request):
         'recent_users': recent_users,
     }
     return render(request, 'accounts/admin_dashboard.html', context)
+
+
+@login_required
+def promote_to_professor(request):
+    """Promote a student to professor role"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect(request.user.get_dashboard_url())
+    
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        try:
+            user = User.objects.get(id=user_id)
+            
+            # Check if user is already a professor
+            if user.is_professor:
+                messages.warning(request, f'{user.get_display_name()} is already a professor.')
+            else:
+                user.is_professor = True
+                user.save()
+                messages.success(request, f'{user.get_display_name()} has been promoted to professor!')
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+        
+        return redirect('accounts:admin_dashboard')
+    
+    # GET request - return list of students who can be promoted
+    students = User.objects.filter(
+        is_professor=False,
+        is_staff=False,
+        is_superuser=False,
+        is_banned=False
+    ).order_by('first_name', 'last_name')
+    
+    context = {
+        'students': students,
+    }
+    return render(request, 'accounts/promote_professor.html', context)
+
+
+@login_required
+def demote_professor(request, user_id):
+    """Demote a professor to student role"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect(request.user.get_dashboard_url())
+    
+    try:
+        user = User.objects.get(id=user_id)
+        
+        # Check if user is a professor
+        if not user.is_professor:
+            messages.warning(request, f'{user.get_display_name()} is not a professor.')
+        else:
+            user.is_professor = False
+            user.save()
+            messages.success(request, f'{user.get_display_name()} has been demoted to student!')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+    
+    # Redirect back to manage users page if referrer is there
+    return redirect('accounts:manage_users')
+
+
+@login_required
+def manage_users(request):
+    """Manage all users - view, promote, and demote"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect(request.user.get_dashboard_url())
+    
+    # Get all non-admin users
+    all_users = User.objects.filter(is_staff=False, is_superuser=False).order_by('-date_joined')
+    
+    # Optional: Add search/filter functionality
+    search_query = request.GET.get('search', '')
+    role_filter = request.GET.get('role', '')  # 'professor', 'student', or empty for all
+    
+    if search_query:
+        all_users = all_users.filter(
+            models.Q(first_name__icontains=search_query) |
+            models.Q(last_name__icontains=search_query) |
+            models.Q(email__icontains=search_query) |
+            models.Q(univ_email__icontains=search_query)
+        )
+    
+    if role_filter == 'professor':
+        all_users = all_users.filter(is_professor=True)
+    elif role_filter == 'student':
+        all_users = all_users.filter(is_professor=False)
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(all_users, 20)  # Show 20 users per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'role_filter': role_filter,
+        'total_users': User.objects.filter(is_staff=False, is_superuser=False).count(),
+        'total_professors': User.objects.filter(is_professor=True, is_staff=False, is_superuser=False).count(),
+        'total_students': User.objects.filter(is_professor=False, is_staff=False, is_superuser=False).count(),
+    }
+    return render(request, 'accounts/manage_users.html', context)
+
+
+@login_required
+def online_users(request):
+    """View online users - only for admin/superuser"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect(request.user.get_dashboard_url())
+    
+    from datetime import timedelta
+    from django.utils import timezone
+    
+    # Get users who have been active in the last 5 minutes using UserSession for real-time tracking
+    time_threshold = timezone.now() - timedelta(minutes=5)
+    
+    # Get active sessions from the last 5 minutes
+    active_sessions = UserSession.objects.filter(
+        last_activity__gte=time_threshold,
+        user__is_staff=False,
+        user__is_superuser=False
+    ).values_list('user_id', flat=True).distinct()
+    
+    # Get the users from active sessions, ordered by their most recent activity
+    online_users_list = User.objects.filter(
+        id__in=active_sessions
+    ).annotate(
+        last_activity_time=models.Max('sessions__last_activity')
+    ).order_by('-last_activity_time')
+    
+    # Get total counts
+    total_online = online_users_list.count()
+    total_students_online = online_users_list.filter(is_professor=False).count()
+    total_professors_online = online_users_list.filter(is_professor=True).count()
+    
+    context = {
+        'online_users': online_users_list,
+        'total_online': total_online,
+        'total_students_online': total_students_online,
+        'total_professors_online': total_professors_online,
+    }
+    return render(request, 'accounts/online_users.html', context)
 
 
 # Profile View

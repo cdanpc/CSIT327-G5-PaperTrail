@@ -1,384 +1,306 @@
+{% extends 'base_dashboard.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - PaperTrail</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
-    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=6.0">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.2">
-    <link rel="stylesheet" href="{% static 'css/feature-popup.css' %}?v=1.0">
-</head>
-<body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
-        <i class="fas fa-bars"></i>
-    </button>
 
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay"></div>
+{% block title %}Admin Dashboard{% endblock %}
 
-    <!-- Unified Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <!-- PaperTrail Brand/Toggle -->
-        <div class="sidebar-brand-toggle" id="sidebarToggle">
-            <i class="fas fa-book-reader"></i>
-            <span class="sidebar-text">PaperTrail</span>
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Admin Dashboard</h1>
+        <p class="dashboard-date">Platform overview and management tools</p>
+    </div>
+    <div class="dashboard-actions">
+        <div class="search-box-inline">
+            <i class="fas fa-search"></i>
+            <input type="text" class="form-control" placeholder="Search..." aria-label="Search">
         </div>
+        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
+            <i class="fas fa-bell"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}
 
-        <!-- Sidebar Content -->
-        <div class="sidebar-content">
-            <!-- Main Navigation -->
-            <nav class="sidebar-nav">
-                <a href="{% url 'accounts:admin_dashboard' %}" class="sidebar-item active">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-text">Dashboard</span>
-                </a>
-                <a href="{% url 'resources:resource_list' %}" class="sidebar-item">
-                    <i class="fas fa-book"></i>
-                    <span class="sidebar-text">Resources</span>
-                </a>
-                <a href="{% url 'admin:index' %}" class="sidebar-item" target="_blank">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Admin Panel</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-users"></i>
-                    <span class="sidebar-text">User Management</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-chart-bar"></i>
-                    <span class="sidebar-text">Analytics</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-            </nav>
+<!-- In-progress Toast -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index:1080">
+    <div id="inProgressToast" class="toast align-items-center text-bg-secondary border-0" role="status" aria-live="polite" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">This feature is in progress.</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 
-            <!-- Sidebar Footer (Profile, Settings, Sign Out) -->
-            <div class="sidebar-footer">
-                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
-                    <i class="fas fa-user"></i>
-                    <span class="sidebar-text">Profile</span>
-                </a>
-                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Settings</span>
-                </a>
-                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="sidebar-text">Sign Out</span>
+{% block content %}
+<!-- Stats Cards Row -->
+<div class="row g-3 mb-3">
+    <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+        <div class="stat-card stat-card-purple h-100">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" data-target="{{ total_users }}">0</div>
+                <div class="stat-sublabel">All registered users</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+        <div class="stat-card stat-card-blue h-100">
+            <div class="stat-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Students</div>
+                <div class="stat-value" data-target="{{ total_students }}">0</div>
+                <div class="stat-sublabel">Self-registered users</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+        <div class="stat-card stat-card-green h-100">
+            <div class="stat-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Professors</div>
+                <div class="stat-value" data-target="{{ total_professors }}">0</div>
+                <div class="stat-sublabel">Verified professors</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-6 col-xxl-3">
+        <div class="stat-card stat-card-teal h-100">
+            <div class="stat-icon">
+                <i class="fas fa-ban"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Banned Users</div>
+                <div class="stat-value" data-target="{{ banned_users }}">0</div>
+                <div class="stat-sublabel">Restricted accounts</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-4 col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Add Professor</h5>
+            </div>
+            <div class="card-body text-center">
+                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <p class="text-muted">Create new professor accounts</p>
+                <a href="{% url 'accounts:promote_to_professor' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+                    <i class="fas fa-plus"></i> Add Professor
                 </a>
             </div>
         </div>
     </div>
-    
-    <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <div class="dashboard-main">
-            <div class="container-fluid">
-                <!-- Dashboard Header -->
-                <div class="dashboard-header">
-                    <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">Admin Dashboard</h1>
-                        <p class="dashboard-date">Platform overview and management tools</p>
-                    </div>
-                    
-                    <div class="dashboard-actions">
-                        <!-- Search Box -->
-                        <div class="search-box-inline">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search..." aria-label="Search">
-                        </div>
-                        
-                        <!-- Notification Bell -->
-                        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
-                            <i class="fas fa-bell"></i>
-                        </button>
-                    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Manage Users</h5>
+            </div>
+            <div class="card-body text-center">
+                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                    <i class="fas fa-users-cog"></i>
                 </div>
-                
-                <!-- Stats Cards Row -->
-                <div class="row g-3 mb-4">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card stat-card-purple">
-                            <div class="stat-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label">Total Users</div>
-                                <div class="stat-value" data-target="{{ total_users }}">0</div>
-                                <div class="stat-sublabel">All registered users</div>
-                            </div>
+                <p class="text-muted">View and manage user accounts</p>
+                <a href="{% url 'accounts:manage_users' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+                    <i class="fas fa-cog"></i> Manage
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Online Users</h5>
+            </div>
+            <div class="card-body text-center">
+                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <p class="text-muted">View users currently online</p>
+                <a href="{% url 'accounts:online_users' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+                    <i class="fas fa-eye"></i> View Online
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="row g-3">
+    <!-- Left Column: Pending Resources -->
+    <div class="col-lg-6">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Pending Resources</h5>
+                <a href="{% url 'resources:moderation_list' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if pending_resources %}
+                    {% for resource in pending_resources %}
+                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
+                        <div style="flex: 1;">
+                            <h6 class="mb-1" style="font-weight: 600; color: #1a1a1a;">
+                                <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none;">
+                                    {{ resource.title }}
+                                </a>
+                            </h6>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-user"></i> by {{ resource.uploader.get_display_name }}
+                                <span class="ms-2"><i class="fas fa-calendar"></i> {{ resource.created_at|date:"M d, Y" }}</span>
+                            </small>
+                        </div>
+                        <div class="btn-group ms-2">
+                            <a href="{% url 'resources:approve_resource' resource.pk %}?next={{ request.path }}" class="btn btn-sm" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none;" title="Approve">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            <a href="{% url 'resources:reject_resource' resource.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-danger" title="Reject">
+                                <i class="fas fa-times"></i>
+                            </a>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card stat-card-blue">
-                            <div class="stat-icon">
-                                <i class="fas fa-user-graduate"></i>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted my-3">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem; display: block;"></i>
+                        No pending resources to review.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Recent Users -->
+    <div class="col-lg-6">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Users</h5>
+                <a href="{% url 'admin:index' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                    {% for user in recent_users %}
+                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
+                        <div style="flex: 1;">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <strong style="color: #1a1a1a;">{{ user.get_display_name }}</strong>
+                                {% if user.is_professor %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 0.65rem;">Professor</span>
+                                {% else %}
+                                    <span class="badge" style="background: rgba(108, 117, 125, 0.2); color: #6c757d; font-size: 0.65rem;">Student</span>
+                                {% endif %}
                             </div>
-                            <div class="stat-content">
-                                <div class="stat-label">Students</div>
-                                <div class="stat-value" data-target="{{ total_students }}">0</div>
-                                <div class="stat-sublabel">Self-registered users</div>
-                            </div>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-envelope"></i> {{ user.email|default:user.univ_email|default:"No email" }}
+                                <span class="ms-2"><i class="fas fa-calendar"></i> {{ user.date_joined|date:"M d, Y" }}</span>
+                            </small>
                         </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card stat-card-green">
-                            <div class="stat-icon">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label">Professors</div>
-                                <div class="stat-value" data-target="{{ total_professors }}">0</div>
-                                <div class="stat-sublabel">Verified professors</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card stat-card-teal">
-                            <div class="stat-icon">
+                        <div class="d-flex gap-2">
+                            {% if user.is_professor %}
+                                <a href="{% url 'accounts:demote_professor' user.id %}?next={{ request.path }}" class="btn btn-sm btn-outline-warning" title="Demote to Student" style="border-color: #f59e0b; color: #f59e0b;">
+                                    <i class="fas fa-arrow-down"></i>
+                                </a>
+                            {% endif %}
+                            {% if not user.is_banned %}
+                            <button class="btn btn-sm btn-outline-danger" data-feature="in-progress" title="Ban User">
                                 <i class="fas fa-ban"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label">Banned Users</div>
-                                <div class="stat-value" data-target="{{ banned_users }}">0</div>
-                                <div class="stat-sublabel">Restricted accounts</div>
-                            </div>
+                            </button>
+                            {% endif %}
                         </div>
                     </div>
-                </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted my-3">
+                        <i class="fas fa-user-slash" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem; display: block;"></i>
+                        No recent user registrations.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
-                <!-- Quick Actions -->
-                <div class="row g-3 mb-4">
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card dashboard-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Add Professor</h5>
-                            </div>
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
-                                    <i class="fas fa-user-plus"></i>
-                                </div>
-                                <p class="text-muted">Create new professor accounts</p>
-                                <a href="#" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;" data-feature="in-progress">
-                                    <i class="fas fa-plus"></i> Add Professor
-                                </a>
-                            </div>
+<!-- System Status -->
+<div class="row g-3 mt-3">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 style="font-weight: 600; color: #1a1a1a; margin-bottom: 0.75rem;">
+                            <i class="fas fa-database" style="color: #667eea;"></i> Storage Usage
+                        </h6>
+                        <div class="progress" style="height: 24px; border-radius: 12px; background: rgba(102, 126, 234, 0.1);">
+                            <div class="progress-bar" role="progressbar" style="width: 25%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" 
+                                 aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
                         </div>
+                        <small class="text-muted d-block mt-2">Using 25% of available storage</small>
                     </div>
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card dashboard-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Manage Users</h5>
-                            </div>
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
-                                    <i class="fas fa-users-cog"></i>
-                                </div>
-                                <p class="text-muted">View and manage user accounts</p>
-                                <a href="{% url 'admin:index' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
-                                    <i class="fas fa-cog"></i> Manage
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card dashboard-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">View Reports</h5>
-                            </div>
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                                <p class="text-muted">Access analytics and reports</p>
-                                <a href="#" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;" data-feature="in-progress">
-                                    <i class="fas fa-chart-bar"></i> View Reports
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Main Content Grid -->
-                <div class="row g-3">
-                    <!-- Left Column: Pending Resources -->
-                    <div class="col-lg-6">
-                        <div class="card dashboard-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Pending Resources</h5>
-                                <a href="{% url 'resources:moderation_list' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
-                                    View All
-                                </a>
-                            </div>
-                            <div class="card-body">
-                                {% if pending_resources %}
-                                    {% for resource in pending_resources %}
-                                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
-                                        <div style="flex: 1;">
-                                            <h6 class="mb-1" style="font-weight: 600; color: #1a1a1a;">
-                                                <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none;">
-                                                    {{ resource.title }}
-                                                </a>
-                                            </h6>
-                                            <small class="text-muted d-block">
-                                                <i class="fas fa-user"></i> by {{ resource.uploader.get_display_name }}
-                                                <span class="ms-2"><i class="fas fa-calendar"></i> {{ resource.created_at|date:"M d, Y" }}</span>
-                                            </small>
-                                        </div>
-                                        <div class="btn-group ms-2">
-                                            <a href="{% url 'resources:approve_resource' resource.pk %}?next={{ request.path }}" class="btn btn-sm" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none;" title="Approve">
-                                                <i class="fas fa-check"></i>
-                                            </a>
-                                            <a href="{% url 'resources:reject_resource' resource.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-danger" title="Reject">
-                                                <i class="fas fa-times"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="text-center text-muted my-3">
-                                        <i class="fas fa-check-circle" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem; display: block;"></i>
-                                        No pending resources to review.
-                                    </p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column: Recent Users -->
-                    <div class="col-lg-6">
-                        <div class="card dashboard-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Recent Users</h5>
-                                <a href="{% url 'admin:index' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
-                                    View All
-                                </a>
-                            </div>
-                            <div class="card-body">
-                                {% if recent_users %}
-                                    {% for user in recent_users %}
-                                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
-                                        <div style="flex: 1;">
-                                            <div class="d-flex align-items-center gap-2 mb-1">
-                                                <strong style="color: #1a1a1a;">{{ user.get_display_name }}</strong>
-                                                {% if user.is_professor %}
-                                                    <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 0.65rem;">Professor</span>
-                                                {% else %}
-                                                    <span class="badge" style="background: rgba(108, 117, 125, 0.2); color: #6c757d; font-size: 0.65rem;">Student</span>
-                                                {% endif %}
-                                            </div>
-                                            <small class="text-muted d-block">
-                                                <i class="fas fa-envelope"></i> {{ user.email|default:user.univ_email|default:"No email" }}
-                                                <span class="ms-2"><i class="fas fa-calendar"></i> {{ user.date_joined|date:"M d, Y" }}</span>
-                                            </small>
-                                        </div>
-                                        {% if not user.is_banned %}
-                                        <div>
-                                            <button class="btn btn-sm btn-outline-danger" data-feature="in-progress" title="Ban User">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="text-center text-muted my-3">
-                                        <i class="fas fa-user-slash" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem; display: block;"></i>
-                                        No recent user registrations.
-                                    </p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- System Status -->
-                <div class="row g-3 mt-3">
-                    <div class="col-12">
-                        <div class="card dashboard-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">System Status</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6 style="font-weight: 600; color: #1a1a1a; margin-bottom: 0.75rem;">
-                                            <i class="fas fa-database" style="color: #667eea;"></i> Storage Usage
-                                        </h6>
-                                        <div class="progress" style="height: 24px; border-radius: 12px; background: rgba(102, 126, 234, 0.1);">
-                                            <div class="progress-bar" role="progressbar" style="width: 25%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;" 
-                                                 aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
-                                        </div>
-                                        <small class="text-muted d-block mt-2">Using 25% of available storage</small>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6 style="font-weight: 600; color: #1a1a1a; margin-bottom: 0.75rem;">
-                                            <i class="fas fa-server" style="color: #667eea;"></i> Server Status
-                                        </h6>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="badge" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 8px;">
-                                                <i class="fas fa-check-circle"></i> Operational
-                                            </span>
-                                            <small class="text-muted">All systems running normally</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="col-md-6">
+                        <h6 style="font-weight: 600; color: #1a1a1a; margin-bottom: 0.75rem;">
+                            <i class="fas fa-server" style="color: #667eea;"></i> Server Status
+                        </h6>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 8px;">
+                                <i class="fas fa-check-circle"></i> Operational
+                            </span>
+                            <small class="text-muted">All systems running normally</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Toast Notification -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
-        <div id="featureToast" class="toast">
-            <div class="toast-header bg-info text-white">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong class="me-auto">Feature Coming Soon</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+</div>
+
             </div>
-            <div class="toast-body">This feature is currently under development and will be available soon!</div>
         </div>
     </div>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="{% static 'js/sidebar.js' %}?v=5.0"></script>
-    <script src="{% static 'js/script.js' %}?v=21.0"></script>
-    
-    <!-- Apply stat number animation -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const statNumbers = document.querySelectorAll('.stat-value');
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Apply stat number animation -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const statNumbers = document.querySelectorAll('.stat-value');
+        
+        statNumbers.forEach(stat => {
+            const target = parseInt(stat.getAttribute('data-target')) || 0;
+            const duration = 1500;
+            const increment = target / (duration / 16);
+            let current = 0;
             
-            statNumbers.forEach(stat => {
-                const target = parseInt(stat.getAttribute('data-target')) || 0;
-                const duration = 1500;
-                const increment = target / (duration / 16);
-                let current = 0;
-                
-                const updateCount = () => {
-                    current += increment;
-                    if (current < target) {
-                        stat.textContent = Math.floor(current);
-                        requestAnimationFrame(updateCount);
-                    } else {
-                        stat.textContent = target;
-                    }
-                };
-                
-                updateCount();
-            });
+            const updateCount = () => {
+                current += increment;
+                if (current < target) {
+                    stat.textContent = Math.floor(current);
+                    requestAnimationFrame(updateCount);
+                } else {
+                    stat.textContent = target;
+                }
+            };
+            
+            updateCount();
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}
