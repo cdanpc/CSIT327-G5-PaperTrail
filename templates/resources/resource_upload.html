@@ -9,17 +9,8 @@
 {% endblock %}
 
 {% block header %}
-<div class="dashboard-header">
-    <div class="d-flex align-items-center">
-        <a href="{% url 'resources:resource_list' %}" class="me-3 ms-3 text-decoration-none text-dark">
-            <h1 class="dashboard-title mb-0"><i class="fas fa-chevron-left"></i></h1>
-        </a>
-        <div>
-            <h1 class="dashboard-title mb-0">Upload Resource</h1>
-            <p class="dashboard-date mb-0">Share your knowledge with the community</p>
-        </div>
-    </div>
-</div>
+{% url 'resources:resource_list' as resources_url %}
+{% include 'components/page_header.html' with page_title='Upload Resource' back_url=resources_url show_moderate_btn=False %}
 {% endblock %}
 
 {% block content %}

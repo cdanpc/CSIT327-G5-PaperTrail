@@ -275,8 +275,36 @@ body {
 }
 
 .dashboard-title-section {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     flex: 0 0 auto;
     min-width: 200px;
+}
+
+/* Back Link Component */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background-color: transparent;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: all var(--transition-base);
+    font-size: 1.25rem;
+}
+
+.back-link:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    transform: translateX(-2px);
+}
+
+.back-link:active {
+    transform: translateX(-2px) scale(0.95);
 }
 
 .dashboard-title {

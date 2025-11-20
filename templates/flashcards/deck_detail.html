@@ -1,14 +1,12 @@
 {% extends 'base_dashboard.html' %}
 {% load static humanize %}
-{% block title %}Manage Deck - {{ deck.title }}{% endblock %}
-{% block page_title %}
-<div class="d-flex align-items-center">
-    <a href="{% url 'flashcards:deck_list' %}" class="me-3 ms-2 text-decoration-none text-dark">
-        <h1 class="dashboard-title mb-0"><i class="fas fa-chevron-left"></i></h1>
-    </a>
-    <span class="ms-1">Flashcard Detail</span>
-</div>
+{% block title %}{{ deck.title }}{% endblock %}
+
+{% block header %}
+{% url 'flashcards:deck_list' as decks_url %}
+{% include 'components/page_header.html' with page_title='Flashcard Detail' back_url=decks_url show_moderate_btn=False %}
 {% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/flashcards.css' %}?v=1.1">
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">

@@ -19,6 +19,7 @@ Usage:
 
 Parameters:
 - page_title: Page title displayed on the left
+- back_url: Optional back button URL (if provided, shows back arrow)
 - search_placeholder: Placeholder text for search input
 - search_name: Input name attribute (default: 'q')
 - search_value: Pre-filled search value
@@ -33,6 +34,9 @@ Parameters:
 
 <div class="dashboard-header">
   <div class="dashboard-title-section">
+    {% if back_url %}
+      {% include 'components/back_link.html' with back_url=back_url %}
+    {% endif %}
     <h1 class="dashboard-title">{{ page_title|default:'Dashboard' }}</h1>
   </div>
 

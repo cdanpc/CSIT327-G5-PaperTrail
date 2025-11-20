@@ -2,19 +2,17 @@
 {% load static crispy_forms_tags %}
 
 {% block title %}Edit Resource{% endblock %}
-{% block page_title %}Edit Resource{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
 {% endblock %}
 
-{% block content %}
-<!-- Back Button -->
-<div class="mb-3">
-    <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-outline-primary-soft btn-pill">
-        <i class="fas fa-arrow-left"></i> Back
-    </a>
-</div>
+{% block header %}
+{% url 'resources:resource_detail' resource.pk as detail_url %}
+{% include 'components/page_header.html' with page_title='Edit Resource' back_url=detail_url show_moderate_btn=False %}
+{% endblock %}
 
+{% block content %}
 <div class="row g-3">
     <!-- Left: Edit Form -->
     <div class="col-lg-8">

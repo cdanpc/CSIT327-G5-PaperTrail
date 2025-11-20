@@ -1,22 +1,15 @@
 {% extends 'base_dashboard.html' %}
 {% load static %}
 
-{% block title %}Quizzes{% endblock %}
+{% block title %}Create Quiz{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/quizzes.css' %}">
 {% endblock %}
 
 {% block header %}
-<div class="dashboard-title-section">
-  <h1 class="dashboard-title">Quizzes</h1>
-  <p class="dashboard-date">Create a quiz to test knowledge</p>
-  <div class="dashboard-actions">
-    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary-soft">
-      <i class="fas fa-arrow-left"></i> Back
-    </a>
-  </div>
-</div>
+{% url 'quizzes:quiz_list' as quizzes_url %}
+{% include 'components/page_header.html' with page_title='Create Quiz' back_url=quizzes_url show_moderate_btn=False %}
 {% endblock %}
 
 {% block content %}
