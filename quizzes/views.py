@@ -22,6 +22,8 @@ def quiz_list(request):
     """
     scope = request.GET.get('scope', 'all')
     q = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+    
     if scope == 'mine':
         quizzes = Quiz.objects.filter(creator=request.user).order_by('-created_at')
     else:
@@ -31,8 +33,12 @@ def quiz_list(request):
             ).order_by('-created_at')
         else:
             quizzes = Quiz.objects.filter(verification_status='verified', is_public=True).order_by('-created_at')
+    
     if q:
         quizzes = quizzes.filter(Q(title__icontains=q) | Q(description__icontains=q))
+    
+    if status_filter:
+        quizzes = quizzes.filter(verification_status=status_filter)
     # Bookmarks for current user
     bookmarked_ids = set()
     if request.user.is_authenticated:
@@ -40,11 +46,22 @@ def quiz_list(request):
             QuizBookmark.objects.filter(user=request.user, quiz__in=quizzes).values_list('quiz_id', flat=True)
         )
 
+    # Status filter options for component
+    status_filter_options = [
+        {'value': '', 'label': 'All Status'},
+        {'value': 'verified', 'label': 'Verified'},
+        {'value': 'pending', 'label': 'Pending'},
+        {'value': 'rejected', 'label': 'Rejected'},
+    ]
+
     context = {
         'quizzes': quizzes,
         'scope': scope,
         'query': q,
         'bookmarked_ids': bookmarked_ids,
+        'scope_html': f'<input type="hidden" name="scope" value="{scope}">' if scope else '',
+        'status_filter': status_filter,
+        'status_filter_options': status_filter_options,
     }
     return render(request, 'quizzes/quiz_list.html', context)
 

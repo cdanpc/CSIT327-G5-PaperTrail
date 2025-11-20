@@ -1,21 +1,8 @@
 /* Quizzes module shared styles */
 
-/* Buttons */
-.btn-gradient-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff !important;
-  border: none;
-}
-.btn-outline-primary-soft {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea !important;
-  border: 1px solid rgba(102, 126, 234, 0.2);
-}
-.btn-gradient-success {
-  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-  color: #fff !important;
-  border: none;
-}
+/* ========== LEGACY BUTTONS - REMOVED ========== */
+/* Button styles moved to components.css */
+/* Use .btn--primary, .btn--secondary, .btn-pill classes instead */
 
 /* Meta & utilities */
 .page-meta { font-size: 0.75rem; font-weight: 600; color: #6c757d; text-transform: uppercase; }

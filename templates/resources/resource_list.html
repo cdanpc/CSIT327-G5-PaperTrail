@@ -5,98 +5,100 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/components.css' %}">
 {% endblock %}
 
-{% block page_title %}{% if is_my_resources %}My Resources{% else %}Study Resources{% endif %}{% endblock %}
+{% block header %}
+{% include 'components/page_header.html' with page_title="Resources" search_placeholder="Search resources..." search_name="q" search_value=query show_moderate_btn=user.is_staff moderate_url="resources:moderation_list" %}
+{% endblock %}
 
 {% block content %}
         <div class="resources-tabs-row d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
             <div class="resources-tabs" role="tablist" aria-label="Resources scope">
                 {% if user.is_authenticated %}
-                <a href="{% url 'resources:resource_upload' %}" class="upload-inline-btn" role="button" title="Upload a new resource">+ Upload</a>
+                <a href="{% url 'resources:resource_upload' %}" class="btn btn-pill btn-pill--primary" role="button" title="Upload a new resource"><i class="fas fa-upload"></i> Upload</a>
                 {% endif %}
-                <button type="button" class="rtab {% if not is_my_resources %}active{% endif %}" data-scope="all" aria-selected="{% if not is_my_resources %}true{% else %}false{% endif %}" role="tab">All Resources</button>
-                <button type="button" class="rtab {% if is_my_resources %}active{% endif %}" data-scope="mine" aria-selected="{% if is_my_resources %}true{% else %}false{% endif %}" role="tab">My Resources</button>
+                <a href="{% url 'resources:resource_list' %}" class="btn-tab {% if not is_my_resources %}active{% endif %}" aria-selected="{% if not is_my_resources %}true{% else %}false{% endif %}" role="tab">All Resources</a>
+                <a href="{% url 'resources:my_resources' %}" class="btn-tab {% if is_my_resources %}active{% endif %}" aria-selected="{% if is_my_resources %}true{% else %}false{% endif %}" role="tab">My Resources</a>
             </div>
             <div class="d-flex align-items-center gap-2 resources-filter-live" aria-label="Filter resources">
-                <select id="typeFilter" name="resource_type" class="filter-select" aria-label="Filter by type">
-                    <option value="">All Types</option>
-                    <option value="pdf" {% if request.GET.resource_type == 'pdf' %}selected{% endif %}>PDF</option>
-                    <option value="ppt" {% if request.GET.resource_type == 'ppt' %}selected{% endif %}>PPT</option>
-                    <option value="pptx" {% if request.GET.resource_type == 'pptx' %}selected{% endif %}>PPTX</option>
-                    <option value="docx" {% if request.GET.resource_type == 'docx' %}selected{% endif %}>DOCX</option>
-                    <option value="image" {% if request.GET.resource_type == 'image' %}selected{% endif %}>Image</option>
-                    <option value="link" {% if request.GET.resource_type == 'link' %}selected{% endif %}>Link</option>
-                    <option value="txt" {% if request.GET.resource_type == 'txt' %}selected{% endif %}>Text</option>
-                </select>
+                <form method="get" class="m-0">
+                    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                    {% if scope %}<input type="hidden" name="scope" value="{{ scope }}">{% endif %}
+                    {% include 'components/filter_sort.html' with filter_name="resource_type" filter_label="All Types" filter_options=resource_type_options selected_value=request.GET.resource_type %}
+                </form>
             </div>
         </div>
 
-    <div class="resources-grid {% if not resources %}is-empty{% endif %}">
+    <div class="row g-3">
         {% if resources %}
             {% for resource in resources %}
-            <div class="resource-card-v2" data-resource-id="{{ resource.id }}">
-                <div class="rcv2-head">
-                    <div class="d-flex align-items-center gap-2 w-100 justify-content-between">
-                        <span class="rcv2-type mb-0">{{ resource.resource_type|upper }}</span>
-                        <!-- Removed visibility badge from header; bookmark only -->
-                        <span class="rcv2-bookmark-indicator" aria-label="{% if resource.id in bookmarked_ids %}Bookmarked{% else %}Not bookmarked{% endif %}" title="{% if resource.id in bookmarked_ids %}Bookmarked{% else %}Not bookmarked{% endif %}">
-                            <i class="{% if resource.id in bookmarked_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
-                        </span>
+            <div class="col-md-6 col-lg-4">
+                <div class="study-card">
+                    <div class="study-card__header">
+                        <span class="study-card__type">{{ resource.resource_type|upper }}</span>
+                        <form method="post" action="{% url 'bookmarks:toggle' resource.pk %}" class="study-card__bookmark-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button type="submit" class="study-card__bookmark-btn" aria-label="{% if resource.id in bookmarked_ids %}Remove Bookmark{% else %}Add Bookmark{% endif %}">
+                                <i class="{% if resource.id in bookmarked_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                            </button>
+                        </form>
                     </div>
-                </div>
-                <a href="{% url 'resources:resource_detail' resource.pk %}" class="rcv2-body" aria-label="View resource {{ resource.title }}">
-                    <div class="rcv2-icon-wrapper">
-                        <div class="rcv2-icon">
-                            <i class="fas fa-{% if resource.resource_type == 'pdf' %}file-pdf{% elif resource.resource_type == 'quiz' %}question-circle{% elif resource.resource_type == 'flashcards' %}layer-group{% else %}file-alt{% endif %}"></i>
-                        </div>
-                        {% if resource.verification_status == 'verified' %}
-                            <span class="rcv2-verify-badge" title="Verified"><i class="fas fa-check"></i></span>
-                        {% elif resource.verification_status == 'pending' %}
-                            <span class="rcv2-pending-badge" title="Pending"><i class="fas fa-clock"></i></span>
-                        {% endif %}
-                    </div>
-                    <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                        <h3 class="rcv2-title mb-0" title="{{ resource.title }}">{{ resource.title }}</h3>
-                        {% if not resource.is_public %}
-                            <span class="badge bg-secondary" style="font-size:0.65rem; flex-shrink:0;"><i class="fas fa-lock"></i> Private</span>
-                        {% else %}
-                            {% if resource.verification_status == 'verified' %}
-                                <span class="badge badge-verified" style="font-size:0.65rem; flex-shrink:0;"><i class="fas fa-check-circle"></i> Verified</span>
-                            {% elif resource.verification_status == 'pending' %}
-                                <span class="badge badge-pending" style="font-size:0.65rem; flex-shrink:0;"><i class="fas fa-clock"></i> Pending</span>
+
+                    <div class="study-card__body">
+                        <h3 class="study-card__title">{{ resource.title }}</h3>
+                        
+                        <div class="study-card__tags">
+                            {% if not resource.is_public %}
+                                <span class="study-card__tag study-card__tag--private"><i class="fas fa-lock"></i> Private</span>
                             {% else %}
-                                <span class="badge bg-success" style="font-size:0.65rem; flex-shrink:0;"><i class="fas fa-globe"></i> Public</span>
+                                {% if resource.verification_status == 'verified' %}
+                                    <span class="study-card__tag study-card__tag--verified"><i class="fas fa-check-circle"></i> Verified</span>
+                                {% elif resource.verification_status == 'pending' %}
+                                    <span class="study-card__tag study-card__tag--pending"><i class="fas fa-clock"></i> Pending</span>
+                                {% else %}
+                                    <span class="study-card__tag study-card__tag--public"><i class="fas fa-globe"></i> Public</span>
+                                {% endif %}
                             {% endif %}
-                        {% endif %}
+                        </div>
+
+                        <p class="study-card__author">By: {{ resource.uploader.get_full_name|default:resource.uploader.username }}</p>
+
+                        <div class="study-card__metrics">
+                            <span><i class="fas fa-eye"></i> {{ resource.views_count|intword }}</span>
+                            <span class="metric-dot">•</span>
+                            <span><i class="fas fa-download"></i> {{ resource.download_count|intword }}</span>
+                            {% if resource.get_average_rating %}
+                                <span class="metric-dot">•</span>
+                                <span><i class="fas fa-star"></i> {{ resource.get_average_rating|floatformat:1 }}</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="rcv2-metrics">
-                        <span><i class="fas fa-eye"></i> {{ resource.views_count|intword }}</span>
-                        <span><i class="fas fa-download"></i> {{ resource.download_count|intword }}</span>
-                        {% if resource.get_average_rating %}<span><i class="fas fa-star"></i> {{ resource.get_average_rating|floatformat:1 }}</span>{% endif %}
+
+                    <div class="study-card__footer">
+                        <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn--primary btn--block">
+                            <i class="fas fa-eye"></i> View Resource
+                        </a>
                     </div>
-                    {% if resource.tags.all %}
-                    <div class="rcv2-tags">
-                        {% for tag in resource.tags.all|slice:':2' %}
-                            <span class="rcv2-tag">{{ tag.name }}</span>
-                        {% endfor %}
-                        {% if resource.tags.count > 2 %}<span class="rcv2-tag more" title="More tags">+{{ resource.tags.count|add:'-2' }}</span>{% endif %}
-                    </div>
-                    {% endif %}
-                </a>
-                <div class="rcv2-footer">
-                    <span class="rcv2-author">By: {{ resource.uploader.get_full_name|default:resource.uploader.username }}</span>
-                    <span class="rcv2-age">{{ resource.created_at|timesince }} ago</span>
                 </div>
             </div>
             {% endfor %}
         {% else %}
-            <div class="resources-empty">No resources found. {% if user.is_authenticated %}<a href="{% url 'resources:resource_upload' %}" class="upload-inline">Upload one</a>.{% endif %}</div>
+            <div class="col-12">
+                <div class="study-card">
+                    <div class="study-card__body text-center py-5">
+                        <i class="fas fa-folder-open empty-state__icon"></i>
+                        <h5 class="text-muted">No resources found.</h5>
+                        {% if user.is_authenticated %}
+                            <p class="text-muted">Upload one to get started!</p>
+                            <a href="{% url 'resources:resource_upload' %}" class="btn btn--primary mt-3"><i class="fas fa-upload"></i> Upload Resource</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         {% endif %}
     </div>
-    {% if resources %}<nav aria-label="Resource pagination" class="pagination-wrap"></nav>{% endif %}
 {% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/resources.js' %}"></script>
-{% endblock %}
+{% block extra_js %}{% endblock %}

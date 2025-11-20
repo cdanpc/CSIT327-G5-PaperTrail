@@ -1,0 +1,61 @@
+{% comment %}
+Reusable Study Card Component
+Usage:
+  {% include 'components/study_card.html' with 
+    card_type='Resource'|'Flashcard'|'Quiz'
+    title='Card Title'
+    author='By: Author Name'
+    status_tags=tag_list
+    metrics_html='<span>1 Q</span> • <span>1 attempt</span>'
+    action_text='Start Quiz'
+    action_url='/quizzes/1/'
+    is_bookmarked=True|False
+    bookmark_form_url='/bookmark/toggle/1/'
+  %}
+{% endcomment %}
+
+<div class="study-card">
+  <div class="study-card__header">
+    <span class="study-card__type">{{ card_type }}</span>
+    {% if bookmark_form_url %}
+    <form method="post" action="{{ bookmark_form_url }}" class="study-card__bookmark-form">
+      {% csrf_token %}
+      <button type="submit" class="study-card__bookmark-btn" aria-label="{% if is_bookmarked %}Remove bookmark{% else %}Add bookmark{% endif %}">
+        <i class="{% if is_bookmarked %}fas{% else %}far{% endif %} fa-bookmark"></i>
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="study-card__body">
+    <h3 class="study-card__title">{{ title }}</h3>
+    
+    {% if status_tags %}
+    <div class="study-card__tags">
+      {% for tag in status_tags %}
+      <span class="study-card__tag study-card__tag--{{ tag.type|default:'default' }}">
+        {% if tag.icon %}<i class="{{ tag.icon }}"></i> {% endif %}{{ tag.label }}
+      </span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if author %}
+    <p class="study-card__author">{{ author }}</p>
+    {% endif %}
+
+    {% if metrics_html %}
+    <div class="study-card__metrics">
+      {{ metrics_html|safe }}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="study-card__footer">
+    {% if action_url %}
+    <a href="{{ action_url }}" class="btn btn--primary btn--block">
+      {{ action_text|default:'View' }}
+    </a>
+    {% endif %}
+  </div>
+</div>

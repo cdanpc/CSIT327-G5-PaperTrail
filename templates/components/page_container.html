@@ -1,0 +1,29 @@
+{% comment %}
+Page Container Component
+Standardized wrapper for main content with title and control area
+
+Usage:
+  {% include 'components/page_container.html' with 
+    page_title='Flashcards'
+    control_area_html='<div>Buttons and filters here</div>'
+    content_html='<div>Main content here</div>'
+  %}
+{% endcomment %}
+
+<div class="page-container">
+  {% if page_title %}
+  <div class="page-container__header">
+    <h1 class="page-container__title">{{ page_title }}</h1>
+  </div>
+  {% endif %}
+
+  {% if control_area_html %}
+  <div class="page-container__controls">
+    {{ control_area_html|safe }}
+  </div>
+  {% endif %}
+
+  <div class="page-container__content">
+    {{ content_html|safe }}
+  </div>
+</div>

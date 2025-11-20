@@ -1,0 +1,78 @@
+{% comment %}
+Page Header Component
+Standardized dashboard header with title on left, search/actions on right
+
+Usage:
+  {% include 'components/page_header.html' with 
+    page_title='Quizzes'
+    search_placeholder='Search quizzes...'
+    search_name='q'
+    search_value=query
+    search_action=''
+    search_method='get'
+    show_moderate_btn=True
+    moderate_url='quizzes:quiz_moderation_list'
+    show_notifications=True
+    show_profile=True
+    extra_hidden_inputs=scope_html
+  %}
+
+Parameters:
+- page_title: Page title displayed on the left
+- search_placeholder: Placeholder text for search input
+- search_name: Input name attribute (default: 'q')
+- search_value: Pre-filled search value
+- search_action: Form action URL (default: '')
+- search_method: Form method (default: 'get')
+- show_moderate_btn: Show moderate button (requires moderate_url)
+- moderate_url: URL name for moderate page
+- show_notifications: Show notification bell (default: True)
+- show_profile: Show profile link (default: True)
+- extra_hidden_inputs: Additional hidden form fields (safe HTML)
+{% endcomment %}
+
+<div class="dashboard-header">
+  <div class="dashboard-title-section">
+    <h1 class="dashboard-title">{{ page_title|default:'Dashboard' }}</h1>
+  </div>
+
+  <div class="dashboard-actions">
+    <form method="{{ search_method|default:'get' }}" action="{{ search_action|default:'' }}" class="search-box-inline">
+      {% if extra_hidden_inputs %}{{ extra_hidden_inputs|safe }}{% endif %}
+      <i class="fas fa-search"></i>
+      <input 
+        type="text" 
+        name="{{ search_name|default:'q' }}" 
+        value="{{ search_value|default:'' }}" 
+        class="form-control" 
+        placeholder="{{ search_placeholder|default:'Search...' }}"
+        aria-label="{{ search_placeholder|default:'Search' }}"
+      >
+    </form>
+
+    {% if show_moderate_btn and moderate_url %}
+    <a href="{% url moderate_url %}" class="btn btn-pill btn-pill--secondary" title="Moderate content">
+      <i class="fas fa-check-circle"></i>
+      <span class="d-none d-md-inline">Moderate</span>
+    </a>
+    {% endif %}
+
+    {% if show_notifications|default:True %}
+    <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications" title="Notifications">
+      <i class="fas fa-bell"></i>
+    </button>
+    {% endif %}
+
+    {% if show_profile|default:True %}
+    <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-2 profile-link" title="View Profile">
+      {% if user.profile_picture %}
+        <img src="{{ user.profile_picture.url }}" alt="{{ user.get_display_name }}" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
+      {% else %}
+        <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
+          <i class="fas fa-user"></i>
+        </span>
+      {% endif %}
+    </a>
+    {% endif %}
+  </div>
+</div>

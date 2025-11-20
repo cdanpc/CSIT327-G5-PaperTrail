@@ -1,0 +1,31 @@
+{% comment %}
+Filter/Sort Component
+Standardized dropdown filter element
+
+Usage:
+  {% include 'components/filter_sort.html' with 
+    filter_name='category'
+    filter_label='All Categories'
+    filter_options=categories
+    selected_value=selected_category
+  %}
+  
+  filter_options format: [{'value': 'general', 'label': 'General'}, ...]
+{% endcomment %}
+
+<div class="filter-sort">
+  <select 
+    name="{{ filter_name|default:'filter' }}" 
+    class="filter-sort__select" 
+    aria-label="{{ filter_label|default:'Filter' }}" 
+    onchange="this.form.submit()"
+  >
+    <option value="" {% if not selected_value %}selected{% endif %}>{{ filter_label|default:'All' }}</option>
+    {% for option in filter_options %}
+      <option value="{{ option.value }}" {% if selected_value == option.value %}selected{% endif %}>
+        {{ option.label }}
+      </option>
+    {% endfor %}
+  </select>
+  <i class="fas fa-chevron-down filter-sort__icon"></i>
+</div>

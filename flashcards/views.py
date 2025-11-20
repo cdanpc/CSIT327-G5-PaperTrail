@@ -33,6 +33,15 @@ def deck_list(request: HttpRequest) -> HttpResponse:
     if category:
         decks = decks.filter(category=category)
 
+    # Category filter options for component
+    category_options = [
+        {'value': 'general', 'label': 'General'},
+        {'value': 'definitions', 'label': 'Definitions'},
+        {'value': 'formulas', 'label': 'Formulas'},
+        {'value': 'concepts', 'label': 'Concepts'},
+        {'value': 'language', 'label': 'Language'},
+    ]
+
     return render(
         request,
         "flashcards/deck_list.html",
@@ -41,6 +50,7 @@ def deck_list(request: HttpRequest) -> HttpResponse:
             "query": q,
             "selected_category": category,
             "scope": scope,
+            "category_options": category_options,
         },
     )
 

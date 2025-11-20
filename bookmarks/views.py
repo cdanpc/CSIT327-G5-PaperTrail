@@ -93,12 +93,21 @@ def bookmark_list(request):
     # Sort by most recent bookmark/time
     items.sort(key=lambda x: x['created_at'], reverse=True)
 
+    # Filter options for component
+    filter_options = [
+        {'value': '', 'label': 'All'},
+        {'value': 'resources', 'label': 'Resources'},
+        {'value': 'quizzes', 'label': 'Quizzes'},
+        {'value': 'flashcards', 'label': 'Flashcards'},
+    ]
+
     return render(
         request,
         "bookmarks/bookmark_list.html",
         {
             "btype": btype,
             "items": items,
+            "filter_options": filter_options,
         },
     )
 
