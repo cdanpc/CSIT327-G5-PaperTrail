@@ -15,11 +15,17 @@ class SupabaseStorage:
     
     def __init__(self):
         """Initialize Supabase client"""
-        self.supabase: Client = create_client(
-            settings.SUPABASE_URL,
-            settings.SUPABASE_SERVICE_KEY
-        )
-        self.bucket_name = settings.SUPABASE_BUCKET
+        # Check if Supabase credentials are configured
+        supabase_url = getattr(settings, 'SUPABASE_URL', None)
+        supabase_key = getattr(settings, 'SUPABASE_SERVICE_KEY', None)
+        
+        if supabase_url and supabase_key:
+            self.supabase: Client = create_client(supabase_url, supabase_key)
+            self.bucket_name = getattr(settings, 'SUPABASE_BUCKET', None)
+        else:
+            # Supabase not configured, set to None
+            self.supabase = None
+            self.bucket_name = None
     
     def upload_file(self, file, folder: str = "resources") -> Tuple[bool, Optional[str], Optional[str]]:
         """
@@ -32,6 +38,9 @@ class SupabaseStorage:
         Returns:
             Tuple of (success: bool, file_url: str or None, error_message: str or None)
         """
+        if not self.supabase:
+            return False, None, "Supabase is not configured"
+        
         try:
             # Generate unique filename
             file_extension = os.path.splitext(file.name)[1]
@@ -71,6 +80,9 @@ class SupabaseStorage:
         Returns:
             Tuple of (success: bool, error_message: str or None)
         """
+        if not self.supabase:
+            return False, "Supabase is not configured"
+        
         try:
             # Extract path from URL if full URL is provided
             if file_path.startswith('http'):
@@ -95,6 +107,9 @@ class SupabaseStorage:
         Returns:
             Dictionary with file info or None
         """
+        if not self.supabase:
+            return None
+        
         try:
             files = self.supabase.storage.from_(self.bucket_name).list(path=file_path)
             if files and len(files) > 0:
@@ -114,6 +129,9 @@ class SupabaseStorage:
         Returns:
             List of file information dictionaries
         """
+        if not self.supabase:
+            return []
+        
         try:
             files = self.supabase.storage.from_(self.bucket_name).list(path=folder)
             return files
