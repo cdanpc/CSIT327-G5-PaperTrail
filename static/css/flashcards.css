@@ -185,7 +185,7 @@
   box-shadow:0 8px 16px rgba(102,126,234,.25);
   font-weight:700;
 }
-.fc-btn-primary:hover { filter:brightness(1.05); box-shadow:0 10px 20px rgba(102,126,234,.30); }
+.fc-btn-primary:hover { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%) !important; filter:brightness(0.95); box-shadow:0 10px 20px rgba(102,126,234,.30); }
 .fc-btn-primary:active { filter:brightness(.92); }
 
 .fc-icon-btn {

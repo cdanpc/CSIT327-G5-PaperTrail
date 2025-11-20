@@ -4,7 +4,7 @@
 {% block title %}Flashcards{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
+<link rel="stylesheet" href="{% static 'css/flashcards.css' %}?v=1.1">
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
 <link rel="stylesheet" href="{% static 'css/components.css' %}">
 {% endblock %}
@@ -14,8 +14,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="fc-container fc-list">
-  <div class="resources-tabs-row d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+<div class="resources-tabs-row d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3" style="margin-top: 0rem;">
     <div class="resources-tabs flashcards-tabs" role="tablist" aria-label="Flashcards scope">
       <a href="{% url 'flashcards:deck_create' %}" class="btn btn-pill btn-pill--primary" role="button" title="Create a new deck"><i class="fas fa-plus"></i> New Deck</a>
       <a href="{% url 'flashcards:deck_list' %}?scope=all" class="btn-tab {% if scope != 'mine' %}active{% endif %}" role="tab" aria-selected="{% if scope != 'mine' %}true{% else %}false{% endif %}">All Decks</a>
@@ -28,6 +27,11 @@
         {% include 'components/filter_sort.html' with filter_name="category" filter_label="All Categories" filter_options=category_options selected_value=selected_category %}
       </form>
     </div>
+  </div>
+
+<div class="fc-container fc-list">
+  <div class="d-flex justify-content-end mb-2">
+    <div class="text-muted small">{% if scope == 'mine' %}Showing your decks{% else %}Showing public decks{% endif %}</div>
   </div>
 
   {% if decks %}

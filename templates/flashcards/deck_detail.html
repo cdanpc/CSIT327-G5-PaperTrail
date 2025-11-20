@@ -1,15 +1,21 @@
 {% extends 'base_dashboard.html' %}
 {% load static humanize %}
 {% block title %}Manage Deck - {{ deck.title }}{% endblock %}
-{% block page_title %}Flashcards{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center">
+    <a href="{% url 'flashcards:deck_list' %}" class="me-3 ms-2 text-decoration-none text-dark">
+        <h1 class="dashboard-title mb-0"><i class="fas fa-chevron-left"></i></h1>
+    </a>
+    <span class="ms-1">Flashcard Detail</span>
+</div>
+{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
+<link rel="stylesheet" href="{% static 'css/flashcards.css' %}?v=1.1">
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
 {% endblock %}
 
 {% block content %}
 <div class="fc-container fc-tight-top">
-    <div class="mb-2 bookmarks-header-row"><a href="{% url 'flashcards:deck_list' %}" class="btn btn-outline-primary-soft btn-pill"><i class="fas fa-arrow-left"></i> Back</a></div>
     <div class="fc-detail-header">
             <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
             <div class="d-flex align-items-center gap-2 flex-wrap">
