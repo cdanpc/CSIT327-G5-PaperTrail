@@ -30,7 +30,6 @@
   </div>
 
 <div class="fc-container fc-list">
-  
 
   {% if decks %}
   <div class="row g-3">
@@ -84,15 +83,14 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="fc-empty">
+  <div class="card dashboard-card" style="min-height: 500px;">
+    <div class="card-body">
     {% if scope == 'mine' %}
-      <strong>You haven't created any decks yet</strong>
-      <div class="mt-2">Create a deck to start studying.</div>
+      {% include 'components/empty_state.html' with icon='fas fa-layer-group' main_message="You haven't created any decks yet" sub_message='Create a deck to start studying.' show_action_buttons=True primary_action_url='/flashcards/create/' primary_action_text='New Deck' primary_action_icon='fas fa-plus' %}
     {% else %}
-      <strong>No public decks available yet</strong>
-      <div class="mt-2">Please check back later.</div>
+      {% include 'components/empty_state.html' with icon='fas fa-layer-group' main_message='No public decks available yet' sub_message='Please check back later.' show_action_buttons=True primary_action_url='/flashcards/create/' primary_action_text='New Deck' primary_action_icon='fas fa-plus' %}
     {% endif %}
-    <div class="mt-3"><a href="{% url 'flashcards:deck_create' %}" class="fc-btn fc-btn-primary"><i class="fas fa-plus"></i><span> New Deck</span></a></div>
+    </div>
   </div>
   {% endif %}
 </div>

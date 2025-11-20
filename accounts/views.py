@@ -2,16 +2,20 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView
 from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q
+import json
 from .forms import (
     CustomUserCreationForm, 
     CustomAuthenticationForm, 
     ProfileUpdateForm,
     CustomPasswordChangeForm
 )
-from .models import User, UserStats, UserPreferences
+from .models import User, UserStats, UserPreferences, Notification
 from resources.models import Resource, Bookmark, Tag, Rating, Comment
 from flashcards.models import Deck, Card
 from flashcards import services as flashcard_services
@@ -214,54 +218,94 @@ def student_dashboard(request):
         weekly_labels.append(label)
         weekly_upload_counts.append(count)
 
-    # Extended multi-metric Learning Insights (uploads, quizzes, flashcards, activity count)
-    # Reuse weekly_labels for all metrics to avoid recalculating.
-    weekly_quiz_counts = []
-    weekly_views_counts = []
-    weekly_flashcard_counts = []
+    # Action-Oriented Learning Insights: Track Engagement vs Creation
+    # New metrics: Quizzes (Attempts vs Created), Decks (Cards Reviewed vs Created), Bookmarks (Added vs Removed)
     date_sequence = []
+    weekly_quiz_created = []
+    weekly_quiz_attempted = []
+    weekly_cards_created = []
+    weekly_cards_reviewed = []
+    weekly_bookmarks_added = []
+    weekly_bookmarks_removed = []
+    
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
         date_sequence.append(day)
-        # Quizzes: count both quizzes created AND quiz attempts completed that day
+        
+        # QUIZZES: Separate creation from attempts
         quiz_created = Quiz.objects.filter(creator=request.user, created_at__date=day).count()
-        quiz_completed = QuizAttempt.objects.filter(student=request.user, completed_at__date=day).count()
-        weekly_quiz_counts.append(quiz_created + quiz_completed)
-        # Activity count: ratings, comments, bookmarks created that day (user engagement)
-        activity_count = (
-            Rating.objects.filter(user=request.user, created_at__date=day).count() +
-            Comment.objects.filter(user=request.user, created_at__date=day).count() +
-            Bookmark.objects.filter(user=request.user, created_at__date=day).count()
+        # Count unique quiz attempts completed that day (engagement metric)
+        quiz_attempted = QuizAttempt.objects.filter(
+            student=request.user, 
+            completed_at__date=day
+        ).values('quiz').distinct().count()
+        weekly_quiz_created.append(quiz_created)
+        weekly_quiz_attempted.append(quiz_attempted)
+        
+        # DECKS: Count cards created vs cards reviewed (via deck study sessions)
+        # Cards created: new cards added to user's decks
+        cards_created = Card.objects.filter(
+            deck__owner=request.user,
+            created_at__date=day
+        ).count()
+        # Cards reviewed: count decks studied that day and sum their card counts
+        studied_decks = Deck.objects.filter(
+            owner=request.user,
+            last_studied_at__date=day
         )
-        weekly_views_counts.append(activity_count)
-    # Flashcards weekly counts via service
-    weekly_flashcard_counts = flashcard_services.get_weekly_flashcard_counts(request.user, date_sequence)
-
-    # Compute per-metric and overall maxima for the period
+        cards_reviewed = sum(deck.cards.count() for deck in studied_decks)
+        weekly_cards_created.append(cards_created)
+        weekly_cards_reviewed.append(cards_reviewed)
+        
+        # BOOKMARKS: Count added (created) vs removed (deleted)
+        # Note: Bookmark model only tracks creation; no deletion timestamp exists
+        # Workaround: Track bookmarks added that day
+        bookmarks_added = Bookmark.objects.filter(user=request.user, created_at__date=day).count()
+        # For "removed" metric: We can't track deletions without a SoftDelete model
+        # Alternative: Show bookmarks added as engagement metric
+        weekly_bookmarks_added.append(bookmarks_added)
+        # Set removed to 0 for now (future enhancement: track unbookmarks)
+        weekly_bookmarks_removed.append(0)
+    
+    # Compute per-metric maxima for dynamic y-axis scaling
     max_uploads = max(weekly_upload_counts) if weekly_upload_counts else 0
-    max_quizzes = max(weekly_quiz_counts) if weekly_quiz_counts else 0
-    max_flashcards = max(weekly_flashcard_counts) if weekly_flashcard_counts else 0
-    max_activity = max(weekly_views_counts) if weekly_views_counts else 0
-    max_overall = max(max_uploads, max_quizzes, max_flashcards, max_activity)
+    max_quiz_created = max(weekly_quiz_created) if weekly_quiz_created else 0
+    max_quiz_attempted = max(weekly_quiz_attempted) if weekly_quiz_attempted else 0
+    max_cards_created = max(weekly_cards_created) if weekly_cards_created else 0
+    max_cards_reviewed = max(weekly_cards_reviewed) if weekly_cards_reviewed else 0
+    max_bookmarks = max(weekly_bookmarks_added) if weekly_bookmarks_added else 0
+    
+    # Overall max for 'all' view
+    max_overall = max(max_uploads, max_quiz_created, max_quiz_attempted, 
+                      max_cards_created, max_cards_reviewed, max_bookmarks)
 
     weekly_metrics = {
         'labels': weekly_labels,
         'uploads': weekly_upload_counts,
-        'quizzes': weekly_quiz_counts,
-        'flashcards': weekly_flashcard_counts,
-        'activity': weekly_views_counts,  # Renamed from 'views' to 'activity' for clarity
+        # QUIZZES: Dual metrics (created vs attempted)
+        'quizzes_created': weekly_quiz_created,
+        'quizzes_attempted': weekly_quiz_attempted,
+        # DECKS: Dual metrics (cards created vs reviewed)
+        'decks_created': weekly_cards_created,
+        'decks_reviewed': weekly_cards_reviewed,
+        # BOOKMARKS: Activity metric
+        'bookmarks': weekly_bookmarks_added,
         'max_values': {
             'uploads': max_uploads,
-            'quizzes': max_quizzes,
-            'flashcards': max_flashcards,
-            'activity': max_activity,
+            'quizzes_created': max_quiz_created,
+            'quizzes_attempted': max_quiz_attempted,
+            'decks_created': max_cards_created,
+            'decks_reviewed': max_cards_reviewed,
+            'bookmarks': max_bookmarks,
             'overall': max_overall,
         },
         'palette': {
             'uploads': '#0d6efd',
-            'quizzes': '#ffc107',
-            'flashcards': '#0dcaf0',
-            'activity': '#198754'  # Green for activity (ratings, comments, bookmarks)
+            'quizzes_created': '#ffc107',
+            'quizzes_attempted': '#fd7e14',  # Orange for attempts
+            'decks_created': '#0dcaf0',
+            'decks_reviewed': '#20c997',  # Teal for reviews
+            'bookmarks': '#198754'  # Green for bookmarks
         }
     }
 
@@ -1240,3 +1284,315 @@ def cancel_deletion(request):
         })
     
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
+
+# ========================================
+# API Views for Global Search and Notifications
+# ========================================
+
+@login_required
+@require_http_methods(["GET"])
+def global_search_api(request):
+    """Expanded global search across Resources, Quizzes, and Flashcard Decks.
+    Matches against title, description, and creator username.
+    Returns grouped JSON or 500 with error message on failure."""
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse({'resources': [], 'quizzes': [], 'flashcards': []})
+
+    limit = 5  # per category
+
+    try:
+        # Resources: title / description / uploader username
+        resources = (
+            Resource.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(uploader__username__icontains=query)
+            )
+            .filter(is_public=True)
+            .select_related('uploader')
+            .order_by('-created_at')[:limit]
+        )
+        resources_data = [
+            {
+                'id': r.pk,
+                'title': r.title,
+                'description': r.description or '',
+                'url': reverse('resources:resource_detail', args=[r.pk]),
+                'resource_type': r.resource_type,
+                'is_verified': r.verification_status == 'verified',
+                'author': r.uploader.username,
+            }
+            for r in resources
+        ]
+
+        # Quizzes: title / description / creator username
+        quizzes = (
+            Quiz.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(creator__username__icontains=query)
+            )
+            .filter(is_public=True)
+            .select_related('creator')
+            .order_by('-created_at')[:limit]
+        )
+        quizzes_data = [
+            {
+                'id': q.pk,
+                'title': q.title,
+                'description': q.description or '',
+                'url': reverse('quizzes:quiz_detail', args=[q.pk]),
+                'is_verified': q.verification_status == 'verified',
+                'author': q.creator.username,
+            }
+            for q in quizzes
+        ]
+
+        # Flashcard Decks: title / description / owner username
+        decks = (
+            Deck.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(owner__username__icontains=query)
+            )
+            .filter(visibility='public')
+            .select_related('owner')
+            .order_by('-created_at')[:limit]
+        )
+        flashcards_data = [
+            {
+                'id': d.pk,
+                'title': d.title,
+                'description': d.description or '',
+                'url': reverse('flashcards:deck_detail', args=[d.pk]),
+                'is_verified': d.verification_status == 'verified',
+                'author': d.owner.username,
+            }
+            for d in decks
+        ]
+
+        return JsonResponse(
+            {
+                'resources': resources_data,
+                'quizzes': quizzes_data,
+                'flashcards': flashcards_data,
+            }
+        )
+    except Exception as e:
+        return JsonResponse({'error': 'Server error', 'detail': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def notifications_unread_count_api(request):
+    """
+    API endpoint to get unread notification count (role-aware).
+    Filters notifications based on user role:
+    - Students: new_upload, verification_approved, verification_rejected, new_rating, new_comment
+    - Professors: content_review, student_question, new_enrollment + personal notifications
+    - Admins: new_user_registration, reported_content, system_alert + personal notifications
+    """
+    notifications = request.user.notifications.filter(is_read=False)
+    
+    # Role-based filtering
+    if request.user.is_staff:
+        # Admins see admin notifications + personal notifications
+        admin_types = ['new_user_registration', 'reported_content', 'system_alert']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=admin_types + personal_types)
+    elif request.user.is_professor:
+        # Professors see professor notifications + personal notifications
+        prof_types = ['content_review', 'student_question', 'new_enrollment']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=prof_types + personal_types)
+    else:
+        # Students see student notifications
+        student_types = ['new_upload', 'verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=student_types)
+    
+    count = notifications.count()
+    return JsonResponse({'count': count})
+
+
+@login_required
+@require_http_methods(["GET"])
+def notifications_list_api(request):
+    """
+    API endpoint to get user's notifications (latest 20, role-aware).
+    Filters notifications based on user role:
+    - Students: new_upload, verification_approved, verification_rejected, new_rating, new_comment
+    - Professors: content_review, student_question, new_enrollment + personal notifications
+    - Admins: new_user_registration, reported_content, system_alert + personal notifications
+    """
+    notifications = request.user.notifications.all()
+    
+    # Role-based filtering
+    if request.user.is_staff:
+        # Admins see admin notifications + personal notifications
+        admin_types = ['new_user_registration', 'reported_content', 'system_alert']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=admin_types + personal_types)
+    elif request.user.is_professor:
+        # Professors see professor notifications + personal notifications
+        prof_types = ['content_review', 'student_question', 'new_enrollment']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=prof_types + personal_types)
+    else:
+        # Students see student notifications
+        student_types = ['new_upload', 'verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=student_types)
+    
+    notifications = notifications[:20]
+    
+    notifications_data = [{
+        'id': n.pk,
+        'type': n.type,
+        'message': n.message,
+        'url': n.url or '',
+        'is_read': n.is_read,
+        'created_at': n.created_at.isoformat()
+    } for n in notifications]
+    
+    return JsonResponse({'notifications': notifications_data})
+
+
+@login_required
+@require_http_methods(["POST"])
+def notifications_mark_read_api(request):
+    """
+    API endpoint to mark a notification as read.
+    """
+    try:
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        
+        if not notification_id:
+            return JsonResponse({'success': False, 'message': 'No notification ID provided'}, status=400)
+        
+        notification = request.user.notifications.filter(pk=notification_id).first()
+        
+        if not notification:
+            return JsonResponse({'success': False, 'message': 'Notification not found'}, status=404)
+        
+        notification.mark_as_read()
+        
+        return JsonResponse({'success': True})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def notifications_mark_all_read_api(request):
+    """
+    API endpoint to mark all user notifications as read.
+    """
+    try:
+        request.user.notifications.filter(is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+@login_required
+def notifications_page(request):
+    """
+    View all notifications page (role-aware).
+    Filters notifications based on user role:
+    - Students: new_upload, verification_approved, verification_rejected, new_rating, new_comment
+    - Professors: content_review, student_question, new_enrollment + personal notifications
+    - Admins: new_user_registration, reported_content, system_alert + personal notifications
+    """
+    notifications = request.user.notifications.all()
+    
+    # Role-based filtering
+    if request.user.is_staff:
+        # Admins see admin notifications + personal notifications
+        admin_types = ['new_user_registration', 'reported_content', 'system_alert']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=admin_types + personal_types)
+    elif request.user.is_professor:
+        # Professors see professor notifications + personal notifications
+        prof_types = ['content_review', 'student_question', 'new_enrollment']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=prof_types + personal_types)
+    else:
+        # Students see student notifications
+        student_types = ['new_upload', 'verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=student_types)
+    
+    context = {
+        'notifications': notifications
+    }
+    
+    return render(request, 'accounts/notifications.html', context)
+
+
+@login_required
+def global_search_page(request):
+    """Full-page global search results view.
+    Provides expanded result lists beyond dropdown preview.
+    """
+    query = request.GET.get('q', '').strip()
+    resources_data = quizzes_data = flashcards_data = []
+    total_counts = {'resources': 0, 'quizzes': 0, 'flashcards': 0}
+
+    if query:
+        # Larger limit for full page
+        limit = 50
+        # Resources
+        resources = (
+            Resource.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(uploader__username__icontains=query)
+            )
+            .filter(is_public=True)
+            .select_related('uploader')
+            .order_by('-created_at')[:limit]
+        )
+        resources_data = resources
+        total_counts['resources'] = resources.count()
+
+        # Quizzes
+        quizzes = (
+            Quiz.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(creator__username__icontains=query)
+            )
+            .filter(is_public=True)
+            .select_related('creator')
+            .order_by('-created_at')[:limit]
+        )
+        quizzes_data = quizzes
+        total_counts['quizzes'] = quizzes.count()
+
+        # Flashcards (Decks)
+        decks = (
+            Deck.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(owner__username__icontains=query)
+            )
+            .filter(visibility='public')
+            .select_related('owner')
+            .order_by('-created_at')[:limit]
+        )
+        flashcards_data = decks
+        total_counts['flashcards'] = decks.count()
+
+    context = {
+        'query': query,
+        'resources': resources_data,
+        'quizzes': quizzes_data,
+        'flashcards': flashcards_data,
+        'total_counts': total_counts,
+    }
+    return render(request, 'search/global_search_results.html', context)
+

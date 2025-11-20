@@ -110,9 +110,22 @@ def resource_detail(request, pk):
     if request.user.is_authenticated:
         is_bookmarked = Bookmark.objects.filter(user=request.user, resource=resource).exists()
 
+    # Get user's rating if exists
+    user_rating = None
+    if request.user.is_authenticated and request.user != resource.uploader:
+        try:
+            user_rating = Rating.objects.get(user=request.user, resource=resource)
+        except Rating.DoesNotExist:
+            pass
+
+    # Get all comments for this resource
+    comments = Comment.objects.filter(resource=resource).select_related('user').order_by('-created_at')
+
     context = {
         'resource': resource,
         'is_bookmarked': is_bookmarked,
+        'user_rating': user_rating,
+        'comments': comments,
     }
     return render(request, 'resources/resource_detail.html', context)
 
@@ -483,38 +496,70 @@ def resource_delete(request, pk):
 
 @login_required
 def resource_download(request, pk):
-    """Track download and redirect to file"""
+    """Track download and serve file securely or redirect to external URL"""
+    from django.http import FileResponse
+    import mimetypes
+    import urllib.parse
+    
     resource = get_object_or_404(Resource, pk=pk)
     
     # Restrict access to private resources to uploader only
     if not resource.is_public and resource.uploader != request.user:
         messages.error(request, 'This resource is private.')
         return redirect('resources:resource_list')
+    
+    # Restrict access to unverified resources
+    if resource.verification_status != 'verified':
+        if not (resource.uploader == request.user or getattr(request.user, 'is_professor', False)):
+            messages.error(request, 'This resource is pending verification.')
+            return redirect('resources:resource_list')
     
     # Increment download count
     resource.increment_download_count()
     
-    # Redirect to file URL
-    if resource.file_url:
-        return redirect(resource.file_url)
-    elif resource.external_url:
+    # For external URLs, redirect directly
+    if resource.external_url:
         return redirect(resource.external_url)
-    else:
-        messages.error(request, 'No file available for download.')
-        return redirect('resources:resource_detail', pk=pk)
+    
+    # For file URLs (Supabase storage), redirect with download parameter
+    if resource.file_url:
+        # Since files are in Supabase storage, we redirect to the URL
+        # The storage should handle the download with proper headers
+        # If the URL doesn't auto-download, we can add download parameter
+        file_url = resource.file_url
+        
+        # Try to add download parameter if not already present
+        if '?' in file_url:
+            file_url += '&download=true'
+        else:
+            file_url += '?download=true'
+        
+        return redirect(file_url)
+    
+    # No file available
+    messages.error(request, 'No file available for download.')
+    return redirect('resources:resource_detail', pk=pk)
 
 
 @login_required
 def rate_resource(request, pk):
-    """Rate a resource"""
+    """Rate a resource (supports AJAX)"""
     resource = get_object_or_404(Resource, pk=pk)
+    
+    # Check if AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     # Restrict access to private resources to uploader only
     if not resource.is_public and resource.uploader != request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'This resource is private.'}, status=403)
         messages.error(request, 'This resource is private.')
         return redirect('resources:resource_list')
+    
     # Prevent owner from rating own resource
     if resource.uploader == request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'You cannot rate your own resource.'}, status=403)
         messages.error(request, 'You cannot rate your own resource.')
         return redirect('resources:resource_detail', pk=pk)
     
@@ -523,15 +568,21 @@ def rate_resource(request, pk):
         
         # Validate that stars value is provided
         if not stars:
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'Please select a star rating.'}, status=400)
             messages.error(request, 'Please select a star rating before submitting.')
             return redirect('resources:resource_detail', pk=pk)
         
         try:
             stars = int(stars)
             if stars < 1 or stars > 5:
+                if is_ajax:
+                    return JsonResponse({'success': False, 'error': 'Rating must be between 1 and 5 stars.'}, status=400)
                 messages.error(request, 'Rating must be between 1 and 5 stars.')
                 return redirect('resources:resource_detail', pk=pk)
         except (ValueError, TypeError):
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'Invalid rating value.'}, status=400)
             messages.error(request, 'Invalid rating value.')
             return redirect('resources:resource_detail', pk=pk)
         
@@ -552,13 +603,14 @@ def rate_resource(request, pk):
         rating_count = resource.get_rating_count()
 
         # AJAX response
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if is_ajax:
             return JsonResponse({
                 'success': True,
-                'message': f'You {action} "{resource.title}" with {stars} star{"s" if stars != 1 else ""}! ',
+                'message': f'You {action} "{resource.title}" with {stars} star{"s" if stars != 1 else ""}!',
                 'avg_rating': avg_rating,
                 'rating_count': rating_count,
                 'user_stars': rating.stars,
+                'created': created,
             })
 
         messages.success(request, f'You {action} "{resource.title}" with {stars} star{"s" if stars != 1 else ""}!')
@@ -567,15 +619,23 @@ def rate_resource(request, pk):
 
 @login_required
 def add_comment(request, pk):
-    """Add a comment to a resource"""
+    """Add a comment to a resource (supports AJAX)"""
     resource = get_object_or_404(Resource, pk=pk)
+    
+    # Check if AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     # Restrict access to private resources to uploader only
     if not resource.is_public and resource.uploader != request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'This resource is private.'}, status=403)
         messages.error(request, 'This resource is private.')
         return redirect('resources:resource_list')
+    
     # Prevent owner from commenting on own resource
     if resource.uploader == request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'You cannot comment on your own resource.'}, status=403)
         messages.error(request, 'You cannot comment on your own resource.')
         return redirect('resources:resource_detail', pk=pk)
     
@@ -586,8 +646,30 @@ def add_comment(request, pk):
             comment.user = request.user
             comment.resource = resource
             comment.save()
+            
+            # AJAX response with comment data
+            if is_ajax:
+                from django.utils.timesince import timesince
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Comment added successfully!',
+                    'comment': {
+                        'id': comment.id,
+                        'text': comment.text,
+                        'user_name': comment.user.get_display_name(),
+                        'user_initial': comment.user.get_display_name()[0].upper() if comment.user.get_display_name() else 'U',
+                        'is_professor': getattr(comment.user, 'is_professor', False),
+                        'created_at': comment.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                        'created_since': timesince(comment.created_at) + ' ago',
+                        'can_delete': comment.user == request.user,
+                        'delete_url': f'/resources/comment/{comment.id}/delete/',
+                    }
+                })
+            
             messages.success(request, 'Comment added successfully!')
         else:
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'Invalid comment data. Please check your input.'}, status=400)
             messages.error(request, 'Error adding comment.')
     
     return redirect('resources:resource_detail', pk=pk)

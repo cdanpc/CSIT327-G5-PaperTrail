@@ -1,0 +1,28 @@
+<!-- Form Select Component -->
+<div class="mb-3">
+    <label for="{{ field_id }}" class="form-label">
+        {{ label }}
+        {% if required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    <select 
+        class="form-select form-input" 
+        id="{{ field_id }}" 
+        name="{{ name }}"
+        {% if required %}required{% endif %}
+    >
+        {% if placeholder %}
+            <option value="" disabled {% if not value %}selected{% endif %}>{{ placeholder }}</option>
+        {% endif %}
+        {% for option in options %}
+            <option value="{{ option.value }}" {% if option.value == value %}selected{% endif %}>
+                {{ option.label }}
+            </option>
+        {% endfor %}
+    </select>
+    {% if help_text %}
+        <div class="form-text">{{ help_text }}</div>
+    {% endif %}
+    {% if errors %}
+        <div class="text-danger small mt-1">{{ errors }}</div>
+    {% endif %}
+</div>

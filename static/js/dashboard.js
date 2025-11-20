@@ -16,39 +16,100 @@
   function initInsightsChart() {
     const dataScript = document.getElementById('weekly-metrics-data');
     if(!dataScript) return;
-    let metrics; try { metrics = JSON.parse(dataScript.textContent); } catch(e){ console.warn('Invalid metrics JSON', e); return; }
+    let metrics; 
+    try { 
+      metrics = JSON.parse(dataScript.textContent); 
+      console.log('Learning Insights Metrics:', metrics);
+    } catch(e){ 
+      console.warn('Invalid metrics JSON', e); 
+      return; 
+    }
     const ctx = document.getElementById('insightsChart');
     if(!ctx || !window.Chart) return;
 
     const palette = metrics.palette || {
       uploads: '#0d6efd',
-      quizzes: '#ffc107',
-      flashcards: '#0dcaf0',
-      activity: '#198754'
+      quizzes_created: '#ffc107',
+      quizzes_attempted: '#fd7e14',
+      decks_created: '#0dcaf0',
+      decks_reviewed: '#20c997',
+      bookmarks: '#198754'
     };
 
     let currentMetric = 'uploads';
-    const baseDataset = (key,labelOverride) => ({
-      label: labelOverride || key.charAt(0).toUpperCase()+key.slice(1),
-      data: metrics[key] || [],
-      backgroundColor: (metrics[key]||[]).map(()=> palette[key] + 'B3'),
-      borderRadius: 8,
-      borderSkipped: false
-    });
+    
+    // Helper: Create dataset for single metric
+    const baseDataset = (key, labelOverride) => {
+      const data = metrics[key] || [];
+      const color = palette[key] || '#6c757d';
+      return {
+        label: labelOverride || key.charAt(0).toUpperCase()+key.slice(1),
+        data: data,
+        backgroundColor: data.map(() => color + 'B3'),
+        borderColor: data.map(() => color),
+        borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false
+      };
+    };
+    
+    // Helper: Create stacked datasets for comparison metrics
+    const stackedDatasets = (createdKey, engagedKey, labelPrefix) => [
+      {
+        label: `${labelPrefix} Created`,
+        data: metrics[createdKey] || [],
+        backgroundColor: palette[createdKey] + 'B3',
+        borderColor: palette[createdKey],
+        borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false,
+        stack: 'stack0'
+      },
+      {
+        label: `${labelPrefix} Engaged`,
+        data: metrics[engagedKey] || [],
+        backgroundColor: palette[engagedKey] + 'B3',
+        borderColor: palette[engagedKey],
+        borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false,
+        stack: 'stack0'
+      }
+    ];
 
     function computeYAxisMax(metric){
-      // Collect values for selected metric or all metrics
       let values = [];
       if(metric === 'all') {
-        ['uploads','quizzes','flashcards','activity'].forEach(k => { if(Array.isArray(metrics[k])) values = values.concat(metrics[k]); });
+        // For 'all' view, we show aggregated totals for quizzes and decks
+        if(Array.isArray(metrics.uploads)) values = values.concat(metrics.uploads);
+        if(Array.isArray(metrics.quizzes_created) && Array.isArray(metrics.quizzes_attempted)) {
+          for(let i=0; i<metrics.quizzes_created.length; i++) {
+            values.push((metrics.quizzes_created[i] || 0) + (metrics.quizzes_attempted[i] || 0));
+          }
+        }
+        if(Array.isArray(metrics.decks_created) && Array.isArray(metrics.decks_reviewed)) {
+          for(let i=0; i<metrics.decks_created.length; i++) {
+            values.push((metrics.decks_created[i] || 0) + (metrics.decks_reviewed[i] || 0));
+          }
+        }
+        if(Array.isArray(metrics.bookmarks)) values = values.concat(metrics.bookmarks);
+      } else if(metric === 'quizzes' || metric === 'decks') {
+        // For stacked views, sum the two metrics per day
+        const created = metric === 'quizzes' ? 'quizzes_created' : 'decks_created';
+        const engaged = metric === 'quizzes' ? 'quizzes_attempted' : 'decks_reviewed';
+        if(Array.isArray(metrics[created]) && Array.isArray(metrics[engaged])) {
+          for(let i=0; i<metrics[created].length; i++) {
+            values.push((metrics[created][i] || 0) + (metrics[engaged][i] || 0));
+          }
+        }
       } else if(Array.isArray(metrics[metric])) {
         values = metrics[metric];
       }
       const localMax = values.reduce((m,v)=> (typeof v === 'number' && v>m)? v:m, 0);
-      // Next multiple of 10 strictly greater than localMax; if all zeros, use 10
       const base = Math.floor(localMax / 10) * 10;
       return base + 10;
     }
+    
     const chart = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -57,41 +118,105 @@
       },
       options: {
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { 
+          legend: { 
+            display: false,
+            position: 'top',
+            labels: { 
+              boxWidth: 12,
+              padding: 10,
+              font: { size: 11 }
+            }
+          } 
+        },
         animation: { duration: 450 },
-        // Minimal padding for bars to reach close to bottom edge
         layout: { padding: { top: 10, bottom: 2, left: 8, right: 8 } },
         scales: {
           x: { 
             grid: { display: false, drawBorder: false }, 
             ticks: { padding: 4 }, 
-            offset: true 
+            offset: true,
+            stacked: false
           },
           y: { 
             beginAtZero: true, 
             grid: { color: 'rgba(102,126,234,0.1)', drawBorder: false }, 
             ticks: { precision: 0, padding: 8 }, 
-            max: computeYAxisMax('uploads') 
+            max: computeYAxisMax('uploads'),
+            stacked: false
           }
         }
       }
     });
 
-    // No height sync required; fixed px heights handled via CSS
-
     function updateMetric(metric){
+      console.log('Switching to metric:', metric);
       if(metric === 'all'){
-        chart.data.datasets = ['uploads','quizzes','flashcards','activity'].filter(k=>metrics[k]).map(k=> baseDataset(k));
+        // Show 4 main categories side-by-side (Uploads, Quizzes, Decks, Bookmarks)
+        // Aggregate created+engaged for Quizzes and Decks
+        const quizTotal = (metrics.labels || []).map((_, i) => 
+          (metrics.quizzes_created[i] || 0) + (metrics.quizzes_attempted[i] || 0)
+        );
+        const decksTotal = (metrics.labels || []).map((_, i) => 
+          (metrics.decks_created[i] || 0) + (metrics.decks_reviewed[i] || 0)
+        );
+        
+        console.log('All view - Quiz totals:', quizTotal);
+        console.log('All view - Decks totals:', decksTotal);
+        
+        chart.data.datasets = [
+          baseDataset('uploads','Uploads'),
+          {
+            label: 'Quizzes',
+            data: quizTotal,
+            backgroundColor: quizTotal.map(() => palette.quizzes_created + 'B3'),
+            borderColor: quizTotal.map(() => palette.quizzes_created),
+            borderWidth: 1,
+            borderRadius: 8,
+            borderSkipped: false
+          },
+          {
+            label: 'Decks',
+            data: decksTotal,
+            backgroundColor: decksTotal.map(() => palette.decks_created + 'B3'),
+            borderColor: decksTotal.map(() => palette.decks_created),
+            borderWidth: 1,
+            borderRadius: 8,
+            borderSkipped: false
+          },
+          baseDataset('bookmarks','Bookmarks')
+        ];
+        chart.options.plugins.legend.display = true;
+        chart.options.scales.x.stacked = false;
+        chart.options.scales.y.stacked = false;
+      } else if(metric === 'quizzes') {
+        // Stacked bar: Created vs Attempted
+        console.log('Quizzes view - Created:', metrics.quizzes_created);
+        console.log('Quizzes view - Attempted:', metrics.quizzes_attempted);
+        chart.data.datasets = stackedDatasets('quizzes_created', 'quizzes_attempted', 'Quizzes');
+        chart.options.plugins.legend.display = true;
+        chart.options.scales.x.stacked = true;
+        chart.options.scales.y.stacked = true;
+      } else if(metric === 'decks') {
+        // Stacked bar: Cards Created vs Cards Reviewed
+        console.log('Decks view - Created:', metrics.decks_created);
+        console.log('Decks view - Reviewed:', metrics.decks_reviewed);
+        chart.data.datasets = stackedDatasets('decks_created', 'decks_reviewed', 'Cards');
+        chart.options.plugins.legend.display = true;
+        chart.options.scales.x.stacked = true;
+        chart.options.scales.y.stacked = true;
       } else {
+        // Single metric view
         if(!metrics[metric]) return;
+        console.log('Single metric view:', metric, metrics[metric]);
         chart.data.datasets = [ baseDataset(metric) ];
+        chart.options.plugins.legend.display = false;
+        chart.options.scales.x.stacked = false;
+        chart.options.scales.y.stacked = false;
       }
       currentMetric = metric;
-      chart.options.plugins.legend.display = metric === 'all';
-      // Update y-axis suggestedMax dynamically
       chart.options.scales.y.max = computeYAxisMax(metric);
       chart.update();
-      // No height sync required; fixed px heights handled via CSS
     }
 
     document.querySelectorAll('input[name="metricType"]').forEach(radio => {

@@ -1,0 +1,31 @@
+<!-- Notification Dropdown Component -->
+<div id="notificationDropdown" class="notification-dropdown" style="display: none;">
+    <div class="notification-dropdown-header">
+        <h6 class="notification-dropdown-title">Notifications</h6>
+        <button id="markAllReadBtn" class="btn-text-link" style="display: none;">
+            <i class="fas fa-check-double"></i> Mark all as read
+        </button>
+    </div>
+    
+    <div id="notificationContent" class="notification-dropdown-content">
+        <!-- Loading State -->
+        <div id="notificationLoading" class="notification-loading" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i> Loading notifications...
+        </div>
+        
+        <!-- Empty State -->
+        <div id="notificationEmpty" class="notification-empty" style="display: none;">
+            <i class="fas fa-bell-slash"></i>
+            <p>No notifications</p>
+        </div>
+        
+        <!-- Notifications will be populated by JavaScript -->
+        <div id="notificationList"></div>
+    </div>
+    
+    <div class="notification-dropdown-footer">
+        <a href="{% url 'accounts:notifications' %}" class="notification-view-all">
+            View all notifications
+        </a>
+    </div>
+</div>

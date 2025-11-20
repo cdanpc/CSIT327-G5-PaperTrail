@@ -1,0 +1,9 @@
+<!-- Notification Bell Component -->
+<div class="notification-bell-wrapper">
+    <button class="icon-btn notification-bell-btn" id="notificationBellBtn" aria-label="Notifications" title="Notifications">
+        <i class="fas fa-bell"></i>
+        <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
+    </button>
+    
+    {% include 'components/notification_dropdown.html' %}
+</div>

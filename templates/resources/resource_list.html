@@ -86,14 +86,9 @@
             {% endfor %}
         {% else %}
             <div class="col-12">
-                <div class="study-card">
-                    <div class="study-card__body text-center py-5">
-                        <i class="fas fa-folder-open empty-state__icon"></i>
-                        <h5 class="text-muted">No resources found.</h5>
-                        {% if user.is_authenticated %}
-                            <p class="text-muted">Upload one to get started!</p>
-                            <a href="{% url 'resources:resource_upload' %}" class="btn btn--primary mt-3"><i class="fas fa-upload"></i> Upload Resource</a>
-                        {% endif %}
+                <div class="study-card" style="min-height: 500px;">
+                    <div class="study-card__body">
+                        {% include 'components/empty_state.html' with icon='fas fa-folder-open' main_message='No resources found.' sub_message='Upload one to get started!' show_action_buttons=True primary_action_url='/resources/upload/' primary_action_text='Upload Resource' primary_action_icon='fas fa-upload' %}
                     </div>
                 </div>
             </div>

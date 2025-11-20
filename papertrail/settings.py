@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'flashcards',
     "crispy_forms",
     "crispy_bootstrap5",
-    'sslserver',
+    # 'sslserver',  # Commented out - not installed
 ]
  
 MIDDLEWARE = [

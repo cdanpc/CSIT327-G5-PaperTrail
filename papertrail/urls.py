@@ -20,6 +20,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.conf.urls.static import static
+from accounts import views as accounts_views
 
 
 def home_view(request):
@@ -39,6 +40,17 @@ urlpatterns = [
     path('quizzes/', include('quizzes.urls')),
     path('flashcards/', include('flashcards.urls')),
     path('bookmarks/', include('bookmarks.urls')),
+    
+    # Global API endpoints
+    path('api/global-search/', accounts_views.global_search_api, name='global_search_api'),
+    path('api/notifications/unread-count/', accounts_views.notifications_unread_count_api, name='notifications_unread_count_api'),
+    path('api/notifications/unread/', accounts_views.notifications_unread_count_api, name='notifications_unread_api'),
+    path('api/notifications/list/', accounts_views.notifications_list_api, name='notifications_list_api'),
+    path('api/notifications/mark-read/', accounts_views.notifications_mark_read_api, name='notifications_mark_read_api'),
+    path('api/notifications/mark-all-read/', accounts_views.notifications_mark_all_read_api, name='notifications_mark_all_read_api'),
+    # Full-page search route
+    path('search/', accounts_views.global_search_page, name='global_search_page'),
+    
     # Prototype draft dashboard (frontend-only)
     path(
         'prototypes/dashboard/',

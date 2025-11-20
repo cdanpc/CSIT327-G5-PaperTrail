@@ -512,3 +512,62 @@ class UserPreferences(models.Model):
 
     def __str__(self):
         return f"Preferences for {self.user.get_display_name()}"
+
+
+class Notification(models.Model):
+    """Stores user notifications for various events."""
+    
+    NOTIFICATION_TYPES = [
+        # Student notifications
+        ('new_upload', 'New Upload'),
+        ('new_comment', 'New Comment'),
+        ('new_rating', 'New Rating'),
+        ('verification_approved', 'Verification Approved'),
+        ('verification_rejected', 'Verification Rejected'),
+        ('new_bookmark', 'New Bookmark'),
+        ('quiz_attempt', 'Quiz Attempt'),
+        # Professor notifications
+        ('content_review', 'Content Review Required'),
+        ('student_question', 'Student Question'),
+        ('new_enrollment', 'New Enrollment'),
+        # Admin notifications
+        ('new_user_registration', 'New User Registration'),
+        ('reported_content', 'Reported Content'),
+        ('system_alert', 'System Alert'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES)
+    message = models.TextField()
+    url = models.URLField(blank=True, null=True, help_text='Link to related content')
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Generic foreign key fields for flexibility
+    related_object_type = models.CharField(
+        max_length=50, 
+        blank=True, 
+        null=True,
+        help_text='Type of related object (resource, quiz, flashcard, etc.)'
+    )
+    related_object_id = models.PositiveIntegerField(
+        blank=True, 
+        null=True,
+        help_text='ID of the related object'
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'is_read']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_type_display()} for {self.user.get_display_name()}"
+    
+    def mark_as_read(self):
+        """Mark notification as read."""
+        if not self.is_read:
+            self.is_read = True
+            self.save(update_fields=['is_read'])

@@ -24,7 +24,7 @@
   <div>
     {% include 'components/filter_sort.html' with filter_name="status" filter_label="Filter by status" filter_options=status_filter_options selected_value=status_filter %}
   </div>
-</div>
+    </div>
 
                 <div class="row g-3">
                     {% if quizzes %}
@@ -85,17 +85,13 @@
                         {% endfor %}
                     {% else %}
                         <div class="col-12">
-                            <div class="card dashboard-card">
-                                <div class="card-body text-center py-5">
-                                    <i class="fas fa-clipboard-list empty-icon mb-3"></i>
+                            <div class="card dashboard-card" style="min-height: 500px;">
+                                <div class="card-body">
                                     {% if scope == 'mine' %}
-                                        <h5 class="text-muted">You haven't created any quizzes yet</h5>
-                                        <p class="text-muted">Create one to get started!</p>
+                                        {% include 'components/empty_state.html' with icon='fas fa-clipboard-list' main_message="You haven't created any quizzes yet" sub_message='Create one to get started!' show_action_buttons=True primary_action_url='/quizzes/create/' primary_action_text='New Quiz' primary_action_icon='fas fa-plus' %}
                                     {% else %}
-                                        <h5 class="text-muted">No quizzes available yet</h5>
-                                        <p class="text-muted">Please check back later.</p>
+                                        {% include 'components/empty_state.html' with icon='fas fa-clipboard-list' main_message='No quizzes available yet' sub_message='Please check back later.' show_action_buttons=True primary_action_url='/quizzes/create/' primary_action_text='New Quiz' primary_action_icon='fas fa-plus' %}
                                     {% endif %}
-                                    <a href="{% url 'quizzes:quiz_create' %}" class="btn btn--primary"><i class="fas fa-plus"></i> New Quiz</a>
                                 </div>
                             </div>
                         </div>

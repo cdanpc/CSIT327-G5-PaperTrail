@@ -1,0 +1,230 @@
+/* ============================================
+   Form Components Styles
+   ============================================ */
+
+/* Form Section */
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.form-section-header {
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Form Inputs - Unified Styling */
+.form-input,
+.form-control,
+.form-select {
+    height: 40px;
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--color-text-primary, #1f2937);
+    background-color: var(--color-bg-primary, #ffffff);
+    border: 1px solid var(--color-border, #d1d5db);
+    border-radius: var(--radius-md, 8px);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-input:focus {
+    border-color: var(--color-primary, #667eea);
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Textarea specific */
+textarea.form-control,
+textarea.form-input {
+    height: auto;
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Form Label */
+.form-label {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #4b5563);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Form Text (Help Text) */
+.form-text {
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted, #6b7280);
+    line-height: 1.5;
+}
+
+/* Required Asterisk */
+.text-danger {
+    color: #ef4444 !important;
+}
+
+/* Error Messages */
+.text-danger.small {
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Form Switch */
+.form-check-switch {
+    padding-left: 2.5rem;
+    min-height: 1.5rem;
+}
+
+.form-check-input {
+    width: 3rem;
+    height: 1.5rem;
+    cursor: pointer;
+    background-color: #d1d5db;
+    border: none;
+    border-radius: 2rem;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.form-check-input:checked {
+    background-color: var(--color-primary, #667eea);
+    border-color: var(--color-primary, #667eea);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    border-color: var(--color-primary, #667eea);
+}
+
+.form-check-label {
+    cursor: pointer;
+    font-size: 0.9375rem;
+    color: var(--color-text-primary, #1f2937);
+    font-weight: 500;
+}
+
+/* Soft Panel for Special Sections */
+.soft-panel {
+    background-color: rgba(102, 126, 234, 0.03);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    border-radius: var(--radius-md, 8px);
+    padding: 1rem;
+}
+
+/* Alert Soft Primary */
+.alert-soft-primary {
+    background-color: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    color: #667eea;
+    border-radius: var(--radius-md, 8px);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.alert-soft-primary i {
+    margin-right: 0.5rem;
+}
+
+.alert-soft-primary strong {
+    font-weight: 600;
+}
+
+/* Privacy Panel (Quiz specific) */
+.privacy-panel {
+    background-color: rgba(102, 126, 234, 0.03);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    border-radius: var(--radius-md, 8px);
+    padding: 1rem;
+}
+
+.privacy-panel h6 {
+    font-weight: 600;
+    color: var(--color-text-primary, #1f2937);
+    margin-bottom: 0.5rem;
+}
+
+.privacy-panel .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm, 6px);
+}
+
+/* Select Dropdown Arrow */
+.form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+}
+
+/* Disabled State */
+.form-control:disabled,
+.form-select:disabled,
+.form-input:disabled {
+    background-color: #f3f4f6;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Invalid State */
+.form-control.is-invalid,
+.form-select.is-invalid,
+.form-input.is-invalid {
+    border-color: #ef4444;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus,
+.form-input.is-invalid:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* File Upload Input */
+input[type="file"].form-control {
+    padding: 0.5rem 0.75rem;
+}
+
+input[type="file"].form-control::file-selector-button {
+    padding: 0.375rem 0.75rem;
+    margin: -0.5rem -0.75rem;
+    margin-inline-end: 0.75rem;
+    color: #667eea;
+    background-color: rgba(102, 126, 234, 0.1);
+    border: 0;
+    border-radius: var(--radius-sm, 6px);
+    transition: background-color 0.15s ease-in-out;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+input[type="file"].form-control::file-selector-button:hover {
+    background-color: rgba(102, 126, 234, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+    .form-input,
+    .form-control,
+    .form-select {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .form-section-header {
+        font-size: 0.9375rem;
+    }
+}
