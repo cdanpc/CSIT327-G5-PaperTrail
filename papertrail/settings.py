@@ -204,8 +204,11 @@ DEFAULT_FROM_EMAIL = 'PaperTrail <noreply@papertrail.com>'
 
 if os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True").lower() == "true":
     SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+else:
+    SECURE_SSL_REDIRECT = False
+
+SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
+CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 
 # Note: Using Gmail App Password from environment/.env file
 

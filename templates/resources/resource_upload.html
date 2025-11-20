@@ -10,22 +10,21 @@
 
 {% block header %}
 <div class="dashboard-header">
-    <div class="dashboard-title-section">
-        <h1 class="dashboard-title">Upload Resource</h1>
-        <p class="dashboard-date">Share your knowledge with the community</p>
+    <div class="d-flex align-items-center">
+        <a href="{% url 'resources:resource_list' %}" class="me-3 ms-3 text-decoration-none text-dark">
+            <h1 class="dashboard-title mb-0"><i class="fas fa-chevron-left"></i></h1>
+        </a>
+        <div>
+            <h1 class="dashboard-title mb-0">Upload Resource</h1>
+            <p class="dashboard-date mb-0">Share your knowledge with the community</p>
+        </div>
     </div>
-    </div>
+</div>
 {% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <!-- Back Button -->
-        <div class="mb-3">
-            <a href="{% url 'resources:resource_list' %}" class="btn btn-outline-primary-soft btn-pill">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
-        </div>
         
         <!-- Upload Form Card -->
         <div class="card dashboard-card">
