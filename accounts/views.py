@@ -746,14 +746,22 @@ def online_users(request):
     from datetime import timedelta
     from django.utils import timezone
     
-    # Get users who have been active in the last 5 minutes
+    # Get users who have been active in the last 5 minutes using UserSession for real-time tracking
     time_threshold = timezone.now() - timedelta(minutes=5)
     
+    # Get active sessions from the last 5 minutes
+    active_sessions = UserSession.objects.filter(
+        last_activity__gte=time_threshold,
+        user__is_staff=False,
+        user__is_superuser=False
+    ).values_list('user_id', flat=True).distinct()
+    
+    # Get the users from active sessions, ordered by their most recent activity
     online_users_list = User.objects.filter(
-        last_login__gte=time_threshold,
-        is_staff=False,
-        is_superuser=False
-    ).order_by('-last_login')
+        id__in=active_sessions
+    ).annotate(
+        last_activity_time=models.Max('sessions__last_activity')
+    ).order_by('-last_activity_time')
     
     # Get total counts
     total_online = online_users_list.count()
