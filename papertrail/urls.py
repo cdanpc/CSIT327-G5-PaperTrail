@@ -40,6 +40,7 @@ urlpatterns = [
     path('quizzes/', include('quizzes.urls')),
     path('flashcards/', include('flashcards.urls')),
     path('bookmarks/', include('bookmarks.urls')),
+    path('forum/', include('forum.urls')),
     
     # Global API endpoints
     path('api/global-search/', accounts_views.global_search_api, name='global_search_api'),

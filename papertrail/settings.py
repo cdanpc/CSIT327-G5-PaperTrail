@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'quizzes',
     'bookmarks',
     'flashcards',
+    'forum',
     "crispy_forms",
     "crispy_bootstrap5",
     # 'sslserver',  # Commented out - not installed
@@ -143,13 +144,38 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 SESSION_COOKIE_AGE = 86400
 SESSION_SAVE_EVERY_REQUEST = True
  
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+# ============================================================================
+# EMAIL CONFIGURATION (Gmail SMTP)
+# ============================================================================
+# Gmail SMTP requires:
+# 1. EMAIL_HOST_USER: Your full Gmail address (e.g., youremail@gmail.com)
+# 2. EMAIL_HOST_PASSWORD: Gmail App Password (16 chars, no spaces)
+#    Generate at: https://myaccount.google.com/apppasswords
+
+# Site domain for password reset emails
+SITE_DOMAIN = config('SITE_DOMAIN', default='127.0.0.1:8000')
+
+# Load all email settings from .env
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = 'PaperTrail <noreply@papertrail.com>'
+
+# Optional: Set timeout for SMTP connections
+EMAIL_TIMEOUT = 30
+
+# Display configuration status
+if EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend':
+    print("⚠️  Using console email backend (emails will print to terminal)")
+elif EMAIL_HOST_USER:
+    print(f"✅ Using Gmail SMTP with {EMAIL_HOST_USER}")
+else:
+    print("❌ Warning: EMAIL_HOST_USER not set!")
+
+DEFAULT_FROM_EMAIL = f'PaperTrail <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'PaperTrail <noreply@papertrail.com>'
+SERVER_EMAIL = DEFAULT_FROM_EMAIL  # For error emails
  
 if ON_RENDER:
     SECURE_SSL_REDIRECT = True

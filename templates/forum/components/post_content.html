@@ -1,0 +1,35 @@
+{% comment %}
+Post Content Component
+Displays main thread content or a reply with nesting support
+{% endcomment %}
+
+<div class="forum-post" data-post-id="{{ post.id }}" {% if post.parent_post_id %}data-parent-id="{{ post.parent_post_id }}" style="margin-left: {{ nesting_level|default:0|mul:40 }}px;"{% endif %}>
+  <div class="forum-post__header">
+    <div class="forum-post__avatar">
+      <i class="fas fa-user-circle"></i>
+    </div>
+    <div class="forum-post__author-info">
+      <span class="forum-post__author">{{ post.author }}</span>
+      <span class="forum-post__timestamp">
+        <i class="far fa-clock"></i>
+        {{ post.created_at|timesince }} ago
+      </span>
+    </div>
+  </div>
+  
+  <div class="forum-post__content">
+    {{ post.content|linebreaks }}
+  </div>
+  
+  <div class="forum-post__footer">
+    <button class="forum-post__reply-btn" data-post-id="{{ post.id }}">
+      <i class="fas fa-reply"></i> Reply
+    </button>
+    {% if post.reply_count > 0 %}
+    <span class="forum-post__reply-count">
+      <i class="fas fa-comments"></i>
+      {{ post.reply_count }} {{ post.reply_count|pluralize:"Reply,Replies" }}
+    </span>
+    {% endif %}
+  </div>
+</div>

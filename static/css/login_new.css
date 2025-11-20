@@ -12,7 +12,8 @@ body {
     padding: 2rem 1rem;
 }
 
-.login-card {
+.login-card,
+.auth-card {
     background: white;
     border-radius: 20px;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
@@ -22,12 +23,14 @@ body {
 }
 
 /* Header Section */
-.login-header {
+.login-header,
+.auth-header {
     text-align: center;
     margin-bottom: 2.5rem;
 }
 
-.login-icon {
+.login-icon,
+.auth-icon {
     width: 80px;
     height: 80px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -38,19 +41,22 @@ body {
     margin: 0 auto 1.5rem;
 }
 
-.login-icon i {
+.login-icon i,
+.auth-icon i {
     font-size: 2.5rem;
     color: white;
 }
 
-.login-title {
+.login-title,
+.auth-title {
     font-size: 2rem;
     font-weight: 700;
     color: #2d3748;
     margin-bottom: 0.5rem;
 }
 
-.login-subtitle {
+.login-subtitle,
+.auth-subtitle {
     color: #718096;
     font-size: 1rem;
     margin: 0;

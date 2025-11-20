@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from . import views
+from .forms import CITPasswordResetForm, CITSetPasswordForm
 
 app_name = 'accounts'
 
@@ -46,34 +47,31 @@ urlpatterns = [
     path('reminders/toggle/<int:pk>/', views.toggle_study_reminder, name='toggle_study_reminder'),
     path('reminders/delete/<int:pk>/', views.delete_study_reminder, name='delete_study_reminder'),
     
-    # Forgot Password (Link-based reset - Standard method) - TEMP DISABLED
-    # path('forgot-password/', views.forgot_password_request, name='forgot_password'),
-    # path('reset/<str:token>/', views.reset_password_token, name='reset_password_token'),
-    
-    # Old verification code routes (deprecated, keeping for backward compatibility) - TEMP DISABLED
-    # path('verify-code/<int:token_id>/', views.verify_code, name='verify_code'),
-    # path('reset-password/<int:token_id>/', views.reset_password, name='reset_password'),
-    
-    # Password Reset (Old Django default - keeping for compatibility)
-    path('password-reset/', 
+    # Forgot Password - Django Built-in Views with @cit.edu Validation
+    path('forgot-password/', 
          PasswordResetView.as_view(
-             template_name='accounts/password_reset.html',
-             email_template_name='accounts/password_reset_email.html'
+             template_name='registration/password_reset_form.html',
+             email_template_name='registration/password_reset_email.txt',
+             subject_template_name='registration/password_reset_subject.txt',
+             form_class=CITPasswordResetForm,
+             success_url='/accounts/forgot-password/done/'
          ), 
          name='password_reset'),
-    path('password-reset/done/', 
+    path('forgot-password/done/', 
          PasswordResetDoneView.as_view(
-             template_name='accounts/password_reset_done.html'
+             template_name='registration/password_reset_done.html'
          ), 
          name='password_reset_done'),
-    path('password-reset/confirm/<uidb64>/<token>/', 
+    path('reset/<uidb64>/<token>/', 
          PasswordResetConfirmView.as_view(
-             template_name='accounts/password_reset_confirm.html'
+             template_name='registration/password_reset_confirm.html',
+             form_class=CITSetPasswordForm,
+             success_url='/accounts/reset/done/'
          ), 
          name='password_reset_confirm'),
-    path('password-reset/complete/', 
+    path('reset/done/', 
          PasswordResetCompleteView.as_view(
-             template_name='accounts/password_reset_complete.html'
+             template_name='registration/password_reset_complete.html'
          ), 
          name='password_reset_complete'),
 ]

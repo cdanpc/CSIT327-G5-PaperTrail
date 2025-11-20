@@ -24,11 +24,14 @@
     <link rel="stylesheet" href="{% static 'css/modal.css' %}?v=1.0">
     <link rel="stylesheet" href="{% static 'css/forms.css' %}?v=1.0">
     <link rel="stylesheet" href="{% static 'css/search_notifications.css' %}?v=1.0">
+    <link rel="stylesheet" href="{% static 'css/toast.css' %}?v=1.0">
     
     <!-- Page-specific CSS -->
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Toast Messages Component -->
+    {% include 'components/toast_messages.html' %}
     <!-- Include Sidebar -->
     {% include 'includes/sidebar.html' %}
     
@@ -56,6 +59,9 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Toast Notifications JS -->
+    <script src="{% static 'js/toast.js' %}?v=1.0"></script>
     
     <!-- Sidebar JavaScript -->
     <script src="{% static 'js/sidebar.js' %}?v=3.1"></script>
