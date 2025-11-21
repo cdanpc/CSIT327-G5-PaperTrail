@@ -22,6 +22,9 @@ urlpatterns = [
     path('admin/demote-professor/<int:user_id>/', views.demote_professor, name='demote_professor'),
     path('admin/manage-users/', views.manage_users, name='manage_users'),
     path('admin/online-users/', views.online_users, name='online_users'),
+    path('admin/ban-user/<int:user_id>/', views.ban_user, name='ban_user'),
+    path('admin/unban-requests/', views.unban_requests, name='unban_requests'),
+    path('admin/unban-user/<int:user_id>/', views.unban_user, name='unban_user'),
     
     # Profile
     path('profile/', views.profile, name='profile'),

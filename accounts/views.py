@@ -748,7 +748,7 @@ def manage_users(request):
     
     # Optional: Add search/filter functionality
     search_query = request.GET.get('search', '')
-    role_filter = request.GET.get('role', '')  # 'professor', 'student', or empty for all
+    role_filter = request.GET.get('role', '')  # 'professor', 'student', 'banned', or empty for all
     
     if search_query:
         all_users = all_users.filter(
@@ -759,9 +759,11 @@ def manage_users(request):
         )
     
     if role_filter == 'professor':
-        all_users = all_users.filter(is_professor=True)
+        all_users = all_users.filter(is_professor=True, is_banned=False)
     elif role_filter == 'student':
-        all_users = all_users.filter(is_professor=False)
+        all_users = all_users.filter(is_professor=False, is_banned=False)
+    elif role_filter == 'banned':
+        all_users = all_users.filter(is_banned=True)
     
     # Pagination
     from django.core.paginator import Paginator
@@ -776,6 +778,7 @@ def manage_users(request):
         'total_users': User.objects.filter(is_staff=False, is_superuser=False).count(),
         'total_professors': User.objects.filter(is_professor=True, is_staff=False, is_superuser=False).count(),
         'total_students': User.objects.filter(is_professor=False, is_staff=False, is_superuser=False).count(),
+        'total_banned': User.objects.filter(is_banned=True, is_staff=False, is_superuser=False).count(),
     }
     return render(request, 'accounts/manage_users.html', context)
 
@@ -1748,3 +1751,59 @@ def global_search_page(request):
     return render(request, 'search/global_search_results.html', context)
 
 
+@login_required
+def ban_user(request, user_id):
+    """Ban a user - admin only"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:manage_users')
+    
+    try:
+        user_to_ban = User.objects.get(id=user_id)
+        if user_to_ban == request.user:
+            messages.error(request, 'You cannot ban yourself.')
+            return redirect('accounts:manage_users')
+        
+        user_to_ban.is_banned = True
+        user_to_ban.save(update_fields=['is_banned'])
+        messages.success(request, f'{user_to_ban.get_display_name()} has been banned.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    
+    return redirect('accounts:manage_users')
+
+
+@login_required
+def unban_requests(request):
+    """View and manage unban requests - admin only"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:admin_dashboard')
+    
+    # Get all banned users
+    banned_users = User.objects.filter(is_banned=True, is_staff=False, is_superuser=False).order_by('-date_joined')
+    
+    context = {
+        'banned_users': banned_users,
+        'total_banned': banned_users.count(),
+    }
+    
+    return render(request, 'accounts/unban_requests.html', context)
+
+
+@login_required
+def unban_user(request, user_id):
+    """Unban a user - admin only"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:unban_requests')
+    
+    try:
+        user_to_unban = User.objects.get(id=user_id)
+        user_to_unban.is_banned = False
+        user_to_unban.save(update_fields=['is_banned'])
+        messages.success(request, f'{user_to_unban.get_display_name()} has been unbanned.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    
+    return redirect('accounts:unban_requests')

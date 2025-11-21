@@ -1,0 +1,140 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Banned Users{% endblock %}
+
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Banned Users</h1>
+        <p class="dashboard-date">Manage banned user accounts and unban requests</p>
+    </div>
+    <div class="dashboard-actions">
+        <a href="{% url 'accounts:manage_users' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> Back to Manage Users
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card stat-card-red h-100">
+            <div class="stat-icon">
+                <i class="fas fa-ban"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Banned</div>
+                <div class="stat-value">{{ total_banned }}</div>
+                <div class="stat-sublabel">Banned accounts</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card stat-card-blue h-100">
+            <div class="stat-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Students</div>
+                <div class="stat-value">{{ banned_users|dictsort:"is_professor"|length|add:0 }}</div>
+                <div class="stat-sublabel">Banned students</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card stat-card-green h-100">
+            <div class="stat-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Professors</div>
+                <div class="stat-value">0</div>
+                <div class="stat-sublabel">Banned professors</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Banned Users Table -->
+<div class="card dashboard-card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Banned Users Management</h5>
+        <p class="text-muted small mt-2 mb-0">Total: {{ total_banned }} banned users</p>
+    </div>
+    <div class="card-body p-0">
+        {% if banned_users %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background: rgba(102, 126, 234, 0.05); border-bottom: 2px solid #e5e7eb;">
+                        <tr>
+                            <th style="padding: 1rem; font-weight: 600; color: #4b5563;">Name</th>
+                            <th style="padding: 1rem; font-weight: 600; color: #4b5563;">Email</th>
+                            <th style="padding: 1rem; font-weight: 600; color: #4b5563;">Role</th>
+                            <th style="padding: 1rem; font-weight: 600; color: #4b5563;">Banned Date</th>
+                            <th style="padding: 1rem; font-weight: 600; color: #4b5563; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in banned_users %}
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 1rem;">
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if user.profile_picture %}
+                                        <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                        <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px; color: white; flex-shrink: 0;">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                    {% endif %}
+                                    <div>
+                                        <div style="font-weight: 600; color: #1a1a1a;">{{ user.get_display_name }}</div>
+                                        <small class="text-muted">ID: {{ user.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <small class="text-muted">{{ user.email|default:user.univ_email|default:"No email" }}</small>
+                            </td>
+                            <td style="padding: 1rem;">
+                                {% if user.is_professor %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600;">
+                                        <i class="fas fa-chalkboard-teacher"></i> Professor
+                                    </span>
+                                {% else %}
+                                    <span class="badge" style="background: rgba(108, 117, 125, 0.2); color: #6c757d; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600;">
+                                        <i class="fas fa-user-graduate"></i> Student
+                                    </span>
+                                {% endif %}
+                                <span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #dc2626; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; margin-left: 0.5rem;">
+                                    <i class="fas fa-ban"></i> Banned
+                                </span>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <small class="text-muted">{{ user.date_joined|date:"M d, Y" }}</small>
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <a href="{% url 'accounts:unban_user' user.id %}" class="btn btn-sm btn-outline-success" onclick="return confirm('Are you sure you want to unban this user?');" title="Unban User" style="border-color: #10b981; color: #10b981; padding: 0.375rem 0.75rem;">
+                                    <i class="fas fa-undo"></i> Unban
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-5 text-center">
+                <div style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <h6 style="color: #6b7280; font-weight: 600;">No Banned Users</h6>
+                <p class="text-muted small">All users are in good standing.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
