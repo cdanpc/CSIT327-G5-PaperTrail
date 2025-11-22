@@ -677,8 +677,10 @@ def promote_to_professor(request):
         messages.error(request, 'Access denied. Admin privileges required.')
         return redirect(request.user.get_dashboard_url())
     
-    if request.method == 'POST':
-        user_id = request.POST.get('user_id')
+    # Check for user_id in GET parameter (from manage_users page)
+    user_id = request.GET.get('promote')
+    
+    if user_id:
         try:
             user = User.objects.get(id=user_id)
             
@@ -694,9 +696,9 @@ def promote_to_professor(request):
         except Exception as e:
             messages.error(request, f'An error occurred: {str(e)}')
         
-        return redirect('accounts:admin_dashboard')
+        return redirect('accounts:manage_users')
     
-    # GET request - return list of students who can be promoted
+    # If no user_id in GET, return list of students who can be promoted (for legacy form if needed)
     students = User.objects.filter(
         is_professor=False,
         is_staff=False,

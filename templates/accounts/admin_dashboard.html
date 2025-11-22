@@ -17,6 +17,15 @@
         <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
             <i class="fas fa-bell"></i>
         </button>
+        <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-2 profile-link" title="Profile" style="text-decoration:none;">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
+            {% else %}
+                <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
+                    <i class="fas fa-user"></i>
+                </span>
+            {% endif %}
+        </a>
     </div>
 </div>
 {% endblock %}
@@ -176,57 +185,6 @@
                     <p class="text-center text-muted my-3">
                         <i class="fas fa-check-circle" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem; display: block;"></i>
                         No pending resources to review.
-                    </p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Column: Recent Users -->
-    <div class="col-lg-6">
-        <div class="card dashboard-card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Recent Users</h5>
-                <a href="{% url 'admin:index' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
-                    View All
-                </a>
-            </div>
-            <div class="card-body">
-                {% if recent_users %}
-                    {% for user in recent_users %}
-                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
-                        <div style="flex: 1;">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <strong style="color: #1a1a1a;">{{ user.get_display_name }}</strong>
-                                {% if user.is_professor %}
-                                    <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 0.65rem;">Professor</span>
-                                {% else %}
-                                    <span class="badge" style="background: rgba(108, 117, 125, 0.2); color: #6c757d; font-size: 0.65rem;">Student</span>
-                                {% endif %}
-                            </div>
-                            <small class="text-muted d-block">
-                                <i class="fas fa-envelope"></i> {{ user.email|default:user.univ_email|default:"No email" }}
-                                <span class="ms-2"><i class="fas fa-calendar"></i> {{ user.date_joined|date:"M d, Y" }}</span>
-                            </small>
-                        </div>
-                        <div class="d-flex gap-2">
-                            {% if user.is_professor %}
-                                <a href="{% url 'accounts:demote_professor' user.id %}?next={{ request.path }}" class="btn btn-sm btn-outline-warning" title="Demote to Student" style="border-color: #f59e0b; color: #f59e0b;">
-                                    <i class="fas fa-arrow-down"></i>
-                                </a>
-                            {% endif %}
-                            {% if not user.is_banned %}
-                            <button class="btn btn-sm btn-outline-danger" data-feature="in-progress" title="Ban User">
-                                <i class="fas fa-ban"></i>
-                            </button>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-center text-muted my-3">
-                        <i class="fas fa-user-slash" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem; display: block;"></i>
-                        No recent user registrations.
                     </p>
                 {% endif %}
             </div>
