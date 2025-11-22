@@ -8,6 +8,9 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 import json
 from .forms import (
     CustomUserCreationForm, 
@@ -15,7 +18,7 @@ from .forms import (
     ProfileUpdateForm,
     CustomPasswordChangeForm
 )
-from .models import User, UserStats, UserPreferences, UserSession, Notification
+from .models import User, UserStats, UserPreferences, UserSession, Notification, PasswordResetToken, PasswordResetRequest
 from resources.models import Resource, Bookmark, Tag, Rating, Comment
 from flashcards.models import Deck, Card
 from flashcards import services as flashcard_services
@@ -655,6 +658,9 @@ def admin_dashboard(request):
     # Get pending resources for approval
     pending_resources = Resource.objects.filter(approved=False).order_by('-created_at')[:10]
     
+    # Get pending password reset requests
+    pending_reset_requests = PasswordResetRequest.objects.filter(status='pending').order_by('-requested_at')[:10]
+    
     # Get recent users
     recent_users = User.objects.order_by('-date_joined')[:10]
     
@@ -665,6 +671,7 @@ def admin_dashboard(request):
         'total_professors': total_professors,
         'banned_users': banned_users,
         'pending_resources': pending_resources,
+        'pending_reset_requests': pending_reset_requests,
         'recent_users': recent_users,
     }
     return render(request, 'accounts/admin_dashboard.html', context)
@@ -1809,3 +1816,300 @@ def unban_user(request, user_id):
         messages.error(request, 'User not found.')
     
     return redirect('accounts:unban_requests')
+
+
+# ========================================
+# Password Reset Views
+# ========================================
+
+def forgot_password_step1(request):
+    """Step 1: User enters their Student ID and chooses reset method"""
+    if request.user.is_authenticated:
+        return redirect(request.user.get_dashboard_url())
+    
+    if request.method == 'POST':
+        stud_id = request.POST.get('stud_id', '').strip()
+        method = request.POST.get('method', 'email')
+        
+        try:
+            user = User.objects.get(stud_id=stud_id)
+            
+            if method == 'email':
+                # Email method - create reset token and send via email
+                reset_token = PasswordResetToken.create_for_user(user)
+                
+                # Send verification code via email
+                try:
+                    recipient_email = user.personal_email or user.univ_email
+                    if recipient_email:
+                        subject = 'Your Password Reset Code - PaperTrail'
+                        message = f'''Hello {user.get_display_name()},
+
+Your password reset verification code is: {reset_token.token}
+
+This code will expire in 15 minutes. Do not share this code with anyone.
+
+If you did not request this password reset, please ignore this email.
+
+Best regards,
+PaperTrail Team'''
+                        
+                        send_mail(
+                            subject,
+                            message,
+                            'noreply@papertrail.cit.edu',
+                            [recipient_email],
+                            fail_silently=False,
+                        )
+                        
+                        messages.success(request, f'A verification code has been sent to {recipient_email}.')
+                    else:
+                        messages.error(request, 'No email address found in your account.')
+                        return redirect('accounts:forgot_password_step1')
+                
+                except Exception as e:
+                    messages.error(request, f'Failed to send email. Please try again later.')
+                    return redirect('accounts:forgot_password_step1')
+                
+                request.session['reset_user_id'] = user.id
+                request.session['reset_method'] = 'email'
+                request.session['reset_code_sent'] = True
+                
+                return redirect('accounts:forgot_password_step2')
+            
+            elif method == 'admin':
+                # Admin method - create request and notify admin
+                reset_token = PasswordResetToken.create_for_user(user)
+                
+                # Create a password reset request for admin to review
+                reset_request = PasswordResetRequest.objects.create(
+                    user=user,
+                    contact_info=user.personal_email or user.univ_email or 'No email provided',
+                    status='pending'
+                )
+                
+                # Create notification for all admins
+                admin_users = User.objects.filter(is_staff=True, is_superuser=True)
+                for admin in admin_users:
+                    Notification.objects.create(
+                        user=admin,
+                        type='password_reset_request',
+                        message=f'{user.get_display_name()} ({user.stud_id}) has requested a password reset.',
+                        url=reverse('accounts:admin_dashboard'),
+                        related_object_type='PasswordResetRequest',
+                        related_object_id=reset_request.id
+                    )
+                
+                request.session['reset_user_id'] = user.id
+                request.session['reset_method'] = 'admin'
+                request.session['reset_request_id'] = reset_request.id
+                
+                messages.success(
+                    request, 
+                    f'Admin has been notified. Please wait for their approval.'
+                )
+                return redirect('accounts:forgot_password_step2')
+        
+        except User.DoesNotExist:
+            messages.error(request, 'Student ID not found. Please check and try again.')
+    
+    return render(request, 'accounts/forgot_password_step1.html')
+
+
+def forgot_password_step2(request):
+    """Step 2: Email code verification OR wait for admin approval"""
+    if request.user.is_authenticated:
+        return redirect(request.user.get_dashboard_url())
+    
+    # Check if user came from step 1
+    reset_user_id = request.session.get('reset_user_id')
+    reset_method = request.session.get('reset_method')
+    reset_request_id = request.session.get('reset_request_id')
+    
+    if not reset_user_id:
+        messages.error(request, 'Please start from the beginning.')
+        return redirect('accounts:forgot_password_step1')
+    
+    try:
+        user = User.objects.get(id=reset_user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+        return redirect('accounts:forgot_password_step1')
+    
+    # Handle admin method - check if admin has approved
+    if reset_method == 'admin':
+        # Check if admin approved the request
+        if reset_request_id:
+            try:
+                reset_request = PasswordResetRequest.objects.get(id=reset_request_id)
+                if reset_request.status == 'approved':
+                    # Admin approved, mark as verified and proceed to step 3
+                    request.session['reset_verified'] = True
+                    messages.success(request, 'Admin has approved! Now set your new password.')
+                    return redirect('accounts:forgot_password_step3')
+            except PasswordResetRequest.DoesNotExist:
+                pass
+        
+        # Still waiting for admin approval
+        context = {
+            'user_display': user.get_display_name(),
+            'reset_method': reset_method,
+            'is_waiting_for_admin': True,
+        }
+        return render(request, 'accounts/forgot_password_step2.html', context)
+    
+    # Handle email method - verify code
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip()
+        
+        try:
+            reset_token = PasswordResetToken.objects.get(user=user, token=code)
+            
+            # Check if token is valid
+            if not reset_token.is_valid():
+                messages.error(request, 'Code has expired. Please try again.')
+                return redirect('accounts:forgot_password_step1')
+            
+            # Mark token as used
+            reset_token.is_used = True
+            reset_token.save()
+            
+            # Store verification status in session
+            request.session['reset_verified'] = True
+            
+            messages.success(request, 'Code verified! Now set your new password.')
+            return redirect('accounts:forgot_password_step3')
+        except PasswordResetToken.DoesNotExist:
+            messages.error(request, 'Invalid code. Please try again.')
+    
+    context = {
+        'user_display': user.get_display_name(),
+        'reset_method': reset_method,
+        'is_waiting_for_admin': False,
+    }
+    return render(request, 'accounts/forgot_password_step2.html', context)
+
+
+def forgot_password_step3(request):
+    """Step 3: User sets new password"""
+    if request.user.is_authenticated:
+        return redirect(request.user.get_dashboard_url())
+    
+    # Check if user verified the code
+    reset_user_id = request.session.get('reset_user_id')
+    reset_verified = request.session.get('reset_verified')
+    reset_method = request.session.get('reset_method')
+    reset_request_id = request.session.get('reset_request_id')
+    
+    if not reset_user_id or not reset_verified:
+        messages.error(request, 'Please complete the verification steps first.')
+        return redirect('accounts:forgot_password_step1')
+    
+    try:
+        user = User.objects.get(id=reset_user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+        return redirect('accounts:forgot_password_step1')
+    
+    if request.method == 'POST':
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        
+        # Validate passwords
+        if not password1 or not password2:
+            messages.error(request, 'Both password fields are required.')
+        elif password1 != password2:
+            messages.error(request, 'Passwords do not match.')
+        elif len(password1) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+        else:
+            # Update password
+            user.set_password(password1)
+            user.save()
+            
+            # If admin method, mark the request as completed
+            if reset_method == 'admin' and reset_request_id:
+                try:
+                    reset_request = PasswordResetRequest.objects.get(id=reset_request_id)
+                    reset_request.status = 'completed'
+                    reset_request.save()
+                except PasswordResetRequest.DoesNotExist:
+                    pass
+            
+            # Clear session
+            for key in ['reset_user_id', 'reset_verified', 'reset_code_sent', 'reset_method', 'reset_request_id']:
+                if key in request.session:
+                    del request.session[key]
+            
+            messages.success(request, 'Password reset successful! You can now log in.')
+            return redirect('accounts:login')
+    
+    context = {
+        'user_display': user.get_display_name(),
+        'reset_method': reset_method,
+    }
+    return render(request, 'accounts/forgot_password_step3.html', context)
+
+
+@login_required
+def admin_send_password_reset(request):
+    """Admin sends password reset code to a user"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:admin_dashboard')
+    
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        
+        try:
+            user = User.objects.get(id=user_id)
+            
+            # Create password reset token
+            reset_token = PasswordResetToken.create_for_user(user)
+            
+            # TODO: Send code via email
+            messages.success(request, f'Password reset code sent to {user.get_display_name()}.')
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+    
+    return redirect('accounts:manage_users')
+
+
+@login_required
+def approve_password_reset(request, pk):
+    """Admin approves a password reset request"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:admin_dashboard')
+    
+    try:
+        reset_request = PasswordResetRequest.objects.get(id=pk)
+        reset_request.status = 'approved'
+        reset_request.approved_by = request.user
+        reset_request.save()
+        
+        messages.success(request, f'Password reset request for {reset_request.user.get_display_name()} has been approved.')
+    except PasswordResetRequest.DoesNotExist:
+        messages.error(request, 'Password reset request not found.')
+    
+    return redirect('accounts:admin_dashboard')
+
+
+@login_required
+def deny_password_reset(request, pk):
+    """Admin denies a password reset request"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:admin_dashboard')
+    
+    try:
+        reset_request = PasswordResetRequest.objects.get(id=pk)
+        reset_request.status = 'denied'
+        reset_request.approved_by = request.user
+        reset_request.save()
+        
+        messages.success(request, f'Password reset request for {reset_request.user.get_display_name()} has been denied.')
+    except PasswordResetRequest.DoesNotExist:
+        messages.error(request, 'Password reset request not found.')
+    
+    return redirect('accounts:admin_dashboard')

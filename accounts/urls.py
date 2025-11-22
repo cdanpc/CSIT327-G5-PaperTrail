@@ -58,13 +58,7 @@ urlpatterns = [
     
     # Forgot Password - Django Built-in Views with @cit.edu Validation
     path('forgot-password/', 
-         PasswordResetView.as_view(
-             template_name='registration/password_reset_form.html',
-             email_template_name='registration/password_reset_email.txt',
-             subject_template_name='registration/password_reset_subject.txt',
-             form_class=CITPasswordResetForm,
-             success_url='/accounts/forgot-password/done/'
-         ), 
+         views.forgot_password_step1,
          name='password_reset'),
     path('forgot-password/done/', 
          PasswordResetDoneView.as_view(
@@ -83,4 +77,14 @@ urlpatterns = [
              template_name='registration/password_reset_complete.html'
          ), 
          name='password_reset_complete'),
+    
+    # New Password Reset Flow (Student ID + Verification Code)
+    path('forgot-password/step1/', views.forgot_password_step1, name='forgot_password_step1'),
+    path('forgot-password/step2/', views.forgot_password_step2, name='forgot_password_step2'),
+    path('forgot-password/step3/', views.forgot_password_step3, name='forgot_password_step3'),
+    
+    # Admin Password Reset
+    path('admin/send-password-reset/<int:user_id>/', views.admin_send_password_reset, name='admin_send_password_reset'),
+    path('admin/approve-password-reset/<int:pk>/', views.approve_password_reset, name='approve_password_reset'),
+    path('admin/deny-password-reset/<int:pk>/', views.deny_password_reset, name='deny_password_reset'),
 ]

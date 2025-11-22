@@ -24,6 +24,7 @@
     
     <div class="{% block card_class %}auth-card{% endblock %}">
         <!-- Header Section -->
+        {% if show_header|default:True %}
         <div class="{% block header_class %}auth-header{% endblock %}">
             <div class="{% block icon_class %}auth-icon{% endblock %}">
                 <i class="fas fa-{% block icon %}user{% endblock %}"></i>
@@ -31,6 +32,7 @@
             <h1 class="{% block title_class %}auth-title{% endblock %}">{% block page_title %}Authentication{% endblock %}</h1>
             <p class="{% block subtitle_class %}auth-subtitle{% endblock %}">{% block page_subtitle %}{% endblock %}</p>
         </div>
+        {% endif %}
         
         <!-- Main Content -->
         {% block content %}

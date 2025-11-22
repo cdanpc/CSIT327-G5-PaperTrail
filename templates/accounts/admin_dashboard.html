@@ -98,16 +98,43 @@
     <div class="col-lg-4 col-md-6">
         <div class="card dashboard-card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Add Professor</h5>
+                <h5 class="card-title mb-0">Pending Password Resets</h5>
+                {% if pending_reset_requests %}
+                    <span class="badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">{{ pending_reset_requests|length }}</span>
+                {% endif %}
             </div>
-            <div class="card-body text-center">
-                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <p class="text-muted">Create new professor accounts</p>
-                <a href="{% url 'accounts:promote_to_professor' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
-                    <i class="fas fa-plus"></i> Add Professor
-                </a>
+            <div class="card-body">
+                {% if pending_reset_requests %}
+                    {% for request in pending_reset_requests %}
+                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
+                        <div style="flex: 1;">
+                            <h6 class="mb-1" style="font-weight: 600; color: #1a1a1a;">
+                                {{ request.user.get_display_name }}
+                            </h6>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-id-card"></i> {{ request.user.stud_id }}
+                                <span class="ms-2"><i class="fas fa-envelope"></i> {{ request.user.personal_email|default:request.user.univ_email }}</span>
+                            </small>
+                            <small class="text-muted d-block mt-1">
+                                <i class="fas fa-clock"></i> {{ request.requested_at|timesince }} ago
+                            </small>
+                        </div>
+                        <div class="btn-group ms-2">
+                            <a href="{% url 'accounts:approve_password_reset' request.pk %}" class="btn btn-sm" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none;" title="Approve">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            <a href="{% url 'accounts:deny_password_reset' request.pk %}" class="btn btn-sm btn-outline-danger" title="Deny">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted my-3">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; color: #d1d5db; margin-bottom: 0.5rem; display: block;"></i>
+                        No pending password reset requests.
+                    </p>
+                {% endif %}
             </div>
         </div>
     </div>
