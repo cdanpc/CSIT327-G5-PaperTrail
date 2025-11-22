@@ -12,75 +12,21 @@
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.2">
 </head>
 <body>
-    <button class="mobile-menu-toggle" aria-label="Toggle Menu">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <div class="sidebar-overlay"></div>
-
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-brand-toggle" id="sidebarToggle">
-            <i class="fas fa-book-reader"></i>
-            <span class="sidebar-text">PaperTrail</span>
-        </div>
-
-        <div class="sidebar-content">
-            <nav class="sidebar-nav">
-                <a href="{% url 'accounts:professor_dashboard' %}" class="sidebar-item">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-text">Dashboard</span>
-                </a>
-                <a href="{% url 'resources:resource_list' %}" class="sidebar-item">
-                    <i class="fas fa-book"></i>
-                    <span class="sidebar-text">Resources</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-bookmark"></i>
-                    <span class="sidebar-text">Bookmarks</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-layer-group"></i>
-                    <span class="sidebar-text">Flashcards</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-                <a href="{% url 'quizzes:quiz_list' %}" class="sidebar-item active">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span class="sidebar-text">Quizzes</span>
-                </a>
-                <a href="#" class="sidebar-item coming-soon" data-feature="coming-soon">
-                    <i class="fas fa-comments"></i>
-                    <span class="sidebar-text">Forum</span>
-                    <span class="coming-soon-badge">Soon</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <a href="{% url 'accounts:profile' %}" class="sidebar-item">
-                    <i class="fas fa-user"></i>
-                    <span class="sidebar-text">Profile</span>
-                </a>
-                <a href="{% url 'accounts:settings' %}" class="sidebar-item">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Settings</span>
-                </a>
-                <a href="{% url 'accounts:logout' %}" class="sidebar-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="sidebar-text">Sign Out</span>
-                </a>
-            </div>
-        </div>
-    </div>
-
+    {% include "includes/sidebar.html" %}
+    
+    <!-- Main Content -->
     <div class="main-content" id="mainContent">
         <div class="dashboard-main">
             <div class="container-fluid">
+                <!-- Dashboard Header -->
                 <div class="dashboard-header">
                     <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">Quizzes</h1>
-                        <p class="dashboard-date">Moderation • Review and approve pending quizzes</p>
+                        <h1 class="dashboard-title">Quizzes Moderation</h1>
+                        <p class="dashboard-date">Review and approve pending quizzes</p>
                     </div>
-                    <div class="dashboard-actions">
+                    
+                    <div class="dashboard-actions d-flex align-items-center gap-2">
+                        <!-- Back Button -->
                         <a href="{% url 'quizzes:quiz_list' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
                             <i class="fas fa-arrow-left"></i> Back
                         </a>

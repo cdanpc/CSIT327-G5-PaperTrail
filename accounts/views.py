@@ -661,8 +661,8 @@ def admin_dashboard(request):
     # Get pending password reset requests
     pending_reset_requests = PasswordResetRequest.objects.filter(status='pending').order_by('-requested_at')[:10]
     
-    # Get recent users
-    recent_users = User.objects.order_by('-date_joined')[:10]
+    # Get all users (limited to 10 for dashboard display)
+    all_users = User.objects.order_by('-date_joined')[:10]
     
     context = {
         'user': request.user,
@@ -672,7 +672,7 @@ def admin_dashboard(request):
         'banned_users': banned_users,
         'pending_resources': pending_resources,
         'pending_reset_requests': pending_reset_requests,
-        'recent_users': recent_users,
+        'all_users': all_users,
     }
     return render(request, 'accounts/admin_dashboard.html', context)
 
