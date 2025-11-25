@@ -78,7 +78,7 @@
               <input type="text" class="form-control option-input" placeholder="Option 2" data-option="2">
             </div>
           </div>
-          <div class="row g-2 mb-2">
+          <div class="row g-2 mb-3">
             <div class="col-md-6">
               <input type="text" class="form-control option-input" placeholder="Option 3" data-option="3">
             </div>
@@ -86,11 +86,31 @@
               <input type="text" class="form-control option-input" placeholder="Option 4" data-option="4">
             </div>
           </div>
+          <label class="form-label">Select Correct Answer <span class="text-danger">*</span></label>
+          <div class="row g-2 mb-2">
+            <div class="col-md-3">
+              <input type="radio" class="btn-check correct-answer-radio" id="radio-correct-${questionCount}-1" name="correct-answer-radio-${questionCount}" data-option="1">
+              <label class="btn btn-outline-success w-100" for="radio-correct-${questionCount}-1" style="cursor: pointer;">Option 1</label>
+            </div>
+            <div class="col-md-3">
+              <input type="radio" class="btn-check correct-answer-radio" id="radio-correct-${questionCount}-2" name="correct-answer-radio-${questionCount}" data-option="2">
+              <label class="btn btn-outline-success w-100" for="radio-correct-${questionCount}-2" style="cursor: pointer;">Option 2</label>
+            </div>
+            <div class="col-md-3">
+              <input type="radio" class="btn-check correct-answer-radio" id="radio-correct-${questionCount}-3" name="correct-answer-radio-${questionCount}" data-option="3">
+              <label class="btn btn-outline-success w-100" for="radio-correct-${questionCount}-3" style="cursor: pointer;">Option 3</label>
+            </div>
+            <div class="col-md-3">
+              <input type="radio" class="btn-check correct-answer-radio" id="radio-correct-${questionCount}-4" name="correct-answer-radio-${questionCount}" data-option="4">
+              <label class="btn btn-outline-success w-100" for="radio-correct-${questionCount}-4" style="cursor: pointer;">Option 4</label>
+            </div>
+          </div>
+          <input type="hidden" class="selected-correct-option" value="">
         </div>
-        <div class="mb-3">
+        <div class="mb-3" style="display: none;">
           <label class="form-label">Correct Answer <span class="text-danger">*</span></label>
-          <input type="text" class="form-control correct-answer" placeholder="Enter correct answer" required>
-          <small class="text-muted">For multiple choice: enter the exact option text. For fill in blank: enter the answer.</small>
+          <input type="text" class="form-control correct-answer correct-answer-text" placeholder="Enter correct answer" required>
+          <small class="text-muted correct-answer-hint">For fill in blank: enter the answer.</small>
         </div>
       `;
 
@@ -105,14 +125,6 @@
       }
     });
 
-    document.addEventListener('change', function (e) {
-      if (e.target && e.target.classList.contains('question-type')) {
-        const select = e.target;
-        const questionId = select.getAttribute('data-question-id');
-        toggleQuestionType(questionId);
-      }
-    });
-
     function removeQuestion(id) {
       const questionDiv = document.getElementById(`question-${id}`);
       if (questionDiv) questionDiv.remove();
@@ -123,19 +135,62 @@
       }
     }
 
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.classList.contains('question-type')) {
+        const select = e.target;
+        const questionId = select.getAttribute('data-question-id');
+        toggleQuestionType(questionId);
+      } else if (e.target && e.target.classList.contains('option-input')) {
+        // Update when options change
+        const questionDiv = e.target.closest('.question-item');
+        if (questionDiv) {
+          const questionType = questionDiv.querySelector('.question-type').value;
+          if (questionType === 'multiple_choice') {
+            updateOptionLabels(questionDiv);
+          }
+        }
+      } else if (e.target && e.target.classList.contains('correct-answer-radio')) {
+        // Handle correct answer radio button selection
+        const questionDiv = e.target.closest('.question-item');
+        const selectedOption = e.target.getAttribute('data-option');
+        const optionInput = questionDiv.querySelector(`.option-input[data-option="${selectedOption}"]`);
+        const hiddenInput = questionDiv.querySelector('.selected-correct-option');
+        hiddenInput.value = optionInput.value.trim();
+      }
+    });
+
+    function updateOptionLabels(questionDiv) {
+      // Update the button labels to show actual option text
+      const buttons = questionDiv.querySelectorAll('label[for^="radio-correct-"]');
+      const optionInputs = questionDiv.querySelectorAll('.option-input');
+      
+      buttons.forEach((btn, index) => {
+        const optionText = optionInputs[index]?.value.trim() || `Option ${index + 1}`;
+        btn.textContent = optionText || `Option ${index + 1}`;
+      });
+    }
+
     function toggleQuestionType(questionId) {
       const questionDiv = document.getElementById(`question-${questionId}`);
       if (!questionDiv) return;
       const questionType = questionDiv.querySelector('.question-type').value;
       const optionsDiv = questionDiv.querySelector('.multiple-choice-options');
-      const correctAnswerInput = questionDiv.querySelector('.correct-answer');
+      const correctAnswerDiv = optionsDiv.nextElementSibling;
+      const correctAnswerText = questionDiv.querySelector('.correct-answer-text');
+      const correctAnswerHint = questionDiv.querySelector('.correct-answer-hint');
 
       if (questionType === 'multiple_choice') {
         optionsDiv.style.display = 'block';
-        correctAnswerInput.placeholder = 'Enter the exact option text that is correct';
-      } else {
+        correctAnswerDiv.style.display = 'none';
+        correctAnswerText.removeAttribute('required');
+        correctAnswerHint.textContent = 'Select the correct answer by clicking one of the option buttons above.';
+        updateOptionLabels(questionDiv);
+      } else if (questionType === 'fill_in_blank') {
         optionsDiv.style.display = 'none';
-        correctAnswerInput.placeholder = 'Enter correct answer';
+        correctAnswerDiv.style.display = 'block';
+        correctAnswerText.setAttribute('required', '');
+        correctAnswerText.placeholder = 'Enter correct answer';
+        correctAnswerHint.textContent = 'For fill in blank: enter the answer.';
       }
     }
 
@@ -162,7 +217,19 @@
       questionItems.forEach((item, index) => {
         const questionText = item.querySelector('.question-text')?.value.trim();
         const questionType = item.querySelector('.question-type')?.value;
-        const correctAnswer = item.querySelector('.correct-answer')?.value.trim();
+        
+        // Get correct answer based on question type
+        let correctAnswer = '';
+        if (questionType === 'multiple_choice') {
+          correctAnswer = item.querySelector('.selected-correct-option')?.value.trim();
+          if (!correctAnswer) {
+            isValid = false;
+            alert(`Question ${index + 1}: Please select the correct answer by clicking "Correct" on one of the options.`);
+            return;
+          }
+        } else {
+          correctAnswer = item.querySelector('.correct-answer-text')?.value.trim();
+        }
 
         if (!questionText || !questionType || !correctAnswer) {
           isValid = false;

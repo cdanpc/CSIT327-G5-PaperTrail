@@ -4,7 +4,7 @@
 {% block title %}Quizzes{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/quizzes.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/quizzes.css' %}">
 {% endblock %}
 
 {% block extra_js %}
@@ -21,42 +21,7 @@
     <div class="qa-local-nav-inner">
         <h1 class="qa-local-nav-title">Quizzes</h1>
     </div>
-</div>
-<div class="qa-attempt-wrap">
-    <div class="qa-card">
-        <div class="qa-card-head">
-            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="qa-quiz-link">Quiz: {{ quiz.title }}</a>
-            <div class="qa-progress">
-                <div class="qa-progress-bar" style="width: {{ progress_percentage }}%;"></div>
-            </div>
-            <h2 class="qa-question-count">Question {{ question_number }} of {{ total_questions }}</h2>
-        </div>
-
-        <form method="post" class="qa-form">
-            {% csrf_token %}
-            <div class="qa-question-text">{{ question.question_text }}</div>
-
-            {% if question.question_type == 'multiple_choice' %}
-                <div class="qa-options">
-                    {% for option in question.options.all %}
-                        <input type="radio" id="opt_{{ option.id }}" name="answer" value="{{ option.id }}" class="qa-opt-input" required>
-                        <label for="opt_{{ option.id }}" class="qa-opt-btn">{{ option.option_text }}</label>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="qa-fib">
-                    <input type="text" name="answer" class="qa-input" placeholder="Type your answer here…" required>
-                </div>
-            {% endif %}
-
-            <div class="qa-footer qa-footer-cluster">
-                <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="qa-cancel">Cancel Quiz</a>
-                <button type="submit" class="qa-next-btn">
-                    {% if question_number == total_questions %}Submit Quiz{% else %}Next Question{% endif %}
-                </button>
-            </div>
-        </form>
     </div>
-</div>
+{% include 'components/quizzes/attempt_card.html' %}
 {% endblock %}
 
