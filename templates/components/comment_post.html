@@ -1,0 +1,58 @@
+{% comment %}
+  Comment Post Component
+  
+  Purpose: Displays a single user-submitted comment/reply
+  Reusable for: All content types with threaded comment support
+  
+  Required Context Variables:
+    - comment: Comment object with attributes:
+        - pk: Primary key
+        - user: User object with get_display_name method
+        - created_at: DateTime
+        - text: Comment text
+        - is_owner_comment: Boolean method
+        - replies: Related manager (if show_replies is True)
+    - delete_url_name: URL name for comment deletion
+    - current_user: Current logged-in user
+    - show_replies: Boolean to show nested replies (default: False)
+    - is_reply: Boolean indicating if this is a reply (affects styling)
+{% endcomment %}
+
+<div class="{% if is_reply %}ms-5 mt-3 border-start ps-3{% else %}border-bottom pb-3 mb-3{% endif %}" data-comment-id="{{ comment.pk }}">
+  <div class="d-flex justify-content-between align-items-start">
+    <div class="d-flex gap-3 flex-grow-1">
+      <div class="avatar-circle {% if is_reply %}avatar-32{% else %}avatar-40{% endif %}">
+        <span class="text-white small fw-bold">{{ comment.user.get_display_name|first|upper }}</span>
+      </div>
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <strong class="title-strong">{{ comment.user.get_display_name }}</strong>
+          {% if comment.is_owner_comment %}
+            <span class="badge badge-warning badge-sm"><i class="fas fa-crown"></i> Owner</span>
+          {% elif comment.user.is_professor %}
+            <span class="badge badge-professor badge-sm">Professor</span>
+          {% endif %}
+        </div>
+        <small class="text-muted d-block mb-2">{{ comment.created_at|date:"M d, Y \\a\\t g:i A" }}</small>
+        <p class="{% if is_reply %}mb-0{% else %}mb-2{% endif %} para-muted lh-16">{{ comment.text|linebreaks }}</p>
+        {% if not is_reply %}
+        <button type="button" class="btn btn-sm btn-link p-0 reply-btn" data-comment-id="{{ comment.pk }}" data-author="{{ comment.user.get_display_name }}">
+          <i class="fas fa-reply"></i> Reply
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% if comment.user == current_user %}
+    <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="showDeleteModal('{{ comment.pk }}', 'this comment', '{% url delete_url_name comment.pk %}')">
+      <i class="fas fa-trash"></i>
+    </button>
+    {% endif %}
+  </div>
+  
+  {# Show nested replies if enabled #}
+  {% if show_replies and comment.replies.all %}
+    {% for reply in comment.replies.all %}
+      {% include 'components/comment_post.html' with comment=reply delete_url_name=delete_url_name current_user=current_user is_reply=True show_replies=False %}
+    {% endfor %}
+  {% endif %}
+</div>

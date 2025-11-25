@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db import OperationalError
 from django.utils import timezone
 from django.db.models import Q
-from .models import Resource, Tag, Bookmark, Rating, Comment
+from .models import Resource, Tag, Bookmark, Rating, Comment, Like
 from .forms import ResourceUploadForm, RatingForm, CommentForm
 from .supabase_storage import supabase_storage
 from django.utils.timesince import timesince
@@ -121,11 +121,97 @@ def resource_detail(request, pk):
     # Get all comments for this resource
     comments = Comment.objects.filter(resource=resource).select_related('user').order_by('-created_at')
 
+    # Get like status
+    user_has_liked = False
+    if request.user.is_authenticated:
+        user_has_liked = Like.objects.filter(user=request.user, resource=resource).exists()
+
+    # === Component Context Variables ===
+    
+    # 1. Header Card Component
+    status_tags = []
+    if resource.verification_status == 'verified':
+        status_tags.append({'text': 'Verified', 'class': 'badge-verified', 'icon': 'fa-check-circle'})
+    elif resource.verification_status == 'pending':
+        if request.user == resource.uploader or getattr(request.user, 'is_professor', False):
+            status_tags.append({'text': 'Pending', 'class': 'badge-pending', 'icon': 'fa-clock'})
+    
+    if resource.is_public:
+        status_tags.append({'text': 'Public', 'class': 'bg-success', 'icon': 'fa-globe'})
+    else:
+        status_tags.append({'text': 'Private', 'class': 'bg-secondary', 'icon': 'fa-lock'})
+    
+    # Icon mapping for resource types
+    resource_icon_map = {
+        'pdf': 'fa-file-pdf',
+        'image': 'fa-image',
+        'ppt': 'fa-file-powerpoint',
+        'pptx': 'fa-file-powerpoint',
+        'docx': 'fa-file-word',
+        'txt': 'fa-file-lines',
+        'link': 'fa-link',
+    }
+    resource_icon = resource_icon_map.get(resource.resource_type, 'fa-file-alt')
+    
+    # Primary action button
+    primary_action = {}
+    if resource.file_url:
+        primary_action = {
+            'url': f'/resources/{resource.pk}/download/',
+            'text': 'Download',
+            'icon': 'fa-download'
+        }
+    elif resource.external_url:
+        primary_action = {
+            'url': resource.external_url,
+            'text': 'Open Link',
+            'icon': 'fa-external-link-alt',
+            'target': '_blank'
+        }
+    
+    # Edit URL
+    edit_url = f'/resources/{resource.pk}/edit/' if request.user == resource.uploader else None
+    is_owner = request.user == resource.uploader
+    
+    # Bookmark URL
+    bookmark_url = f'/bookmarks/toggle/{resource.pk}/'
+    
+    # 2. Metadata Overview Component
+    # Build like display with icon
+    like_html = ''
+    if request.user.is_authenticated:
+        liked_class = 'liked' if user_has_liked else 'unliked'
+        like_html = f'<i id="likeIcon" class="fas fa-heart {liked_class}" style="cursor: pointer; font-size: 1.1rem; transition: all 0.2s ease;" data-resource-id="{resource.pk}" title="{"Unlike" if user_has_liked else "Like"}"></i> '
+    like_html += f'<span id="likeCount" class="ms-1">{resource.likes.count()}</span>'
+    
+    metadata_items = [
+        {'icon': 'fa-user', 'label': 'Uploaded by', 'value': resource.uploader.get_display_name()},
+        {'icon': 'fa-calendar', 'label': 'Date', 'value': resource.created_at.strftime('%b %d, %Y')},
+        {'icon': 'fa-heart', 'label': 'Likes', 'value_html': like_html},
+        {'icon': 'fa-download', 'label': 'Downloads', 'value': str(resource.download_count)},
+        {'icon': 'fa-file', 'label': 'File Size', 'value': f'{resource.file_size // 1024} KB' if resource.file_size else 'N/A'},
+    ]
+    
+    # 3. Feedback Interface Component
+    rate_url = f'/resources/{resource.pk}/rate/'
+    comment_url = f'/resources/{resource.pk}/comment/'
+
     context = {
         'resource': resource,
         'is_bookmarked': is_bookmarked,
         'user_rating': user_rating,
         'comments': comments,
+        'user_has_liked': user_has_liked,
+        # Component context
+        'status_tags': status_tags,
+        'resource_icon': resource_icon,
+        'primary_action': primary_action,
+        'edit_url': edit_url,
+        'is_owner': is_owner,
+        'bookmark_url': bookmark_url,
+        'metadata_items': metadata_items,
+        'rate_url': rate_url,
+        'comment_url': comment_url,
     }
     return render(request, 'resources/resource_detail.html', context)
 
@@ -188,6 +274,16 @@ def resource_list(request):
     paginator = Paginator(resources, 12)  # 12 items per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    # Annotate each resource with user_has_liked status
+    if request.user.is_authenticated:
+        from .models import Like
+        liked_ids = set(Like.objects.filter(user=request.user, resource__in=page_obj.object_list).values_list('resource_id', flat=True))
+        for resource in page_obj.object_list:
+            resource.user_has_liked = resource.pk in liked_ids
+    else:
+        for resource in page_obj.object_list:
+            resource.user_has_liked = False
     
     tags_list = Tag.objects.all().order_by('name')
     
@@ -645,6 +741,16 @@ def add_comment(request, pk):
             comment = form.save(commit=False)
             comment.user = request.user
             comment.resource = resource
+            
+            # Handle parent comment for threading
+            parent_id = request.POST.get('parent_comment_id')
+            if parent_id:
+                try:
+                    parent_comment = Comment.objects.get(pk=parent_id, resource=resource)
+                    comment.parent_comment = parent_comment
+                except Comment.DoesNotExist:
+                    pass
+            
             comment.save()
             
             # AJAX response with comment data
@@ -689,4 +795,40 @@ def delete_comment(request, pk):
         messages.error(request, 'You can only delete your own comments.')
     
     return redirect('resources:resource_detail', pk=resource_pk)
+
+
+@login_required
+def toggle_like(request, pk):
+    """Toggle like on a resource (AJAX only)"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
+    
+    resource = get_object_or_404(Resource, pk=pk)
+    
+    # Restrict access to private resources
+    if not resource.is_public and resource.uploader != request.user:
+        return JsonResponse({'success': False, 'error': 'This resource is private.'}, status=403)
+    
+    # Toggle like
+    like, created = Like.objects.get_or_create(user=request.user, resource=resource)
+    
+    if not created:
+        # Unlike
+        like.delete()
+        action = 'unliked'
+        user_has_liked = False
+    else:
+        # Like
+        action = 'liked'
+        user_has_liked = True
+    
+    # Get updated like count
+    like_count = resource.likes.count()
+    
+    return JsonResponse({
+        'success': True,
+        'action': action,
+        'like_count': like_count,
+        'user_has_liked': user_has_liked,
+    })
 

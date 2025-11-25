@@ -1,0 +1,65 @@
+{% comment %}
+  Detail Header Card Component
+  
+  Purpose: Displays the primary identity of the item and its main action
+  Reusable for: Resource Detail, Quiz Detail, Deck Detail
+  
+  Required Context Variables:
+    - title: Main title of the item
+    - description: Description text (optional)
+    - file_type: Type/format (e.g., 'pdf', 'quiz', 'deck')
+    - status_tags: List of status dictionaries with 'label', 'icon', 'class' keys
+    - primary_action: Dictionary with 'url', 'text', 'icon', 'class' keys
+    - icon_name: FontAwesome icon name for the header icon
+    - bookmark_form_action: URL for bookmark toggle (optional)
+    - is_bookmarked: Boolean for bookmark state (optional)
+    - edit_url: URL for edit action (optional, shown if user is owner)
+    - show_bookmark: Boolean to show/hide bookmark button
+    - show_edit: Boolean to show/hide edit button
+{% endcomment %}
+
+<div class="ri-card ri-main">
+  <div class="ri-header">
+    <div class="ri-icon"><i class="fas fa-{{ icon_name }}"></i></div>
+    <div class="flex-grow-1">
+      <div class="ri-badges-row">
+        <div class="ri-badges">
+          <span class="ri-type">{{ file_type|upper }}</span>
+          {% for status in status_tags %}
+            <span class="badge {{ status.class }} badge-sm">
+              <i class="fas fa-{{ status.icon }}"></i> {{ status.label }}
+            </span>
+          {% endfor %}
+        </div>
+        <div class="ri-header-actions">
+          {% if show_bookmark and bookmark_form_action %}
+            <form method="post" action="{{ bookmark_form_action }}" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <button type="submit" class="ri-icon-btn" title="{% if is_bookmarked %}Remove Bookmark{% else %}Add Bookmark{% endif %}">
+                <i class="{% if is_bookmarked %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
+              </button>
+            </form>
+          {% endif %}
+          {% if show_edit and edit_url %}
+            <a href="{{ edit_url }}" class="ri-icon-btn" title="Edit"><i class="fas fa-edit"></i></a>
+          {% endif %}
+        </div>
+      </div>
+      <h2 class="ri-title mt-2 mb-0">{{ title }}</h2>
+    </div>
+  </div>
+
+  {% if description %}
+  <p class="ri-text para-muted pre-wrap mb-3">{{ description }}</p>
+  {% endif %}
+
+  <!-- Primary action button -->
+  {% if primary_action %}
+  <div class="ri-actions mt-2">
+    <a href="{{ primary_action.url }}" class="btn {{ primary_action.class|default:'btn--primary' }} btn-pill" {% if primary_action.target %}target="{{ primary_action.target }}"{% endif %}>
+      <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
+    </a>
+  </div>
+  {% endif %}
+</div>

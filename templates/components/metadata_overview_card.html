@@ -1,0 +1,35 @@
+{% comment %}
+  Metadata Overview Card Component
+  
+  Purpose: Displays key metrics and metadata in a list format
+  Reusable for: Resource, Quiz, Flashcard Deck detail pages
+  
+  Required Context Variables:
+    - section_title: Title for the metadata section (e.g., "Resource Overview")
+    - metadata_items: List of dictionaries with keys:
+        - icon: FontAwesome icon name
+        - label: Display label
+        - value: Display value (can be HTML)
+        - value_html: Optional, raw HTML value (if provided, use instead of value)
+        - interactive: Optional boolean, if true the value contains interactive elements
+{% endcomment %}
+
+<div class="ri-card mt-3">
+  <div class="rd2-section-title mb-2">{{ section_title }}</div>
+  <div class="ri-overview">
+    {% for item in metadata_items %}
+    <div class="row-item">
+      <span class="label">
+        <i class="fas fa-{{ item.icon }}"></i> {{ item.label }}
+      </span>
+      <span class="value">
+        {% if item.value_html %}
+          {{ item.value_html|safe }}
+        {% else %}
+          {{ item.value }}
+        {% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+</div>

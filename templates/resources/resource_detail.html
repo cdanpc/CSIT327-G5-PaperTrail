@@ -16,72 +16,13 @@
 
 {% block content %}
 <div class="ri-container">
-  <!-- Main: Icon, badges, title, description -->
-  <div class="ri-card ri-main">
-    <div class="ri-header">
-      <div class="ri-icon"><i class="fas fa-{% if resource.resource_type == 'pdf' %}file-pdf{% elif resource.resource_type == 'image' %}image{% elif resource.resource_type == 'ppt' or resource.resource_type == 'pptx' %}file-powerpoint{% elif resource.resource_type == 'docx' %}file-word{% elif resource.resource_type == 'txt' %}file-lines{% elif resource.resource_type == 'link' %}link{% else %}file-alt{% endif %}"></i></div>
-      <div class="flex-grow-1">
-        <div class="ri-badges-row">
-          <div class="ri-badges">
-            <span class="ri-type">{{ resource.resource_type|upper }}</span>
-            {% if resource.verification_status == 'verified' %}
-              <span class="badge badge-verified badge-sm"><i class="fas fa-check-circle"></i> Verified</span>
-            {% elif resource.verification_status == 'pending' %}
-              {% if user == resource.uploader or user.is_staff or user.is_professor %}
-                <span class="badge badge-pending badge-sm"><i class="fas fa-clock"></i> Pending</span>
-              {% endif %}
-            {% endif %}
-            {% if not resource.is_public %}
-              <span class="badge bg-secondary badge-sm"><i class="fas fa-lock"></i> Private</span>
-            {% else %}
-              <span class="badge bg-success badge-sm"><i class="fas fa-globe"></i> Public</span>
-            {% endif %}
-          </div>
-          <div class="ri-header-actions">
-            {% if user.is_authenticated %}
-            <form method="post" action="{% url 'bookmarks:toggle' resource.id %}" class="d-inline">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ request.path }}">
-              <button type="submit" class="ri-icon-btn" title="{% if is_bookmarked %}Remove Bookmark{% else %}Add Bookmark{% endif %}">
-                <i class="{% if is_bookmarked %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
-              </button>
-            </form>
-            {% endif %}
-            {% if resource.uploader == user %}
-              <a href="{% url 'resources:resource_edit' resource.pk %}" class="ri-icon-btn" title="Edit Resource"><i class="fas fa-edit"></i></a>
-            {% endif %}
-          </div>
-        </div>
-        <h2 class="ri-title mt-2 mb-0">{{ resource.title }}</h2>
-      </div>
-    </div>
+  <!-- Header Card Component -->
+  {% include 'components/detail_header_card.html' with title=resource.title description=resource.description file_type=resource.resource_type icon_name=resource_icon status_tags=status_tags primary_action=primary_action bookmark_form_action=bookmark_url is_bookmarked=is_bookmarked edit_url=edit_url show_bookmark=user.is_authenticated show_edit=is_owner %}
 
-    {% if resource.description %}
-    <p class="ri-text para-muted pre-wrap mb-3">{{ resource.description }}</p>
-    {% endif %}
+  <!-- Metadata Overview Component -->
+  {% include 'components/metadata_overview_card.html' with section_title='Resource Overview' metadata_items=metadata_items %}
 
-    <!-- Primary download/open action under description -->
-    <div class="ri-actions mt-2">
-      {% if resource.file_url %}
-        <a href="{% url 'resources:resource_download' resource.pk %}" class="btn btn-gradient-primary btn-pill"><i class="fas fa-download"></i> Download</a>
-      {% elif resource.external_url %}
-        <a href="{{ resource.external_url }}" target="_blank" class="btn btn-gradient-primary btn-pill"><i class="fas fa-external-link-alt"></i> Open Link</a>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Overview directly below description -->
-  <div class="ri-card mt-3">
-    <div class="rd2-section-title mb-2">Resource Overview</div>
-    <div class="ri-overview">
-      <div class="row-item"><span class="label"><i class="fas fa-user"></i> Uploaded by</span><span class="value">{{ resource.uploader.get_display_name }}</span></div>
-      <div class="row-item"><span class="label"><i class="fas fa-calendar"></i> Date</span><span class="value">{{ resource.created_at|date:"M d, Y" }}</span></div>
-      <div class="row-item"><span class="label"><i class="fas fa-eye"></i> Views</span><span class="value">{{ resource.views_count }}</span></div>
-      <div class="row-item"><span class="label"><i class="fas fa-download"></i> Downloads</span><span class="value">{{ resource.download_count }}</span></div>
-      <div class="row-item"><span class="label"><i class="fas fa-file"></i> File Size</span><span class="value">{% if resource.file_size %}{{ resource.file_size|filesizeformat }}{% else %}N/A{% endif %}</span></div>
-    </div>
-  </div>
-
+  <!-- Tags Section -->
   {% if resource.tags.all %}
   <div class="ri-card mt-3">
     <div class="rd2-section-title mb-2">Tags</div>
@@ -93,54 +34,9 @@
   </div>
   {% endif %}
 
-  {% if resource.verification_status == 'verified' and user != resource.uploader %}
-  <div id="feedback-section" class="ri-card mt-3">
-    <h5 class="mb-2"><i class="fas fa-star"></i> Rate this Resource</h5>
-    <form method="post" action="{% url 'resources:rate_resource' resource.pk %}">
-      {% csrf_token %}
-      <div class="d-flex align-items-center gap-2 mb-2">
-        <select name="stars" class="form-select" style="width:auto" required>
-          <option value="" disabled {% if not user_rating %}selected{% endif %}>Select rating</option>
-          {% for i in "12345" %}
-            <option value="{{ i }}" {% if user_rating and user_rating.stars|stringformat:"s" == i %}selected{% endif %}>{{ i }} star{% if i != '1' %}s{% endif %}</option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-gradient-primary btn-sm">{% if user_rating %}Update{% else %}Submit{% endif %}</button>
-      </div>
-      {% if user_rating %}<small class="text-muted">Your current rating: {{ user_rating.stars }} star{{ user_rating.stars|pluralize }}</small>{% endif %}
-    </form>
-    <div class="mt-3">
-      <h6 class="page-meta mb-1">Comments</h6>
-      <form method="post" action="{% url 'resources:add_comment' resource.pk %}" class="mb-3">
-        {% csrf_token %}
-        <textarea name="text" class="form-control" rows="3" placeholder="Share your thoughts..." required></textarea>
-        <div class="mt-2"><button type="submit" class="btn btn-outline-primary-soft btn-sm"><i class="fas fa-paper-plane"></i> Post Comment</button></div>
-      </form>
-      {% if comments %}
-        {% for comment in comments %}
-        <div class="border-bottom pb-3 mb-3">
-          <div class="d-flex justify-content-between align-items-start">
-            <div class="d-flex gap-3 flex-grow-1">
-              <div class="avatar-circle avatar-40"><span class="text-white small fw-bold">{{ comment.user.get_display_name|first|upper }}</span></div>
-              <div class="flex-grow-1">
-                <div class="d-flex align-items-center gap-2 mb-1"><strong class="title-strong">{{ comment.user.get_display_name }}</strong>{% if comment.user.is_professor %}<span class="badge badge-professor badge-sm">Professor</span>{% endif %}</div>
-                <small class="text-muted d-block mb-2">{{ comment.created_at|date:"M d, Y \\a\\t g:i A" }}</small>
-                <p class="mb-0 para-muted lh-16">{{ comment.text|linebreaks }}</p>
-              </div>
-            </div>
-            {% if comment.user == user %}
-            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="showDeleteModal('{{ comment.pk }}', 'this comment', '{% url 'resources:delete_comment' comment.pk %}')">
-                <i class="fas fa-trash"></i>
-            </button>
-            {% endif %}
-          </div>
-        </div>
-        {% endfor %}
-      {% else %}
-      <p class="text-muted mb-0">No comments yet.</p>
-      {% endif %}
-    </div>
-  </div>
+  <!-- Feedback Interface Component -->
+  {% if resource.verification_status == 'verified' and user.is_authenticated and user != resource.uploader %}
+    {% include 'components/feedback_interface.html' with item_id=resource.pk item_type='resource' current_user_rating=user_rating.stars avg_rating=resource.get_average_rating rating_count=resource.get_rating_count rate_url=rate_url comment_url=comment_url delete_comment_url_name='resources:delete_comment' comments=comments show_rating=True show_comments=True current_user=user %}
   {% endif %}
 
 </div>

@@ -23,234 +23,78 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const csrftoken = getCookie('csrftoken');
 
-  // === RATING SUBMISSION (AJAX) ===
-  const ratingForm = document.querySelector('form[action*="/rate/"]');
-  
-  if (ratingForm) {
-    ratingForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
+  // === SCROLL-AWARE STICKY COMMENT BAR ===
+  (function initStickyCommentBar() {
+    const stickyBar = document.getElementById('sticky-comment-bar-wrapper');
+    if (!stickyBar) return;
+
+    let lastScrollTop = 0;
+    const checkScrollPosition = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
       
-      const formData = new FormData(ratingForm);
-      const submitBtn = ratingForm.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn.innerHTML;
+      // Check if user scrolled to bottom (within 50px threshold)
+      const isAtBottom = (scrollTop + windowHeight) >= (documentHeight - 50);
       
-      // Validate that a rating is selected
-      const starsValue = formData.get('stars');
-      if (!starsValue) {
-        showAlert('Please select a star rating before submitting.', 'warning');
-        return;
+      if (isAtBottom) {
+        // At bottom: unfix and let it sit at content end
+        stickyBar.classList.remove('is-fixed');
+        stickyBar.classList.add('is-unfixed');
+      } else {
+        // Not at bottom: fix to viewport bottom
+        stickyBar.classList.add('is-fixed');
+        stickyBar.classList.remove('is-unfixed');
       }
       
-      // Disable button during submission
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-      
-      try {
-        const response = await fetch(ratingForm.action, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrftoken,
-          },
-          body: formData,
+      lastScrollTop = scrollTop;
+    };
+
+    // Check on scroll with throttling
+    let ticking = false;
+    window.addEventListener('scroll', function() {
+      if (!ticking) {
+        window.requestAnimationFrame(function() {
+          checkScrollPosition();
+          ticking = false;
         });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          // Update the UI with new rating data
-          updateRatingDisplay(data);
-          
-          // Show success message
-          showAlert(data.message, 'success');
-          
-          // Update button text if it's now an update
-          if (!data.created) {
-            const btnIcon = submitBtn.querySelector('i') ? '<i class="fas fa-sync"></i> ' : '';
-            submitBtn.innerHTML = btnIcon + 'Update';
-          }
-        } else {
-          showAlert(data.error || 'Failed to submit rating. Please try again.', 'danger');
-        }
-      } catch (error) {
-        console.error('Error submitting rating:', error);
-        showAlert('An error occurred. Please try again.', 'danger');
-      } finally {
-        // Re-enable button
-        submitBtn.disabled = false;
-        if (submitBtn.innerHTML.includes('Submitting')) {
-          submitBtn.innerHTML = originalBtnText;
-        }
+        ticking = true;
       }
     });
-  }
 
-  // Update rating display in the UI
-  function updateRatingDisplay(data) {
-    // Update average rating if displayed
-    const avgRatingElem = document.querySelector('.average-rating, [data-avg-rating]');
-    if (avgRatingElem && data.avg_rating !== undefined) {
-      avgRatingElem.textContent = data.avg_rating.toFixed(1);
-    }
-    
-    // Update rating count if displayed
-    const ratingCountElem = document.querySelector('.rating-count, [data-rating-count]');
-    if (ratingCountElem && data.rating_count !== undefined) {
-      const pluralText = data.rating_count === 1 ? 'rating' : 'ratings';
-      ratingCountElem.textContent = `${data.rating_count} ${pluralText}`;
-    }
-    
-    // Update the current rating text under the form
-    const currentRatingText = ratingForm.querySelector('small.text-muted');
-    if (currentRatingText && data.user_stars) {
-      const pluralStars = data.user_stars === 1 ? 'star' : 'stars';
-      currentRatingText.textContent = `Your current rating: ${data.user_stars} ${pluralStars}`;
-    } else if (!currentRatingText && data.user_stars && ratingForm) {
-      // Create the rating text if it doesn't exist
-      const small = document.createElement('small');
-      small.className = 'text-muted';
-      const pluralStars = data.user_stars === 1 ? 'star' : 'stars';
-      small.textContent = `Your current rating: ${data.user_stars} ${pluralStars}`;
-      ratingForm.appendChild(small);
-    }
-    
-    // Update the select to show current rating
-    const starsSelect = ratingForm.querySelector('select[name="stars"]');
-    if (starsSelect && data.user_stars) {
-      starsSelect.value = data.user_stars;
-    }
-  }
+    // Check on page load
+    checkScrollPosition();
 
-  // === COMMENT SUBMISSION (AJAX) ===
-  const commentForm = document.querySelector('form[action*="/comment/"]');
-  const commentsContainer = document.querySelector('#feedback-section .mt-3');
+    // Check on window resize
+    window.addEventListener('resize', checkScrollPosition);
+  })();
+
+  // === TEXTAREA AUTO-RESIZE ===
+  (function initTextareaResize() {
+    const textarea = document.getElementById('commentText');
+    if (!textarea) return;
+
+    function autoResize() {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    }
+
+    textarea.addEventListener('input', autoResize);
+    textarea.addEventListener('focus', autoResize);
+    
+    // Reset on form submit
+    const form = document.getElementById('commentForm');
+    if (form) {
+      form.addEventListener('submit', function() {
+        setTimeout(() => {
+          textarea.style.height = '48px';
+        }, 100);
+      });
+    }
+  })();
+
+  // === HELPER FUNCTIONS ===
   
-  if (commentForm) {
-    commentForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const formData = new FormData(commentForm);
-      const submitBtn = commentForm.querySelector('button[type="submit"]');
-      const textarea = commentForm.querySelector('textarea[name="text"]');
-      const originalBtnText = submitBtn.innerHTML;
-      
-      // Validate comment text
-      const commentText = formData.get('text').trim();
-      if (!commentText) {
-        showAlert('Please enter a comment before submitting.', 'warning');
-        return;
-      }
-      
-      // Disable button and textarea during submission
-      submitBtn.disabled = true;
-      textarea.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
-      
-      try {
-        const response = await fetch(commentForm.action, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrftoken,
-          },
-          body: formData,
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          // Add the new comment to the DOM
-          addCommentToDOM(data.comment);
-          
-          // Clear the textarea
-          textarea.value = '';
-          
-          // Show success message
-          showAlert(data.message, 'success');
-          
-          // Update "No comments yet" message if present
-          const noCommentsMsg = commentsContainer?.querySelector('p.text-muted');
-          if (noCommentsMsg && noCommentsMsg.textContent.includes('No comments yet')) {
-            noCommentsMsg.remove();
-          }
-        } else {
-          showAlert(data.error || 'Failed to post comment. Please try again.', 'danger');
-        }
-      } catch (error) {
-        console.error('Error posting comment:', error);
-        showAlert('An error occurred. Please try again.', 'danger');
-      } finally {
-        // Re-enable button and textarea
-        submitBtn.disabled = false;
-        textarea.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
-      }
-    });
-  }
-
-  // Add new comment to the DOM
-  function addCommentToDOM(comment) {
-    if (!commentsContainer) return;
-    
-    // Find or create the comments list container
-    let commentsList = commentsContainer.querySelector('.comment-item')?.parentElement;
-    
-    // If no comments container exists, look for "No comments yet" message
-    const noCommentsMsg = commentsContainer.querySelector('p.text-muted');
-    if (noCommentsMsg && noCommentsMsg.textContent.includes('No comments yet')) {
-      // Replace the "no comments" message with a new container
-      const newContainer = document.createElement('div');
-      newContainer.className = 'comments-list';
-      noCommentsMsg.parentElement.replaceChild(newContainer, noCommentsMsg);
-      commentsList = newContainer;
-    }
-    
-    // If still no container, create one
-    if (!commentsList) {
-      commentsList = document.createElement('div');
-      commentsList.className = 'comments-list';
-      commentsContainer.appendChild(commentsList);
-    }
-    
-    // Create comment HTML
-    const commentHTML = `
-      <div class="border-bottom pb-3 mb-3 comment-item">
-        <div class="d-flex justify-content-between align-items-start">
-          <div class="d-flex gap-3 flex-grow-1">
-            <div class="avatar-circle avatar-40"><span class="text-white small fw-bold">${comment.user_initial}</span></div>
-            <div class="flex-grow-1">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <strong class="title-strong">${escapeHtml(comment.user_name)}</strong>
-                ${comment.is_professor ? '<span class="badge badge-professor badge-sm">Professor</span>' : ''}
-              </div>
-              <small class="text-muted d-block mb-2">${comment.created_at}</small>
-              <p class="mb-0 para-muted lh-16">${escapeHtml(comment.text).replace(/\n/g, '<br>')}</p>
-            </div>
-          </div>
-          ${comment.can_delete ? `
-            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" 
-                    onclick="if(confirm('Are you sure you want to delete this comment?')) { location.href='${comment.delete_url}'; }">
-              <i class="fas fa-trash"></i>
-            </button>
-          ` : ''}
-        </div>
-      </div>
-    `;
-    
-    // Insert the new comment at the beginning of the comments list
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = commentHTML;
-    const newComment = tempDiv.firstElementChild;
-    
-    // Insert before the first comment or at the end if no comments
-    const firstComment = commentsList.querySelector('.comment-item');
-    if (firstComment) {
-      commentsList.insertBefore(newComment, firstComment);
-    } else {
-      commentsList.appendChild(newComment);
-    }
-  }
-
   // Escape HTML to prevent XSS
   function escapeHtml(text) {
     const div = document.createElement('div');
@@ -291,62 +135,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 5000);
   }
 
-  // === EXISTING STAR RATING INTERACTION (for visual feedback) ===
-  const starLabels = document.querySelectorAll('.star-label');
-  const starIcons = document.querySelectorAll('.star-icon');
-
-  starLabels.forEach((label) => {
-    label.addEventListener('click', function() {
-      const input = this.querySelector('input[type="radio"]');
-      const value = parseInt(input.value, 10);
-
-      starIcons.forEach((icon, i) => {
-        if (i < value) {
-          icon.classList.remove('far');
-          icon.classList.add('fas');
-        } else {
-          icon.classList.remove('fas');
-          icon.classList.add('far');
-        }
-      });
-    });
-
-    label.addEventListener('mouseenter', function() {
-      const value = parseInt(this.querySelector('input[type="radio"]').value, 10);
-      starIcons.forEach((icon, i) => {
-        if (i < value) {
-          icon.style.opacity = '1';
-          icon.classList.add('fas');
-          icon.classList.remove('far');
-        }
-      });
-    });
-  });
-
-  const starContainer = document.querySelector('.star-rating-container');
-  if (starContainer) {
-    starContainer.addEventListener('mouseleave', function() {
-      const checkedInput = document.querySelector('input[name="stars"]:checked');
-      if (checkedInput) {
-        const value = parseInt(checkedInput.value, 10);
-        starIcons.forEach((icon, i) => {
-          if (i < value) {
-            icon.classList.remove('far');
-            icon.classList.add('fas');
-          } else {
-            icon.classList.remove('fas');
-            icon.classList.add('far');
-          }
-        });
-      } else {
-        starIcons.forEach(icon => {
-          icon.classList.remove('fas');
-          icon.classList.add('far');
-        });
-      }
-    });
-  }
-
   // === BOOKMARK TOGGLE (existing functionality) ===
   const bookmarkBtn = document.querySelector('.bookmark-toggle');
   if (bookmarkBtn) {
@@ -372,6 +160,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
       document.body.appendChild(form);
       form.submit();
+    });
+  }
+
+  // === LIKE BUTTON TOGGLE (NEW) ===
+  const likeIcon = document.getElementById('likeIcon');
+  const likeCount = document.getElementById('likeCount');
+
+  if (likeIcon) {
+    likeIcon.addEventListener('click', async function() {
+      const resourceId = this.getAttribute('data-resource-id');
+
+      // Disable during request
+      this.style.pointerEvents = 'none';
+      this.style.opacity = '0.6';
+
+      try {
+        const response = await fetch(`/resources/${resourceId}/like/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Update like count
+          likeCount.textContent = data.like_count;
+
+          // Update icon appearance with new classes
+          if (data.action === 'liked') {
+            this.classList.remove('unliked');
+            this.classList.add('liked');
+            this.setAttribute('title', 'Unlike');
+          } else {
+            this.classList.remove('liked');
+            this.classList.add('unliked');
+            this.setAttribute('title', 'Like');
+          }
+        } else {
+          showAlert(data.error || 'Failed to update like. Please try again.', 'danger');
+        }
+      } catch (error) {
+        console.error('Error toggling like:', error);
+        showAlert('An error occurred. Please try again.', 'danger');
+      } finally {
+        this.style.pointerEvents = 'auto';
+        this.style.opacity = '1';
+      }
     });
   }
 });
