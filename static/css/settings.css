@@ -124,12 +124,6 @@ body {
     border: 1px solid var(--border-light);
 }
 
-.settings-card:hover,
-.profile-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-}
-
 .settings-card.danger-card,
 .profile-card.border-danger {
     border: 2px solid var(--danger-color);
@@ -140,13 +134,14 @@ body {
 .card-header-row {
     padding: var(--spacing-xl);
     border-bottom: 1px solid var(--border-light);
-    background: linear-gradient(to right, rgba(102, 126, 234, 0.02), rgba(118, 75, 162, 0.02));
+    background: var(--primary-gradient);
+    color: white;
 }
 
 .card-title {
     font-size: 1.5rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: white;
     margin: 0;
     display: flex;
     align-items: center;
@@ -154,13 +149,13 @@ body {
 }
 
 .card-title i {
-    color: var(--primary-color);
+    color: white;
     font-size: 1.25rem;
 }
 
 .card-subtitle {
     font-size: 0.875rem;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.9);
     margin: var(--spacing-xs) 0 0 0;
 }
 
@@ -187,14 +182,6 @@ body {
 
 .setting-item:first-child {
     padding-top: 0;
-}
-
-.setting-item:hover {
-    background: var(--bg-tertiary);
-    margin: 0 calc(var(--spacing-xl) * -1);
-    padding-left: var(--spacing-xl);
-    padding-right: var(--spacing-xl);
-    border-radius: var(--radius-md);
 }
 
 .setting-info {
@@ -249,7 +236,7 @@ body {
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
+    transform: none !important;
     box-shadow: var(--shadow-primary);
 }
 
@@ -262,7 +249,7 @@ body {
 .btn-outline-primary:hover {
     background: var(--primary-color);
     color: white;
-    transform: translateY(-2px);
+    transform: none !important;
     box-shadow: var(--shadow-md);
 }
 
@@ -276,6 +263,7 @@ body {
     background: var(--bg-tertiary);
     border-color: var(--text-secondary);
     color: var(--text-primary);
+    transform: none !important;
 }
 
 .btn-danger {
@@ -286,7 +274,7 @@ body {
 
 .btn-danger:hover {
     background: #dc2626;
-    transform: translateY(-2px);
+    transform: none !important;
     box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.3);
 }
 
@@ -299,7 +287,7 @@ body {
 .btn-outline-danger:hover {
     background: var(--danger-color);
     color: white;
-    transform: translateY(-2px);
+    transform: none !important;
 }
 
 .btn:disabled {
@@ -421,12 +409,6 @@ form .setting-item {
     padding: var(--spacing-lg) 0;
 }
 
-form .setting-item:hover {
-    background: transparent;
-    margin: 0;
-    padding: var(--spacing-lg) 0;
-}
-
 .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -437,16 +419,23 @@ form .setting-item:hover {
 }
 
 /* ===== DANGER ZONE CARD ===== */
-.danger-card .card-title {
-    color: var(--danger-color);
+.settings-card.danger-card .card-header,
+.profile-card.border-danger .card-header-row {
+    background: var(--danger-color);
 }
 
-.danger-card .card-title i {
-    color: var(--danger-color);
+.settings-card.danger-card .card-title,
+.profile-card.border-danger .card-title {
+    color: white !important;
+}
+
+.settings-card.danger-card .card-title i,
+.profile-card.border-danger .card-title i {
+    color: white !important;
 }
 
 .danger-card {
-    background: linear-gradient(to right, rgba(239, 68, 68, 0.02), rgba(220, 38, 38, 0.02));
+    background: var(--bg-primary);
 }
 
 /* ===== CUSTOM SWITCH TOGGLE ===== */
@@ -483,30 +472,27 @@ form .setting-item:hover {
     border: 2px solid transparent;
 }
 
-.btn-outline-primary {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-    background: transparent;
-    position: relative;
-    overflow: hidden;
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
 }
 
-.btn-outline-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: var(--primary-color);
-    transition: left var(--transition-base);
-    z-index: -1;
+.btn-primary:hover {
+    transform: none !important;
+    box-shadow: var(--shadow-primary);
+}
+
+.btn-outline-primary {
+    background: transparent;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .btn-outline-primary:hover {
     background: var(--primary-color);
     color: white;
-    transform: translateY(-2px);
+    transform: none !important;
     box-shadow: var(--shadow-md);
 }
 
@@ -517,11 +503,22 @@ form .setting-item:hover {
 }
 
 .btn-outline-secondary:hover:not(:disabled) {
-    background: var(--text-gray);
+    background: var(--bg-tertiary);
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+    transform: none !important;
+}
+
+.btn-danger {
+    background: var(--danger-color);
     color: white;
-    border-color: var(--text-gray);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    border: none;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    transform: none !important;
+    box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.3);
 }
 
 .btn-outline-danger {
@@ -533,8 +530,7 @@ form .setting-item:hover {
 .btn-outline-danger:hover {
     background: var(--danger-color);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: none !important;
 }
 
 .btn:disabled {
@@ -656,7 +652,7 @@ form .setting-item:hover {
 .session-item:hover {
     border-color: var(--primary-color);
     box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    transform: none !important;
 }
 
 .session-icon {
@@ -941,12 +937,6 @@ form .setting-item:hover {
     
     .setting-item {
         padding: var(--spacing-md) 0;
-    }
-    
-    .setting-item:hover {
-        margin: 0;
-        padding: var(--spacing-md) 0;
-        background: transparent;
     }
     
     .setting-title {
