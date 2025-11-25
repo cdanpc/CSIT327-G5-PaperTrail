@@ -73,6 +73,36 @@
   pointer-events: none;
 }
 
+/* Like Icon Component
+   ======================================== */
+.fa-heart.liked {
+  color: var(--color-primary) !important;
+  animation: heartBeat 0.3s ease;
+}
+
+.fa-heart.unliked {
+  color: var(--color-text-muted) !important;
+}
+
+.fa-heart:hover {
+  transform: scale(1.15);
+  filter: brightness(1.1);
+}
+
+.like-metric {
+  transition: all 0.2s ease;
+}
+
+.like-metric:hover {
+  transform: translateY(-1px);
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(1.1); }
+}
+
 /* Empty State Component
    ======================================== */
 .empty-state {
@@ -547,3 +577,282 @@ a.btn-tab[role="tab"]:not(.active):hover {
     padding-right: var(--spacing-md);
   }
 }
+
+/* ========================================
+   FEEDBACK INTERFACE COMPONENT
+   Comments display and sticky comment bar
+   ======================================== */
+
+/* Feedback Section Container */
+#feedback-section {
+  margin-top: var(--spacing-xl);
+  margin-bottom: 140px; /* Prevent last comments from being hidden by sticky bar */
+}
+
+#feedback-section h5 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-dark);
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+#feedback-section h5 i {
+  color: var(--color-primary);
+}
+
+#feedback-section h6 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Sticky Comment Bar - Scroll-Aware Positioning */
+#sticky-comment-bar-wrapper {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  z-index: 1000;
+  background-color: var(--color-bg-white);
+  border-top: 2px solid rgba(102, 126, 234, 0.15);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  padding: 0;
+  margin-top: auto; /* Push to bottom when content is short */
+  transition: transform 0.3s ease;
+}
+
+/* Fixed state when scrolling (applied via JS) */
+#sticky-comment-bar-wrapper.is-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+
+/* Unfixed state at content bottom (applied via JS) */
+#sticky-comment-bar-wrapper.is-unfixed {
+  position: relative;
+  bottom: auto;
+}
+
+.sticky-comment-form {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+}
+
+.sticky-comment-form__content {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+}
+
+/* Integrated Input Container with Submit Icon */
+.integrated-input-container {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  min-width: 300px;
+}
+
+.integrated-input-container textarea.form-control {
+  flex: 1;
+  border: 1px solid var(--color-border);
+  border-radius: 24px; /* Rounded for modern look */
+  padding: 12px 56px 12px 20px; /* Extra right padding for icon */
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  color: var(--color-text-dark);
+  resize: none;
+  min-height: 48px;
+  max-height: 120px;
+  transition: all var(--transition-base);
+  line-height: 1.5;
+}
+
+.integrated-input-container textarea.form-control:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.integrated-input-container textarea.form-control::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+/* Submit Icon Button - Positioned Inside Textarea */
+.submit-icon-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-bg-white);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all var(--transition-base);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.submit-icon-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.submit-icon-btn:active {
+  transform: scale(0.95);
+}
+
+.submit-icon-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-light), 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.submit-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.submit-icon-btn i {
+  line-height: 1;
+}
+
+/* Cancel Reply Button */
+
+/* Cancel Reply Button */
+.btn-outline-secondary {
+  background: var(--color-bg-white);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  padding: 0 var(--spacing-md);
+  height: 36px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-outline-secondary:hover {
+  background: var(--color-bg-light);
+  border-color: var(--color-text-muted);
+}
+
+/* Comment List Styles */
+.comment-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* No comments message */
+#feedback-section .text-muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
+/* Reply Button in Comments */
+.reply-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  #sticky-comment-bar-wrapper {
+    padding: 0;
+  }
+  
+  .sticky-comment-form {
+    padding: 12px 16px;
+  }
+  
+  .sticky-comment-form__content {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    align-items: stretch;
+  }
+  
+  .integrated-input-container {
+    min-width: 100%;
+  }
+  
+  .integrated-input-container textarea.form-control {
+    min-height: 44px;
+  }
+  
+  .btn-outline-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  #feedback-section {
+    margin-bottom: 140px;
+  }
+  
+  .ri-container {
+    padding-bottom: 140px;
+  }
+}
+
+@media (max-width: 576px) {
+  .submit-icon-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    right: 6px;
+    bottom: 6px;
+  }
+  
+  .integrated-input-container textarea.form-control {
+    padding: 10px 44px 10px 16px;
+    font-size: 0.85rem;
+    min-height: 50px;
+  }
+  
+  .sticky-comment-form__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  #feedback-section {
+    margin-bottom: 160px; /* Extra space on mobile */
+  }
+  
+  .ri-container {
+    padding-bottom: 160px;
+  }
+}
+
+@media (max-width: 576px) {
+  .btn-outline-primary-soft,
+  .btn-outline-secondary {
+    font-size: 0.7rem;
+    height: 32px;
+    padding: 0 var(--spacing-sm);
+  }
+}
+

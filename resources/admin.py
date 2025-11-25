@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Resource, Tag, Bookmark, Rating, Comment
+from .models import Resource, Tag, Bookmark, Rating, Comment, Like
 
 
 @admin.register(Tag)
@@ -53,10 +53,18 @@ class RatingAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['user', 'resource', 'text_preview', 'created_at']
+    list_display = ['user', 'resource', 'text_preview', 'parent_comment', 'created_at']
     list_filter = ['created_at']
     search_fields = ['user__username', 'resource__title', 'text']
+    raw_id_fields = ['parent_comment']
     
     def text_preview(self, obj):
         return obj.text[:50] + '...' if len(obj.text) > 50 else obj.text
     text_preview.short_description = 'Comment Preview'
+
+
+@admin.register(Like)
+class LikeAdmin(admin.ModelAdmin):
+    list_display = ['user', 'resource', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['user__username', 'resource__title']

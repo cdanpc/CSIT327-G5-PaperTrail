@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'quizzes',
     'bookmarks',
     'flashcards',
-    'forum',
     "crispy_forms",
     "crispy_bootstrap5",
     # 'sslserver',  # Commented out - not installed

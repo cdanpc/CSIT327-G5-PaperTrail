@@ -66,7 +66,10 @@
                         <p class="study-card__author">By: {{ resource.uploader.get_full_name|default:resource.uploader.username }}</p>
 
                         <div class="study-card__metrics">
-                            <span><i class="fas fa-eye"></i> {{ resource.views_count|intword }}</span>
+                            <span class="like-metric" data-resource-id="{{ resource.pk }}" style="cursor: pointer;">
+                                <i class="fas fa-heart {% if resource.user_has_liked %}liked{% else %}unliked{% endif %}"></i> 
+                                <span class="like-count">{{ resource.likes.count|intword }}</span>
+                            </span>
                             <span class="metric-dot">•</span>
                             <span><i class="fas fa-download"></i> {{ resource.download_count|intword }}</span>
                             {% if resource.get_average_rating %}
@@ -96,4 +99,58 @@
     </div>
 {% endblock %}
 
-{% block extra_js %}{% endblock %}
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Handle like clicks on list view
+    document.querySelectorAll('.like-metric').forEach(metric => {
+      metric.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const resourceId = this.getAttribute('data-resource-id');
+        const icon = this.querySelector('.fa-heart');
+        const countSpan = this.querySelector('.like-count');
+
+        // Disable during request
+        this.style.pointerEvents = 'none';
+        this.style.opacity = '0.7';
+
+        try {
+          const response = await fetch(`/resources/${resourceId}/like/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Update like count
+            countSpan.textContent = data.like_count;
+
+            // Update icon appearance
+            if (data.action === 'liked') {
+              icon.classList.remove('unliked');
+              icon.classList.add('liked');
+            } else {
+              icon.classList.remove('liked');
+              icon.classList.add('unliked');
+            }
+          }
+        } catch (error) {
+          console.error('Error toggling like:', error);
+        } finally {
+          this.style.pointerEvents = 'auto';
+          this.style.opacity = '1';
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

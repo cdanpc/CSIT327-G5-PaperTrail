@@ -168,17 +168,54 @@ class QuizRating(models.Model):
 
 
 class QuizComment(models.Model):
-    """User comments on quizzes"""
+    """User comments on quizzes with threading support"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_comments')
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField(help_text='Comment text')
+    
+    # Threading support - allows replies to comments
+    parent_comment = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='replies'
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['created_at']  # Chronological for threading
+        indexes = [
+            models.Index(fields=['quiz', 'created_at']),
+        ]
     
     def __str__(self):
         return f"{self.user.get_display_name()} on {self.quiz.title}"
+    
+    def is_owner_comment(self):
+        """Check if comment author is the quiz creator"""
+        return self.user == self.quiz.creator
+    
+    def get_reply_count(self):
+        """Get number of direct replies"""
+        return self.replies.count()
 
+
+class QuizLike(models.Model):
+    """User likes for quizzes - replaces attempts counter"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_likes')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'quiz']
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['quiz', 'created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.get_display_name()} likes {self.quiz.title}"
 

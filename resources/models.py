@@ -160,15 +160,53 @@ class Rating(models.Model):
 
 
 class Comment(models.Model):
-    """User comments on verified resources"""
+    """User comments on verified resources with threading support"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField(help_text='Comment text')
+    
+    # Threading support - allows replies to comments
+    parent_comment = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='replies'
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['created_at']  # Changed to chronological for threading
+        indexes = [
+            models.Index(fields=['resource', 'created_at']),
+        ]
     
     def __str__(self):
         return f"{self.user.get_display_name()} on {self.resource.title}"
+    
+    def is_owner_comment(self):
+        """Check if comment author is the resource owner"""
+        return self.user == self.resource.uploader
+    
+    def get_reply_count(self):
+        """Get number of direct replies"""
+        return self.replies.count()
+
+
+class Like(models.Model):
+    """User likes for resources - replaces views counter"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='resource_likes')
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'resource']
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['resource', 'created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.get_display_name()} likes {self.resource.title}"
