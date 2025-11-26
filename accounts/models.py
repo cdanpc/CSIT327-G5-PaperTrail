@@ -74,7 +74,7 @@ class User(AbstractUser):
 
     # Preferences (Phase 3)
     DASHBOARD_CHOICES = [
-        ('student', 'Student Dashboard'),
+        ('student', 'Main Dashboard'),
         ('overview', 'Overview'),
         ('resources', 'Resources'),
         ('quizzes', 'Quizzes'),

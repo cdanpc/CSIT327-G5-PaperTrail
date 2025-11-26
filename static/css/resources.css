@@ -191,3 +191,50 @@
 .ri-overview .value { font-weight:700; color:#1e293b; }
 .ri-taglist { display:flex; flex-wrap:wrap; gap:.4rem; }
 .ri-tag { background:rgba(102,126,234,.12); color:#667eea; font-size:.65rem; padding:.3rem .55rem; border-radius:999px; font-weight:700; }
+/* Tags Scroll Container */
+.tags-scroll-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    background: rgba(102, 126, 234, 0.02);
+}
+
+.tags-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tags-scroll-container::-webkit-scrollbar-track {
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 3px;
+}
+
+.tags-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 3px;
+}
+
+.tags-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.4);
+}
+
+/* Custom spacing for tags checkboxes */
+.tags-scroll-container .form-check {
+    display: flex;
+    align-items: center;
+    padding-left: 0; /* Override Bootstrap's default padding */
+    margin-bottom: 0.5rem;
+}
+
+.tags-scroll-container .form-check-input {
+    float: none;
+    margin-left: 0;
+    margin-right: 0.75rem; /* Space between checkbox and text */
+    margin-top: 0;
+}
+
+.tags-scroll-container .form-check-label {
+    cursor: pointer;
+    user-select: none;
+}

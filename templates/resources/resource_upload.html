@@ -5,7 +5,7 @@
 {% block title %}Upload Resource{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.1">
 {% endblock %}
 
 {% block header %}
@@ -78,7 +78,25 @@
                         <h6 class="form-section-header">
                             <i class="fas fa-tags" style="color: #667eea;"></i> Tags (Optional)
                         </h6>
-                        {{ form.tags|as_crispy_field }}
+                        <div class="tags-scroll-container">
+                            <div class="row g-2">
+                                {% for checkbox in form.tags %}
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        {{ checkbox.tag }}
+                                        <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                            {{ checkbox.choice_label }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% if form.tags.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.tags.errors }}
+                            </div>
+                        {% endif %}
                     </div>
                     
                     <!-- Privacy Settings -->
