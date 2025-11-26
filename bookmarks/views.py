@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.contrib import messages
 
 from resources.models import Resource, Bookmark
-from flashcards.models import Deck
+from flashcards.models import Deck, DeckBookmark
 from quizzes.models import QuizBookmark
 from django.db.models import Q
 from django.http import JsonResponse
@@ -32,25 +32,29 @@ def bookmark_list(request):
     quiz_qs = QuizBookmark.objects.filter(user=request.user).select_related('quiz', 'quiz__creator')
     if q:
         quiz_qs = quiz_qs.filter(Q(quiz__title__icontains=q) | Q(quiz__description__icontains=q))
-    # Collect flashcards bookmarks (owner's bookmarked decks)
-    deck_qs = Deck.objects.filter(owner=request.user, is_bookmarked=True)
+    # Collect flashcards bookmarks (using DeckBookmark model for per-user tracking)
+    deck_bm_qs = DeckBookmark.objects.filter(user=request.user).select_related('deck', 'deck__owner')
     if q:
-        deck_qs = deck_qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
+        deck_bm_qs = deck_bm_qs.filter(Q(deck__title__icontains=q) | Q(deck__description__icontains=q))
 
     # Build unified items
     items = []
     if btype in ("", "resources"):
         for b in res_qs:
             r = b.resource
+            user_has_liked = r.likes.filter(user=request.user).exists() if request.user.is_authenticated else False
             items.append({
                 'type': 'resource',
                 'id': r.id,
                 'title': r.title,
+                'is_private': not r.is_public,
                 'verification_status': r.verification_status,
                 'resource_type': r.resource_type,
                 'views': r.views_count,
                 'downloads': r.download_count,
                 'rating': r.get_average_rating(),
+                'likes_count': r.likes.count(),
+                'user_has_liked': user_has_liked,
                 'author': getattr(r.uploader, 'get_full_name', lambda: r.uploader.username)() or r.uploader.username,
                 'detail_url': reverse('resources:resource_detail', args=[r.id]),
                 'remove_url': reverse('bookmarks:toggle', args=[r.id]),
@@ -62,32 +66,41 @@ def bookmark_list(request):
             # get_display_name may be method; fallback to username
             author = getattr(qz.creator, 'get_display_name', None)
             author_str = author() if callable(author) else (getattr(qz.creator, 'get_full_name', lambda: qz.creator.username)() or qz.creator.username)
+            user_has_liked = qz.likes.filter(user=request.user).exists() if request.user.is_authenticated else False
             items.append({
                 'type': 'quiz',
                 'id': qz.id,
                 'title': qz.title,
+                'is_private': not qz.is_public,
                 'verification_status': qz.verification_status,
                 'questions': qz.total_questions,
                 'attempts': qz.attempts_count,
+                'likes_count': qz.likes.count(),
+                'user_has_liked': user_has_liked,
                 'author': author_str,
                 'detail_url': reverse('quizzes:quiz_detail', args=[qz.id]),
                 'remove_url': reverse('quizzes:toggle_quiz_bookmark', args=[qz.id]),
                 'created_at': qb.created_at,
             })
     if btype in ("", "flashcards"):
-        for d in deck_qs:
+        for deck_bm in deck_bm_qs:
+            d = deck_bm.deck
             owner = d.owner
             author_str = getattr(owner, 'get_full_name', lambda: owner.username)() or owner.username
+            user_has_liked = d.likes.filter(user=request.user).exists() if request.user.is_authenticated else False
             items.append({
                 'type': 'flashcard',
                 'id': d.id,
                 'title': d.title,
+                'is_private': d.visibility == 'private',
                 'verification_status': d.verification_status,
                 'cards': d.cards_count,
+                'likes_count': d.likes.count(),
+                'user_has_liked': user_has_liked,
                 'author': author_str,
                 'detail_url': reverse('flashcards:deck_detail', args=[d.id]),
                 'remove_url': reverse('flashcards:bookmark_toggle', args=[d.id]),
-                'created_at': d.updated_at or d.created_at,
+                'created_at': deck_bm.created_at,
             })
 
     # Sort by most recent bookmark/time

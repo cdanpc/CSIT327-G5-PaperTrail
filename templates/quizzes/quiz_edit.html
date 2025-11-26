@@ -11,35 +11,38 @@
 {% endblock %}
 
 {% block content %}
-{# Removed toasts/messages per request #}
-
-<form method="post" id="quizEditForm" class="mb-5">
-  {% csrf_token %}
-  <div class="card dashboard-card mb-4">
-    <div class="card-header"><h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Quiz Information</h5></div>
-    <div class="card-body">
-      <div class="mb-3">
-        <label for="{{ form.title.id_for_label }}" class="form-label">Title <span class="text-danger">*</span></label>
-        {{ form.title }}
-        {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <form method="post" id="quizEditForm" class="mb-5">
+      {% csrf_token %}
+      <div class="card dashboard-card mb-4" style="background-color: #f9fafb;">
+        <div class="card-header"><h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Quiz Information</h5></div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label for="{{ form.title.id_for_label }}" class="form-label">Title <span class="text-danger">*</span></label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
+          </div>
+          <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+          </div>
+          
+          <!-- Privacy Settings -->
+          <div class="mb-4">
+            <h6 class="form-section-header">
+              <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
+            </h6>
+            {% include 'components/visibility_toggle.html' with toggle_id='quizEditPrivacyToggle' hidden_id='id_is_public' field_name='is_public' is_public=quiz.is_public label='Make this quiz public' public_description='Public quizzes require verification if you are a student.' private_description='Private quizzes are only visible to you and auto-verified.' %}
+          </div>
+          <div class="edit-actions">
+            <button type="submit" class="btn btn-lg btn-gradient-primary"><i class="fas fa-save"></i> Save Changes</button>
+            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-lg btn-outline-primary-soft ms-2">Cancel</a>
+          </div>
+        </div>
       </div>
-      <div class="mb-3">
-        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-        {{ form.description }}
-        {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
-      </div>
-      
-      <!-- Privacy Settings -->
-      <div class="mb-4">
-        <h6 class="form-section-header">
-          <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
-        </h6>
-        {% include 'components/visibility_toggle.html' with toggle_id='quizEditPrivacyToggle' hidden_id='id_is_public' field_name='is_public' is_public=quiz.is_public label='Make this quiz public' public_description='Public quizzes require verification if you are a student.' private_description='Private quizzes are only visible to you and auto-verified.' %}
-      </div>
-    </div>
+    </form>
   </div>
-  <div class="text-end">
-    <button type="submit" class="btn btn-lg btn-gradient-primary"><i class="fas fa-save"></i> Save Changes</button>
-  </div>
-</form>
+</div>
 {% endblock %}

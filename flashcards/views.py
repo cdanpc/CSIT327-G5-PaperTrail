@@ -19,6 +19,8 @@ def deck_list(request: HttpRequest) -> HttpResponse:
     - All: public decks from all users
     - My: user's own decks (any visibility)
     """
+    from .models import DeckBookmark
+    
     scope = request.GET.get('scope', 'all')
     if scope == 'mine':
         decks = Deck.objects.filter(owner=request.user).prefetch_related("cards")
@@ -32,6 +34,22 @@ def deck_list(request: HttpRequest) -> HttpResponse:
         decks = decks.filter(Q(title__icontains=q) | Q(description__icontains=q))
     if category:
         decks = decks.filter(category=category)
+
+    # Get user's bookmarked decks for this view
+    bookmarked_deck_ids = set()
+    if request.user.is_authenticated:
+        bookmarked_deck_ids = set(
+            DeckBookmark.objects.filter(user=request.user, deck__in=decks).values_list('deck_id', flat=True)
+        )
+
+    # Add like status and bookmark status for each deck
+    for deck in decks:
+        if request.user.is_authenticated:
+            deck.user_has_liked = deck.likes.filter(user=request.user).exists()
+            deck.user_bookmarked = deck.pk in bookmarked_deck_ids
+        else:
+            deck.user_has_liked = False
+            deck.user_bookmarked = False
 
     # Category filter options for component
     category_options = [
@@ -86,6 +104,8 @@ def deck_create(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def deck_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    from .models import DeckBookmark
+    
     deck = get_object_or_404(Deck, pk=pk)
     # Privacy: Only owner can view private decks
     if deck.visibility == 'private' and deck.owner != request.user:
@@ -121,6 +141,11 @@ def deck_detail(request: HttpRequest, pk: int) -> HttpResponse:
     except Exception:
         comments = []
 
+    # Check if user has bookmarked this deck
+    is_bookmarked = False
+    if request.user.is_authenticated:
+        is_bookmarked = DeckBookmark.objects.filter(user=request.user, deck=deck).exists()
+
     return render(
         request,
         "flashcards/deck_detail.html",
@@ -130,6 +155,7 @@ def deck_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "card_form": card_form,
             "user_rating": user_rating,
             "comments": comments,
+            "is_bookmarked": is_bookmarked,
         },
     )
 
@@ -236,12 +262,25 @@ def study(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def toggle_bookmark(request: HttpRequest, pk: int) -> HttpResponse:
     """Toggle bookmark status for deck. Supports AJAX JSON or redirect fallback."""
-    deck = get_object_or_404(Deck, pk=pk, owner=request.user)
-    deck.is_bookmarked = not deck.is_bookmarked
-    deck.save(update_fields=["is_bookmarked", "updated_at"])
+    from .models import DeckBookmark
+    
+    deck = get_object_or_404(Deck, pk=pk)
+    # No ownership check needed - anyone can bookmark any public/their own deck
+    bookmark, created = DeckBookmark.objects.get_or_create(user=request.user, deck=deck)
+    if not created:
+        bookmark.delete()
+        is_bookmarked = False
+    else:
+        is_bookmarked = True
+    
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse({"bookmarked": deck.is_bookmarked})
-    return redirect("flashcards:deck_list")
+        return JsonResponse({"bookmarked": is_bookmarked})
+    
+    # Redirect back to referring page or deck detail
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER')
+    if next_url and next_url.startswith("/"):
+        return redirect(next_url)
+    return redirect("flashcards:deck_detail", pk=pk)
 
 
 @login_required

@@ -168,7 +168,7 @@ class ProfileUpdateForm(forms.ModelForm):
         fields = [
             'first_name', 'last_name', 'personal_email', 'univ_email', 
             'stud_id', 'profile_picture', 'tagline', 'bio', 
-            'department', 'year_level', 'phone'
+            'department', 'year_level', 'phone', 'profile_visibility'
         ]
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -196,6 +196,11 @@ class ProfileUpdateForm(forms.ModelForm):
                 ('4', '4th Year'),
             ]),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'profile_visibility': forms.Select(attrs={'class': 'form-control'}, choices=[
+                ('public', 'Public - Anyone can view my profile'),
+                ('students_only', 'Students Only - Only students can view my profile'),
+                ('private', 'Private - Only I can view my profile'),
+            ]),
         }
 
     def clean_univ_email(self):

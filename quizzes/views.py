@@ -45,6 +45,13 @@ def quiz_list(request):
         bookmarked_ids = set(
             QuizBookmark.objects.filter(user=request.user, quiz__in=quizzes).values_list('quiz_id', flat=True)
         )
+    
+    # Add like status for each quiz
+    for quiz in quizzes:
+        if request.user.is_authenticated:
+            quiz.user_has_liked = quiz.likes.filter(user=request.user).exists()
+        else:
+            quiz.user_has_liked = False
 
     # Status filter options for component
     status_filter_options = [
@@ -362,8 +369,8 @@ def quiz_history(request):
 
 @login_required
 def quiz_moderation_list(request):
-    """List quizzes pending verification (professors only)"""
-    if not request.user.is_professor:
+    """List quizzes pending verification (professors and staff only)"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('quizzes:quiz_list')
     
@@ -383,8 +390,8 @@ def quiz_moderation_list(request):
 @login_required
 @require_http_methods(["POST"])
 def approve_quiz(request, pk):
-    """Approve a quiz (professors only)"""
-    if not request.user.is_professor:
+    """Approve a quiz (professors and staff only)"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to perform this action.')
         return redirect('quizzes:quiz_list')
     
@@ -414,8 +421,8 @@ def approve_quiz(request, pk):
 @login_required
 @require_http_methods(["POST"])
 def reject_quiz(request, pk):
-    """Reject a quiz (professors only)"""
-    if not request.user.is_professor:
+    """Reject a quiz (professors and staff only)"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to perform this action.')
         return redirect('quizzes:quiz_list')
     

@@ -1,0 +1,127 @@
+{% comment %}
+Profile Bio Component
+Editable bio section for all user roles
+{% endcomment %}
+
+<div class="profile-card bio-card">
+    <div class="profile-card-header">
+        <h3 class="profile-card-title">
+            <i class="fas fa-info-circle"></i> About
+        </h3>
+        {% if is_own_profile %}
+        <button class="btn-edit-bio" onclick="toggleBioEdit()">
+            <i class="fas fa-edit"></i> Edit
+        </button>
+        {% endif %}
+    </div>
+    
+    <div class="profile-card-body">
+        <!-- View Mode -->
+        <div id="bio-view-mode">
+            {% if user.bio %}
+            <p class="bio-text">{{ user.bio|linebreaks }}</p>
+            {% else %}
+            <p class="empty-state">
+                {% if is_own_profile %}
+                Tell others about yourself. Click "Edit" to add your bio.
+                {% else %}
+                This user hasn't added a bio yet.
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+        
+        <!-- Edit Mode (only shown for own profile) -->
+        {% if is_own_profile %}
+        <div id="bio-edit-mode" style="display: none;">
+            <form id="bio-edit-form" method="POST">
+                {% csrf_token %}
+                <textarea 
+                    name="bio" 
+                    class="bio-textarea" 
+                    rows="5" 
+                    maxlength="500"
+                    placeholder="Write something about yourself..."
+                >{{ user.bio }}</textarea>
+                <div class="bio-edit-footer">
+                    <span class="char-counter">
+                        <span id="bio-char-count">{{ user.bio|length|default:0 }}</span>/500
+                    </span>
+                    <div class="bio-edit-actions">
+                        <button type="button" class="btn btn-secondary" onclick="cancelBioEdit()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleBioEdit() {
+    document.getElementById('bio-view-mode').style.display = 'none';
+    document.getElementById('bio-edit-mode').style.display = 'block';
+}
+
+function cancelBioEdit() {
+    document.getElementById('bio-view-mode').style.display = 'block';
+    document.getElementById('bio-edit-mode').style.display = 'none';
+}
+
+// Character counter
+const bioTextarea = document.querySelector('.bio-textarea');
+if (bioTextarea) {
+    bioTextarea.addEventListener('input', function() {
+        document.getElementById('bio-char-count').textContent = this.value.length;
+    });
+}
+
+// Form submission
+const bioForm = document.getElementById('bio-edit-form');
+if (bioForm) {
+    bioForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        try {
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Update view mode with new bio
+                    const bioView = document.querySelector('.bio-text');
+                    const newBio = formData.get('bio');
+                    if (bioView) {
+                        bioView.innerHTML = newBio.replace(/\n/g, '<br>');
+                    }
+                    cancelBioEdit();
+                    
+                    // Show success message
+                    showNotification('Bio updated successfully', 'success');
+                }
+            }
+        } catch (error) {
+            console.error('Error updating bio:', error);
+            showNotification('Failed to update bio', 'error');
+        }
+    });
+}
+
+function showNotification(message, type) {
+    // Simple notification (you can enhance this)
+    alert(message);
+}
+</script>

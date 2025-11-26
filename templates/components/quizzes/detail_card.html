@@ -1,0 +1,83 @@
+<!-- Quiz Detail Card Component -->
+<div class="quiz-detail-card">
+    <!-- Header with title and badges -->
+    <div class="quiz-detail-card__header">
+        <div class="quiz-detail-card__title">
+            <h1>{{ quiz.title }}</h1>
+            <div class="quiz-detail-card__badges">
+                <!-- Verification Status -->
+                {% if quiz.verification_status == 'verified' %}
+                    <span class="badge badge-verified badge-sm"><i class="fas fa-check-circle"></i> Verified</span>
+                {% elif quiz.verification_status == 'pending' %}
+                    <span class="badge badge-pending badge-sm"><i class="fas fa-clock"></i> Pending</span>
+                {% else %}
+                    <span class="badge bg-warning badge-sm"><i class="fas fa-eye-slash"></i> Unverified</span>
+                {% endif %}
+                <!-- Visibility Status -->
+                {% if not quiz.is_public %}
+                    <span class="badge bg-secondary badge-sm"><i class="fas fa-lock"></i> Private</span>
+                {% else %}
+                    <span class="badge bg-success badge-sm"><i class="fas fa-globe"></i> Public</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Action buttons at the top -->
+        <div class="quiz-detail-card__actions">
+            <a href="{% url 'quizzes:quiz_attempt' quiz.pk %}" class="btn btn--primary" title="Start quiz">
+                <i class="fas fa-play"></i> Study
+            </a>
+            <form method="post" action="{% url 'quizzes:toggle_quiz_bookmark' quiz.pk %}" style="display:inline-block;">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" class="btn btn--secondary" title="Bookmark Quiz">
+                    <i class="{% if is_bookmarked %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                </button>
+            </form>
+            <a href="{% url 'quizzes:quiz_history' %}" class="btn btn--secondary" title="View Results">
+                <i class="fas fa-history"></i>
+            </a>
+            {% if quiz.creator == user or user.is_professor %}
+                <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn btn--secondary" title="Edit Quiz">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <button type="button" class="btn btn--danger" title="Delete Quiz" data-quiz-id="{{ quiz.pk }}" data-quiz-title="{{ quiz.title }}" data-delete-url="{% url 'quizzes:quiz_delete' quiz.pk %}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Meta information -->
+    <div class="quiz-detail-card__meta">
+        <i class="fas fa-file-alt"></i> {{ quiz.total_questions }} questions 
+        <span style="margin: 0 0.5rem;">•</span>
+        <i class="fas fa-play-circle"></i> {{ quiz.attempts_count }} attempt{{ quiz.attempts_count|pluralize }}
+    </div>
+
+    <!-- Description -->
+    {% if quiz.description %}
+    <div class="quiz-detail-card__content">
+        <div class="quiz-detail-card__description">
+            {{ quiz.description }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Score information if attempted -->
+    {% if has_attempted %}
+    <div class="quiz-detail-card__score-box">
+        <div class="quiz-detail-card__score-inner">
+            <div class="quiz-detail-card__score-icon">
+                <i class="fas fa-medal"></i>
+            </div>
+            <div class="quiz-detail-card__score-content">
+                <strong>Best Score: {{ best_attempt.score }}/{{ best_attempt.total_questions }} ({{ best_attempt.percentage }}%)</strong>
+                <p class="quiz-detail-card__score-subtitle">
+                    You've already attempted this quiz
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

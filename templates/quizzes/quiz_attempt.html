@@ -4,11 +4,7 @@
 {% block title %}Quizzes{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/components/quizzes.css' %}">
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'js/quizzes.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/quizzes.css' %}?v=1.0">
 {% endblock %}
 
 {% block header %}
@@ -17,11 +13,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="qa-local-nav">
-    <div class="qa-local-nav-inner">
-        <h1 class="qa-local-nav-title">Quizzes</h1>
-    </div>
-    </div>
-{% include 'components/quizzes/attempt_card.html' %}
+{% include 'components/quizzes/attempt_card.html' with quiz=quiz question=question question_number=question_number total_questions=total_questions progress_percentage=progress_percentage %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/quiz-attempt.js' %}?v=1.0"></script>
 {% endblock %}
 
