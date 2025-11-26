@@ -1,0 +1,169 @@
+{% comment %}
+Admin Profile Stats Component
+Displays system management statistics and oversight metrics
+{% endcomment %}
+
+<div class="profile-card profile-stats-card">
+    <div class="profile-card-header">
+        <h3 class="profile-card-title">
+            <i class="fas fa-cogs"></i> System Management
+        </h3>
+    </div>
+    
+    <div class="profile-card-body">
+        <!-- System Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon stat-icon--primary">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.total_users|default:0 }}</span>
+                    <span class="stat-label">Total Users</span>
+                </div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon stat-icon--success">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.total_resources|default:0 }}</span>
+                    <span class="stat-label">Total Resources</span>
+                </div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon stat-icon--warning">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.active_users|default:0 }}</span>
+                    <span class="stat-label">Active Users (30d)</span>
+                </div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon stat-icon--info">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.new_users_this_week|default:0 }}</span>
+                    <span class="stat-label">New Users (7d)</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="admin-quick-actions">
+            <h4 class="section-subtitle">Quick Actions</h4>
+            <div class="action-buttons">
+                <a href="{% url 'admin:index' %}" class="action-btn">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Admin Dashboard</span>
+                </a>
+                <a href="{% url 'admin:accounts_user_changelist' %}" class="action-btn">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Manage Users</span>
+                </a>
+                <a href="{% url 'admin:resources_resource_changelist' %}" class="action-btn">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Manage Resources</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Health -->
+<div class="profile-card system-health-card">
+    <div class="profile-card-header">
+        <h3 class="profile-card-title">
+            <i class="fas fa-heartbeat"></i> System Health
+        </h3>
+    </div>
+    
+    <div class="profile-card-body">
+        <div class="health-metrics">
+            <div class="health-item">
+                <span class="health-label">
+                    <i class="fas fa-database"></i> Database Status
+                </span>
+                <span class="health-value health-value--success">
+                    <i class="fas fa-check-circle"></i> Connected
+                </span>
+            </div>
+            
+            <div class="health-item">
+                <span class="health-label">
+                    <i class="fas fa-hdd"></i> Storage Usage
+                </span>
+                <span class="health-value">
+                    {{ stats.storage_used|default:"N/A" }}
+                </span>
+            </div>
+            
+            <div class="health-item">
+                <span class="health-label">
+                    <i class="fas fa-flag"></i> Pending Reports
+                </span>
+                <span class="health-value {% if stats.pending_reports > 0 %}health-value--warning{% endif %}">
+                    {{ stats.pending_reports|default:0 }}
+                </span>
+            </div>
+            
+            <div class="health-item">
+                <span class="health-label">
+                    <i class="fas fa-user-times"></i> Deletion Requests
+                </span>
+                <span class="health-value {% if stats.deletion_requests > 0 %}health-value--warning{% endif %}">
+                    {{ stats.deletion_requests|default:0 }}
+                </span>
+            </div>
+        </div>
+        
+        {% if stats.pending_reports > 0 or stats.deletion_requests > 0 %}
+        <div class="alert alert--warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>You have pending actions requiring attention.</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Admin Activity -->
+<div class="profile-card activity-card">
+    <div class="profile-card-header">
+        <h3 class="profile-card-title">
+            <i class="fas fa-history"></i> Recent Activity
+        </h3>
+    </div>
+    
+    <div class="profile-card-body">
+        {% if admin_logs %}
+        <div class="activity-list">
+            {% for log in admin_logs|slice:":5" %}
+            <div class="activity-item">
+                <div class="activity-icon">
+                    {% if log.action_flag == 1 %}
+                    <i class="fas fa-plus-circle text-success"></i>
+                    {% elif log.action_flag == 2 %}
+                    <i class="fas fa-edit text-primary"></i>
+                    {% elif log.action_flag == 3 %}
+                    <i class="fas fa-trash text-danger"></i>
+                    {% endif %}
+                </div>
+                <div class="activity-content">
+                    <span class="activity-description">
+                        {{ log.get_action_flag_display }} {{ log.content_type }}
+                    </span>
+                    <span class="activity-meta">{{ log.action_time|timesince }} ago</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-state">No recent activity.</p>
+        {% endif %}
+    </div>
+</div>

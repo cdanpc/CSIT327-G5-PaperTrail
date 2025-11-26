@@ -870,19 +870,80 @@ def profile(request):
     preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
 
     # Impact Card Data
+    # Get actual quiz count from Quiz model instead of using stats
+    from quizzes.models import Quiz
+    from resources.models import Rating
+    actual_quizzes_count = Quiz.objects.filter(creator=request.user).count()
+    
+    # Count helpful votes (4-5 star ratings on user's resources)
+    helpful_votes = Rating.objects.filter(
+        resource__uploader=request.user,
+        stars__gte=4
+    ).count()
+    
     impact_data = {
         'resources_uploaded': stats.resources_uploaded,
-        'quizzes_created': stats.quizzes_created,
+        'quizzes_created': actual_quizzes_count,
         'flashcards_created': stats.flashcards_created,
-        'students_helped': stats.students_helped,
+        'students_helped': helpful_votes,
     }
 
     # Learning Summary Data
+    # Calculate study progress based on quiz attempts
+    from quizzes.models import QuizAttempt, Quiz
+    from flashcards.models import Deck
+    
+    quiz_attempts_count = QuizAttempt.objects.filter(student=request.user).count()
+    # Estimate progress: 0-50 attempts = 0-100% progress
+    study_progress_percent = min((quiz_attempts_count / 50) * 100, 100)
+    
+    # Build combined activity feed from resources, quizzes, and flashcards
+    activities = []
+    
+    # Add resources (uploaded by user)
+    for resource in user_resources:
+        activities.append({
+            'type': 'resource',
+            'title': resource.title,
+            'created_at': resource.created_at,
+            'icon': 'fa-file-alt',
+            'color': 'text-secondary',
+            'action': 'Uploaded'
+        })
+    
+    # Add quizzes (created by user)
+    user_quizzes = Quiz.objects.filter(creator=request.user).order_by('-created_at')[:10]
+    for quiz in user_quizzes:
+        activities.append({
+            'type': 'quiz',
+            'title': quiz.title,
+            'created_at': quiz.created_at,
+            'icon': 'fa-clipboard-check',
+            'color': 'text-info',
+            'action': 'Created Quiz'
+        })
+    
+    # Add flashcard decks (created by user)
+    user_decks = Deck.objects.filter(owner=request.user).order_by('-created_at')[:10]
+    for deck in user_decks:
+        activities.append({
+            'type': 'deck',
+            'title': deck.title,
+            'created_at': deck.created_at,
+            'icon': 'fa-clone',
+            'color': 'text-warning',
+            'action': 'Created Deck'
+        })
+    
+    # Sort all activities by date and take top 10
+    activities.sort(key=lambda x: x['created_at'], reverse=True)
+    activities = activities[:10]
+    
     learning_summary = {
-        'study_progress': stats.total_study_time,
+        'study_progress': round(study_progress_percent, 1),
         'active_streak': stats.active_streak,
-        'recent_activities': [],  # To be filled with recent actions
-        'quizzes_completed': stats.quizzes_completed,
+        'recent_activities': activities,
+        'quizzes_completed': quiz_attempts_count,
     }
 
     # Achievements & Badges
@@ -909,6 +970,129 @@ def profile(request):
         'customization': customization,
     }
     return render(request, 'accounts/profile.html', context)
+
+
+@login_required
+def public_profile(request, username):
+    """View another user's public profile (enforcing profile_visibility)"""
+    try:
+        profile_user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('resources:resource_list')
+    
+    # Check profile visibility
+    if profile_user.profile_visibility == 'private':
+        # Only the user themselves can see their own private profile
+        if request.user != profile_user:
+            messages.error(request, 'This profile is private and cannot be accessed.')
+            return redirect('resources:resource_list')
+    elif profile_user.profile_visibility == 'students_only':
+        # Only students (not staff/superuser) can view student-only profiles
+        if request.user.is_staff or request.user.is_superuser:
+            # Professors and admins are exempt from this restriction
+            pass
+        elif profile_user.is_staff or profile_user.is_superuser:
+            # Staff profiles are always public
+            pass
+    # 'public' visibility allows everyone to see
+    
+    # Get public profile data
+    profile_resources = Resource.objects.filter(uploader=profile_user, is_public=True).order_by('-created_at')[:10]
+    profile_bookmarks = Bookmark.objects.filter(user=profile_user).order_by('-created_at')[:10]
+    profile_achievements = profile_user.achievements.filter(is_displayed=True).select_related('badge')
+    
+    # Get stats
+    stats, _ = UserStats.objects.get_or_create(user=profile_user)
+    preferences, _ = UserPreferences.objects.get_or_create(user=profile_user)
+    
+    # Impact Card Data
+    from quizzes.models import Quiz, QuizAttempt
+    from resources.models import Rating
+    actual_quizzes_count = Quiz.objects.filter(creator=profile_user, is_public=True).count()
+    helpful_votes = Rating.objects.filter(
+        resource__uploader=profile_user,
+        resource__is_public=True,
+        stars__gte=4
+    ).count()
+    
+    impact_data = {
+        'resources_uploaded': Resource.objects.filter(uploader=profile_user, is_public=True).count(),
+        'quizzes_created': actual_quizzes_count,
+        'flashcards_created': Deck.objects.filter(owner=profile_user, visibility='public').count(),
+        'students_helped': helpful_votes,
+    }
+    
+    # Learning Summary Data
+    quiz_attempts_count = QuizAttempt.objects.filter(student=profile_user).count()
+    study_progress_percent = min((quiz_attempts_count / 50) * 100, 100)
+    
+    # Build combined activity feed from public resources, quizzes, and flashcards
+    activities = []
+    
+    # Add public resources
+    for resource in profile_resources:
+        activities.append({
+            'type': 'resource',
+            'title': resource.title,
+            'created_at': resource.created_at,
+            'icon': 'fa-file-alt',
+            'color': 'text-secondary',
+            'action': 'Uploaded'
+        })
+    
+    # Add public quizzes
+    user_quizzes = Quiz.objects.filter(creator=profile_user, is_public=True).order_by('-created_at')[:10]
+    for quiz in user_quizzes:
+        activities.append({
+            'type': 'quiz',
+            'title': quiz.title,
+            'created_at': quiz.created_at,
+            'icon': 'fa-clipboard-check',
+            'color': 'text-info',
+            'action': 'Created Quiz'
+        })
+    
+    # Add public flashcard decks
+    user_decks = Deck.objects.filter(owner=profile_user, visibility='public').order_by('-created_at')[:10]
+    for deck in user_decks:
+        activities.append({
+            'type': 'deck',
+            'title': deck.title,
+            'created_at': deck.created_at,
+            'icon': 'fa-clone',
+            'color': 'text-warning',
+            'action': 'Created Deck'
+        })
+    
+    # Sort all activities by date and take top 10
+    activities.sort(key=lambda x: x['created_at'], reverse=True)
+    activities = activities[:10]
+    
+    learning_summary = {
+        'study_progress': round(study_progress_percent, 1),
+        'active_streak': stats.active_streak,
+        'recent_activities': activities,
+        'quizzes_completed': quiz_attempts_count,
+    }
+    
+    context = {
+        'profile_user': profile_user,
+        'user': request.user,
+        'user_resources': profile_resources,
+        'user_bookmarks': profile_bookmarks,
+        'user_achievements': profile_achievements,
+        'is_own_profile': request.user == profile_user,
+        'impact_data': impact_data,
+        'learning_summary': learning_summary,
+        'customization': {
+            'theme': preferences.theme,
+            'font_style': preferences.font_style,
+            'layout': preferences.layout,
+            'dark_mode': preferences.dark_mode,
+        }
+    }
+    return render(request, 'accounts/public_profile.html', context)
 
 
 # Password Change View

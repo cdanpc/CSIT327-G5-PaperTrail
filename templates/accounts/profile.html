@@ -169,6 +169,13 @@
                                             <i class="far fa-circle"></i>
                                         </span>
                                     </button>
+                                    <button class="profile-tab-btn" data-tab="privacy" onclick="switchTab('privacy')">
+                                        <i class="fas fa-lock"></i>
+                                        <span>Privacy</span>
+                                        <span class="tab-completion-badge" id="privacyTab-badge">
+                                            <i class="fas fa-check-circle"></i>
+                                        </span>
+                                    </button>
                                 </div>
 
                                 <!-- Tab Panels -->
@@ -384,8 +391,67 @@
                                                     <textarea class="form-control" id="bio" name="bio" rows="6" maxlength="500" placeholder="Tell us about yourself, your interests, academic goals...">{{ user.bio|default:'' }}</textarea>
                                                     <small class="text-muted">Maximum 500 characters</small>
                                                 </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- Privacy Settings Tab -->
+                                    <div class="profile-tab-panel" id="privacy-tab">
+                                        <div class="tab-panel-header">
+                                            <h3 class="tab-panel-title">Privacy Settings</h3>
+                                            <button class="btn-edit-mode" onclick="toggleEditMode('privacyInfo')">
+                                                <i class="fas fa-pencil-alt"></i>
+                                                Edit
+                                            </button>
+                                        </div>
+
+                                        <!-- Display Mode -->
+                                        <div id="privacyInfo-display">
+                                            <div class="info-field">
+                                                <label class="info-field-label">Profile Visibility</label>
+                                                <div class="info-field-value">
+                                                    {% if user.profile_visibility == 'public' %}
+                                                        <span class="badge bg-success"><i class="fas fa-globe"></i> Public</span>
+                                                        <p class="mt-2 text-muted">Your profile can be viewed by anyone on the platform.</p>
+                                                    {% elif user.profile_visibility == 'students_only' %}
+                                                        <span class="badge bg-info"><i class="fas fa-users"></i> Students Only</span>
+                                                        <p class="mt-2 text-muted">Your profile can only be viewed by other students.</p>
+                                                    {% else %}
+                                                        <span class="badge bg-warning"><i class="fas fa-lock"></i> Private</span>
+                                                        <p class="mt-2 text-muted">Only you can view your profile. Others cannot see your profile.</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Edit Mode -->
+                                        <div id="privacyInfo-edit" class="edit-form-container">
+                                            <form method="post" action="{% url 'accounts:profile' %}">
+                                                {% csrf_token %}
+                                                <!-- Hidden fields to preserve data from other tabs -->
+                                                <input type="hidden" name="first_name" value="{{ user.first_name }}">
+                                                <input type="hidden" name="last_name" value="{{ user.last_name }}">
+                                                <input type="hidden" name="personal_email" value="{{ user.personal_email }}">
+                                                <input type="hidden" name="phone" value="{{ user.phone|default:'' }}">
+                                                <input type="hidden" name="univ_email" value="{{ user.univ_email }}">
+                                                <input type="hidden" name="stud_id" value="{{ user.stud_id }}">
+                                                <input type="hidden" name="department" value="{{ user.department|default:'' }}">
+                                                <input type="hidden" name="year_level" value="{{ user.year_level|default:'' }}">
+                                                <input type="hidden" name="tagline" value="{{ user.tagline|default:'' }}">
+                                                <input type="hidden" name="bio" value="{{ user.bio|default:'' }}">
+                                                
+                                                <div class="form-group full-width">
+                                                    <label for="profile_visibility" class="form-label">Who can see your profile?</label>
+                                                    <select class="form-control" id="profile_visibility" name="profile_visibility" required>
+                                                        <option value="public" {% if user.profile_visibility == 'public' %}selected{% endif %}>Public - Anyone can view my profile</option>
+                                                        <option value="students_only" {% if user.profile_visibility == 'students_only' %}selected{% endif %}>Students Only - Only students can view my profile</option>
+                                                        <option value="private" {% if user.profile_visibility == 'private' %}selected{% endif %}>Private - Only I can view my profile</option>
+                                                    </select>
+                                                    <small class="text-muted">Control who can access your profile and see your contributions.</small>
+                                                </div>
                                                 <div class="form-actions">
-                                                    <button type="button" class="btn btn-secondary" onclick="toggleEditMode('bioInfo')">Cancel</button>
+                                                    <button type="button" class="btn btn-secondary" onclick="toggleEditMode('privacyInfo')">Cancel</button>
                                                     <button type="submit" class="btn btn-primary">Save Changes</button>
                                                 </div>
                                             </form>
@@ -420,9 +486,8 @@
                                         <i class="fas fa-clipboard-check"></i>
                                     </div>
                                     <div class="impact-stat-content">
-                                        <div class="impact-stat-value">0</div>
+                                        <div class="impact-stat-value">{{ impact_data.quizzes_created }}</div>
                                         <div class="impact-stat-label">Quizzes Created</div>
-                                        <small class="text-muted">Coming Soon</small>
                                     </div>
                                 </div>
                                 
@@ -442,9 +507,9 @@
                                         <i class="fas fa-star"></i>
                                     </div>
                                     <div class="impact-stat-content">
-                                        <div class="impact-stat-value">0</div>
+                                        <div class="impact-stat-value">{{ impact_data.students_helped }}</div>
                                         <div class="impact-stat-label">Helpful Votes</div>
-                                        <small class="text-muted">Coming Soon</small>
+                                        <small class="text-muted">4-5 star ratings</small>
                                     </div>
                                 </div>
                             </div>
@@ -480,30 +545,30 @@
                                 <div class="learning-progress-section">
                                     <div class="learning-progress-header">
                                         <span class="learning-progress-label">Study Progress</span>
-                                        <span class="learning-progress-percentage">0%</span>
+                                        <span class="learning-progress-percentage">{{ learning_summary.study_progress }}%</span>
                                     </div>
                                     <div class="learning-progress-bar">
-                                        <div class="learning-progress-fill" style="width: 0%"></div>
+                                        <div class="learning-progress-fill" style="width: {{ learning_summary.study_progress }}%"></div>
                                     </div>
-                                    <small class="text-muted">Track your learning journey</small>
+                                    <small class="text-muted">Based on {{ learning_summary.quizzes_completed }} quiz{{ learning_summary.quizzes_completed|pluralize }}</small>
                                 </div>
                                 
                                 <div class="recent-activity-section">
                                     <h4 class="recent-activity-title">Recent Activity</h4>
-                                    {% if user_resources %}
+                                    {% if learning_summary.recent_activities %}
                                         <div class="recent-activity-list">
-                                            {% for resource in user_resources|slice:":3" %}
+                                            {% for activity in learning_summary.recent_activities %}
                                                 <div class="recent-activity-item">
-                                                    <i class="fas fa-file-alt text-secondary"></i>
+                                                    <i class="fas {{ activity.icon }} {{ activity.color }}"></i>
                                                     <div class="recent-activity-content">
-                                                        <div class="recent-activity-text">Uploaded <strong>{{ resource.title|truncatewords:5 }}</strong></div>
-                                                        <div class="recent-activity-time">{{ resource.created_at|timesince }} ago</div>
+                                                        <div class="recent-activity-text">{{ activity.action }} <strong>{{ activity.title|truncatewords:5 }}</strong></div>
+                                                        <div class="recent-activity-time">{{ activity.created_at|timesince }} ago</div>
                                                     </div>
                                                 </div>
                                             {% endfor %}
                                         </div>
                                     {% else %}
-                                        <p class="text-muted text-center py-3">No recent activity yet. Start by uploading a resource!</p>
+                                        <p class="text-muted text-center py-3">No recent activity yet. Start by uploading a resource, creating a quiz, or a flashcard deck!</p>
                                     {% endif %}
                                 </div>
                             </div>

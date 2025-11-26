@@ -1,0 +1,249 @@
+{% extends 'base_dashboard.html' %}
+{% load static humanize %}
+{% block title %}{{ profile_user.get_display_name }}'s Profile - PaperTrail{% endblock %}
+
+{% block header %}
+{% url 'resources:resource_list' as resources_url %}
+{% include 'components/page_header.html' with page_title=profile_user.get_display_name back_url=resources_url show_moderate_btn=False %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile_style.css' %}?v=4.0">
+{% endblock %}
+
+{% block content %}
+<div class="profile-layout-wrapper">
+    <!-- Profile Header -->
+    <div class="profile-card profile-header-card">
+        <div class="profile-header-content">
+            <!-- Profile Photo -->
+            <div class="profile-photo-wrapper">
+                <img src="{% if profile_user.profile_picture %}{{ profile_user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ profile_user.first_name }}+{{ profile_user.last_name }}&size=150&background=667eea&color=fff{% endif %}" 
+                     alt="Profile Photo" 
+                     class="profile-photo-xl">
+            </div>
+            
+            <!-- User Identity Section -->
+            <div class="profile-identity">
+                <div class="profile-name-row">
+                    <h2 class="profile-name">{{ profile_user.get_display_name }}</h2>
+                </div>
+                
+                <!-- Tagline & Role -->
+                <div class="profile-tagline-section">
+                    {% if profile_user.tagline %}
+                    <p class="profile-tagline">{{ profile_user.tagline }}</p>
+                    {% endif %}
+                    
+                    <span class="profile-role-badge">
+                        {% if profile_user.is_staff or profile_user.is_superuser %}
+                        <i class="fas fa-crown"></i> Admin
+                        {% elif profile_user.is_professor %}
+                        <i class="fas fa-chalkboard-teacher"></i> Professor
+                        {% else %}
+                        <i class="fas fa-user-graduate"></i> Student
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <!-- Achievement Badges -->
+                {% if user_achievements %}
+                <div class="profile-badges-preview">
+                    {% for achievement in user_achievements|slice:":4" %}
+                    <img src="{{ achievement.badge.icon.url }}" alt="{{ achievement.badge.name }}" 
+                         class="achievement-badge-small" title="{{ achievement.badge.name }}">
+                    {% endfor %}
+                    {% if user_achievements.count > 4 %}
+                    <span class="badge-overflow">+{{ user_achievements.count|add:"-4" }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Two-column content area -->
+    <div class="deck-detail-content">
+        <!-- Left sidebar: Info and ratings -->
+        <div class="deck-detail-sidebar">
+            <!-- About Section -->
+            <div class="fc-section">
+                <div class="fc-section-header">
+                    <h2>About</h2>
+                </div>
+                <div class="fc-section-body">
+                    {% if profile_user.bio %}
+                    <p>{{ profile_user.bio|linebreaks }}</p>
+                    {% else %}
+                    <p class="text-muted">No bio added yet.</p>
+                    {% endif %}
+                    
+                    {% if profile_user.department %}
+                    <div class="mt-3">
+                        <strong>Department:</strong> {{ profile_user.department }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile_user.year_level %}
+                    <div class="mt-2">
+                        <strong>Year Level:</strong> {{ profile_user.get_year_level_display }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right content: Impact and Activities -->
+        <div class="deck-cards-section">
+            <!-- Your Impact Card -->
+            <div class="profile-card">
+                <div class="card-header-row">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Contribution Stats
+                    </h3>
+                </div>
+                
+                <div class="profile-content-section">
+                    <div class="impact-stats-container">
+                        <div class="impact-stat-card">
+                            <div class="impact-icon-wrapper orange">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <div class="impact-stat-content">
+                                <div class="impact-stat-value">{{ impact_data.resources_uploaded }}</div>
+                                <div class="impact-stat-label">Resources Shared</div>
+                            </div>
+                        </div>
+                        
+                        <div class="impact-stat-card">
+                            <div class="impact-icon-wrapper blue">
+                                <i class="fas fa-clipboard-check"></i>
+                            </div>
+                            <div class="impact-stat-content">
+                                <div class="impact-stat-value">{{ impact_data.quizzes_created }}</div>
+                                <div class="impact-stat-label">Quizzes Created</div>
+                            </div>
+                        </div>
+                        
+                        <div class="impact-stat-card">
+                            <div class="impact-icon-wrapper green">
+                                <i class="fas fa-clone"></i>
+                            </div>
+                            <div class="impact-stat-content">
+                                <div class="impact-stat-value">{{ impact_data.flashcards_created }}</div>
+                                <div class="impact-stat-label">Flashcard Decks</div>
+                            </div>
+                        </div>
+                        
+                        <div class="impact-stat-card">
+                            <div class="impact-icon-wrapper gold">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="impact-stat-content">
+                                <div class="impact-stat-value">{{ impact_data.students_helped }}</div>
+                                <div class="impact-stat-label">Helpful Votes</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Summary -->
+            <div class="profile-card">
+                <div class="card-header-row">
+                    <h3 class="card-title">
+                        <i class="fas fa-book-open"></i>
+                        Learning Summary
+                    </h3>
+                </div>
+                
+                <div class="profile-content-section">
+                    <div class="learning-stats-container">
+                        <div class="learning-stat-item">
+                            <i class="fas fa-fire text-danger"></i>
+                            <div class="learning-stat-info">
+                                <div class="learning-stat-value">{{ learning_summary.active_streak }}</div>
+                                <div class="learning-stat-label">Day Streak</div>
+                            </div>
+                        </div>
+                        
+                        <div class="learning-stat-item">
+                            <i class="fas fa-book-open text-purple"></i>
+                            <div class="learning-stat-info">
+                                <div class="learning-stat-value">{{ learning_summary.quizzes_completed }}</div>
+                                <div class="learning-stat-label">Quizzes Completed</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="learning-progress-section">
+                        <div class="learning-progress-header">
+                            <span class="learning-progress-label">Study Progress</span>
+                            <span class="learning-progress-percentage">{{ learning_summary.study_progress }}%</span>
+                        </div>
+                        <div class="learning-progress-bar">
+                            <div class="learning-progress-fill" style="width: {{ learning_summary.study_progress }}%"></div>
+                        </div>
+                        <small class="text-muted">Based on {{ learning_summary.quizzes_completed }} quiz{{ learning_summary.quizzes_completed|pluralize }}</small>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="recent-activity-section mt-4">
+                        <h4 class="recent-activity-title">Recent Activity</h4>
+                        {% if learning_summary.recent_activities %}
+                            <div class="recent-activity-list">
+                                {% for activity in learning_summary.recent_activities %}
+                                    <div class="recent-activity-item">
+                                        <i class="fas {{ activity.icon }} {{ activity.color }}"></i>
+                                        <div class="recent-activity-content">
+                                            <div class="recent-activity-text">{{ activity.action }} <strong>{{ activity.title|truncatewords:5 }}</strong></div>
+                                            <div class="recent-activity-time">{{ activity.created_at|timesince }} ago</div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-3">No recent activity available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievements & Badges -->
+            {% if user_achievements %}
+            <div class="profile-card">
+                <div class="card-header-row">
+                    <h3 class="card-title">
+                        <i class="fas fa-trophy"></i>
+                        Achievements & Badges
+                    </h3>
+                </div>
+                
+                <div class="achievements-content">
+                    <div class="achievements-count">
+                        <span class="count-number">{{ user_achievements.count }}</span>
+                        <span class="count-total">/ 7</span>
+                    </div>
+                    
+                    <div class="badges-grid">
+                        {% for achievement in user_achievements %}
+                        <div class="badge-item-container earned">
+                            <div class="badge-card earned">
+                                <img src="{{ achievement.badge.icon.url }}" alt="{{ achievement.badge.name }}" class="badge-icon">
+                                <div class="badge-info">
+                                    <h5 class="badge-title">{{ achievement.badge.name }}</h5>
+                                    <p class="badge-description">{{ achievement.badge.description }}</p>
+                                    <small class="badge-date">Earned {{ achievement.unlocked_date|date:"M d, Y" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

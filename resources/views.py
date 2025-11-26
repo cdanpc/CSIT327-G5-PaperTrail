@@ -131,27 +131,27 @@ def resource_detail(request, pk):
     # 1. Header Card Component
     status_tags = []
     if resource.verification_status == 'verified':
-        status_tags.append({'text': 'Verified', 'class': 'badge-verified', 'icon': 'fa-check-circle'})
+        status_tags.append({'label': 'Verified', 'class': 'badge-verified', 'icon': 'check-circle'})
     elif resource.verification_status == 'pending':
         if request.user == resource.uploader or getattr(request.user, 'is_professor', False):
-            status_tags.append({'text': 'Pending', 'class': 'badge-pending', 'icon': 'fa-clock'})
+            status_tags.append({'label': 'Pending', 'class': 'badge-pending', 'icon': 'clock'})
     
     if resource.is_public:
-        status_tags.append({'text': 'Public', 'class': 'bg-success', 'icon': 'fa-globe'})
+        status_tags.append({'label': 'Public', 'class': 'bg-success', 'icon': 'globe'})
     else:
-        status_tags.append({'text': 'Private', 'class': 'bg-secondary', 'icon': 'fa-lock'})
+        status_tags.append({'label': 'Private', 'class': 'bg-secondary', 'icon': 'lock'})
     
     # Icon mapping for resource types
     resource_icon_map = {
-        'pdf': 'fa-file-pdf',
-        'image': 'fa-image',
-        'ppt': 'fa-file-powerpoint',
-        'pptx': 'fa-file-powerpoint',
-        'docx': 'fa-file-word',
-        'txt': 'fa-file-lines',
-        'link': 'fa-link',
+        'pdf': 'file-pdf',
+        'image': 'image',
+        'ppt': 'file-powerpoint',
+        'pptx': 'file-powerpoint',
+        'docx': 'file-word',
+        'txt': 'file-lines',
+        'link': 'link',
     }
-    resource_icon = resource_icon_map.get(resource.resource_type, 'fa-file-alt')
+    resource_icon = resource_icon_map.get(resource.resource_type, 'file-alt')
     
     # Primary action button
     primary_action = {}
@@ -159,13 +159,13 @@ def resource_detail(request, pk):
         primary_action = {
             'url': f'/resources/{resource.pk}/download/',
             'text': 'Download',
-            'icon': 'fa-download'
+            'icon': 'download'
         }
     elif resource.external_url:
         primary_action = {
             'url': resource.external_url,
             'text': 'Open Link',
-            'icon': 'fa-external-link-alt',
+            'icon': 'external-link-alt',
             'target': '_blank'
         }
     

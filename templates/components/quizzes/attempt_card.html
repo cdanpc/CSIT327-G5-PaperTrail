@@ -1,36 +1,81 @@
-<div class="qa-attempt-wrap">
-    <div class="qa-card">
-        <div class="qa-card-head">
-            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="qa-quiz-link">Quiz: {{ quiz.title }}</a>
-            <div class="qa-progress">
-                <div class="qa-progress-bar" style="width: {{ progress_percentage }}%;"></div>
+{% load quiz_filters %}
+
+<div class="quiz-attempt__wrapper">
+    <div class="quiz-attempt__card">
+        <!-- Header Section -->
+        <div class="quiz-attempt__header">
+            <!-- Progress Bar -->
+            <div class="quiz-attempt__progress-container">
+                <div class="quiz-attempt__progress-bar" style="width: {{ progress_percentage }}%"></div>
             </div>
-            <h2 class="qa-question-count">Question {{ question_number }} of {{ total_questions }}</h2>
+            
+            <!-- Question Counter -->
+            <div class="quiz-attempt__header-bottom">
+                <h1 class="quiz-attempt__question-counter">
+                    Question <span class="quiz-attempt__current">{{ question_number }}</span> of {{ total_questions }}
+                </h1>
+                <span class="quiz-attempt__progress-text">{{ progress_percentage|floatformat:0 }}% Complete</span>
+            </div>
         </div>
 
-        <form method="post" class="qa-form">
-            {% csrf_token %}
-            <div class="qa-question-text">{{ question.question_text }}</div>
-
-            {% if question.question_type == 'multiple_choice' %}
-                <div class="qa-options">
-                    {% for option in question.options.all %}
-                        <input type="radio" id="opt_{{ option.id }}" name="answer" value="{{ option.id }}" class="qa-opt-input" required>
-                        <label for="opt_{{ option.id }}" class="qa-opt-btn">{{ option.option_text }}</label>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="qa-fib">
-                    <input type="text" name="answer" class="qa-input" placeholder="Type your answer here…" required>
-                </div>
-            {% endif %}
-
-            <div class="qa-footer qa-footer-cluster">
-                <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="qa-cancel">Cancel Quiz</a>
-                <button type="submit" class="qa-next-btn">
-                    {% if question_number == total_questions %}Submit Quiz{% else %}Next Question{% endif %}
-                </button>
+        <!-- Content Section -->
+        <div class="quiz-attempt__content">
+            <!-- Question Text -->
+            <div class="quiz-attempt__question">
+                <p class="quiz-attempt__question-text">{{ question.question_text }}</p>
             </div>
-        </form>
+
+            <!-- Answer Form -->
+            <form method="post" class="quiz-attempt__form" id="quiz-form">
+                {% csrf_token %}
+
+                {% if question.question_type == 'multiple_choice' %}
+                    <!-- Multiple Choice Options -->
+                    <div class="quiz-attempt__options">
+                        {% for option in question.options.all %}
+                            <div class="quiz-attempt__option-wrapper">
+                                <input 
+                                    type="radio" 
+                                    id="opt_{{ option.id }}" 
+                                    name="answer" 
+                                    value="{{ option.id }}" 
+                                    class="quiz-attempt__option-input" 
+                                    required
+                                >
+                                <label for="opt_{{ option.id }}" class="quiz-attempt__option-label">
+                                    <span class="quiz-attempt__option-letter">{{ forloop.counter|num_to_letter }}</span>
+                                    <span class="quiz-attempt__option-text">{{ option.option_text }}</span>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <!-- Fill-in-the-blank -->
+                    <div class="quiz-attempt__fill-blank">
+                        <input 
+                            type="text" 
+                            name="answer" 
+                            class="quiz-attempt__text-input" 
+                            placeholder="Type your answer here…" 
+                            required
+                        >
+                    </div>
+                {% endif %}
+
+                <!-- Footer Navigation -->
+                <div class="quiz-attempt__footer">
+                    <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="quiz-attempt__btn quiz-attempt__btn--text">
+                        ← Previous
+                    </a>
+                    <button type="submit" class="quiz-attempt__btn quiz-attempt__btn--primary">
+                        {% if question_number == total_questions %}
+                            Submit Quiz
+                        {% else %}
+                            Next Question
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>

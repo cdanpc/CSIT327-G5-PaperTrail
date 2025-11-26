@@ -4,7 +4,7 @@
 {% block title %}{{ quiz.title }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/components/quizzes.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/quizzes.css' %}?v=1.0">
 {% endblock %}
 
 {% block header %}
@@ -13,85 +13,23 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card dashboard-card mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Quiz Information</h5>
-            </div>
-            <div class="card-body">
-                {% if quiz.description %}
-                <p class="mb-3">{{ quiz.description }}</p>
-                {% endif %}
-                <div class="d-flex gap-4 mb-3 flex-wrap">
-                    <div>
-                        <i class="fas fa-question-circle text-primary"></i>
-                        <strong>{{ quiz.total_questions }}</strong> questions
-                    </div>
-                    <div>
-                        <i class="fas fa-users text-success"></i>
-                        <strong>{{ quiz.attempts_count }}</strong> attempts
-                    </div>
-                    <div>
-                        <i class="fas fa-check-circle text-success"></i>
-                        <span class="badge bg-success">Verified</span>
-                    </div>
-                    <div>
-                        {% if not quiz.is_public %}
-                            <i class="fas fa-lock"></i>
-                            <span class="badge bg-secondary">Private</span>
-                        {% else %}
-                            <i class="fas fa-globe"></i>
-                            <span class="badge bg-success">Public</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% if has_attempted %}
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> You've already attempted this quiz.
-                    {% if best_attempt %}
-                    Your best score: <strong>{{ best_attempt.score }}/{{ best_attempt.total_questions }}</strong> ({{ best_attempt.percentage }}%)
-                    {% endif %}
-                </div>
-                {% endif %}
-
-                <a href="{% url 'quizzes:quiz_attempt' quiz.pk %}" class="btn w-100 btn-gradient-primary fw-semibold py-2">
-                    <i class="fas fa-play"></i> Start Quiz
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card dashboard-card">
-            <div class="card-header">
-                <h5 class="card-title mb-0"><i class="fas fa-list"></i> Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <form method="post" action="{% url 'quizzes:toggle_quiz_bookmark' quiz.pk %}" class="d-grid gap-2 mb-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.path }}">
-                    <button type="submit" class="btn w-100 btn-outline-primary-soft">
-                        <i class="{% if is_bookmarked %}fas{% else %}far{% endif %} fa-bookmark"></i>
-                        {% if is_bookmarked %}Remove Bookmark{% else %}Add Bookmark{% endif %}
-                    </button>
-                </form>
-                <a href="{% url 'quizzes:quiz_history' %}" class="btn w-100 mb-2 btn-outline-primary-soft">
-                    <i class="fas fa-history"></i> View My Results
-                </a>
-                {% if quiz.creator == user or user.is_professor %}
-                <div class="d-flex gap-2">
-                    <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn w-100 btn-outline-primary-soft">
-                        <i class="fas fa-pen"></i> Edit Quiz
-                    </a>
-                    <button type="button" class="btn w-100 btn-outline-primary-soft text-danger" onclick="showDeleteModal('{{ quiz.pk }}', '{{ quiz.title|escapejs }}', '{% url 'quizzes:quiz_delete' quiz.pk %}')">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+<div class="container-fluid p-4">
+    {% include 'components/quizzes/detail_card.html' with quiz=quiz is_bookmarked=is_bookmarked has_attempted=has_attempted best_attempt=best_attempt %}
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle quiz delete button
+    document.querySelectorAll('button[data-quiz-id][data-delete-url]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const quizId = this.getAttribute('data-quiz-id');
+        const quizTitle = this.getAttribute('data-quiz-title');
+        const deleteUrl = this.getAttribute('data-delete-url');
+        showDeleteModal(quizId, quizTitle, deleteUrl);
+      });
+    });
+  });
+</script>
+{% endblock %}

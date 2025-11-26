@@ -1,0 +1,96 @@
+{% comment %}
+Student Profile Stats Component
+Displays learning progress, study time, and achievements specific to students
+{% endcomment %}
+
+<div class="profile-card profile-stats-card">
+    <div class="profile-card-header">
+        <h3 class="profile-card-title">
+            <i class="fas fa-chart-line"></i> Learning Progress
+        </h3>
+    </div>
+    
+    <div class="profile-card-body">
+        <!-- Study Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon stat-icon--primary">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.resources_viewed|default:0 }}</span>
+                    <span class="stat-label">Resources Viewed</span>
+                </div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon stat-icon--success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.quizzes_completed|default:0 }}</span>
+                    <span class="stat-label">Quizzes Completed</span>
+                </div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon stat-icon--warning">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.flashcards_practiced|default:0 }}</span>
+                    <span class="stat-label">Flashcards Practiced</span>
+                </div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-icon stat-icon--info">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.active_streak|default:0 }}</span>
+                    <span class="stat-label">Day Streak</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Study Time -->
+        <div class="study-time-section">
+            <div class="study-time-header">
+                <span class="study-time-label">Total Study Time</span>
+                <span class="study-time-value">{{ stats.total_study_time|default:0 }} hours</span>
+            </div>
+            <div class="study-time-progress">
+                <div class="study-time-progress-bar" data-width="{{ stats.study_progress|default:'0' }}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Achievements Card (Students) -->
+{% if user.achievements.all %}
+<div class="profile-card achievements-card">
+    <div class="profile-card-header">
+        <h3 class="profile-card-title">
+            <i class="fas fa-trophy"></i> Achievements
+        </h3>
+    </div>
+    
+    <div class="profile-card-body">
+        <div class="achievements-grid">
+            {% for achievement in user.achievements.all %}
+            <div class="achievement-badge {% if achievement.unlocked_date %}unlocked{% else %}locked{% endif %}" 
+                 title="{{ achievement.badge.description }}">
+                <div class="achievement-icon">
+                    <i class="{{ achievement.badge.icon }}"></i>
+                </div>
+                <span class="achievement-name">{{ achievement.badge.name }}</span>
+                {% if achievement.unlocked_date %}
+                <span class="achievement-date">{{ achievement.unlocked_date|date:"M d, Y" }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}

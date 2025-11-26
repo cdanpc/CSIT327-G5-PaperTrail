@@ -34,7 +34,6 @@ class Deck(models.Model):
 		help_text="Professor/staff user who verified this deck"
 	)
 	verified_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when deck was verified")
-	is_bookmarked = models.BooleanField(default=False)
 	last_studied_at = models.DateTimeField(null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -146,5 +145,22 @@ class DeckLike(models.Model):
 	
 	def __str__(self):
 		return f"{self.user} likes {self.deck.title}"
+
+
+class DeckBookmark(models.Model):
+	"""User bookmarks for flashcard decks - tracks per-user bookmarks"""
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='deck_bookmarks')
+	deck = models.ForeignKey(Deck, on_delete=models.CASCADE, related_name='bookmarks')
+	created_at = models.DateTimeField(auto_now_add=True)
+	
+	class Meta:
+		unique_together = ['user', 'deck']
+		ordering = ['-created_at']
+		indexes = [
+			models.Index(fields=['deck', 'created_at']),
+		]
+	
+	def __str__(self):
+		return f"{self.user} bookmarked {self.deck.title}"
 
 
