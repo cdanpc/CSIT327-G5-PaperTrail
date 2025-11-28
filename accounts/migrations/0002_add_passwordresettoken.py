@@ -11,20 +11,17 @@ class Migration(migrations.Migration):
         ('accounts', '0001_initial'),
     ]
 
+    # This migration previously attempted to create `PasswordResetToken`.
+    # The initial migration (`0001_initial`) already defines this table in this
+    # codebase. Creating it again causes duplicate-table errors on existing DBs.
+    #
+    # To safely mark this migration as applied without attempting to recreate
+    # the table, we use a no-op RunPython. This preserves migration history
+    # while avoiding duplicate creation on databases where the table already
+    # exists (e.g., production or migrated instances).
+    def noop(apps, schema_editor):
+        return
+
     operations = [
-        migrations.CreateModel(
-            name='PasswordResetToken',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('token', models.CharField(max_length=6, unique=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('expires_at', models.DateTimeField()),
-                ('is_used', models.BooleanField(default=False)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='password_reset_token', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'verbose_name': 'Password Reset Token',
-                'verbose_name_plural': 'Password Reset Tokens',
-            },
-        ),
+        migrations.RunPython(noop, reverse_code=noop),
     ]

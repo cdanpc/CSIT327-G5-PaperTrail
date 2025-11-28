@@ -113,7 +113,10 @@ def resource_detail(request, pk):
     # Get user's rating if exists
     user_rating = None
     if request.user.is_authenticated and request.user != resource.uploader:
-        user_rating = Rating.objects.filter(user=request.user, resource=resource).first()
+        try:
+            user_rating = Rating.objects.get(user=request.user, resource=resource)
+        except Rating.DoesNotExist:
+            pass
 
     # Get all comments for this resource
     comments = Comment.objects.filter(resource=resource).select_related('user').order_by('-created_at')
@@ -174,14 +177,25 @@ def resource_detail(request, pk):
     bookmark_url = f'/bookmarks/toggle/{resource.pk}/'
     
     # 2. Metadata Overview Component
-    # Like status is now handled in the header, so we pass it to context
+    # Build like display with icon
+    like_html = ''
+    if request.user.is_authenticated:
+        liked_class = 'liked' if user_has_liked else 'unliked'
+        like_html = f'<i id="likeIcon" class="fas fa-heart {liked_class}" style="cursor: pointer; font-size: 1.1rem; transition: all 0.2s ease;" data-resource-id="{resource.pk}" title="{"Unlike" if user_has_liked else "Like"}"></i> '
+    like_html += f'<span id="likeCount" class="ms-1">{resource.likes.count()}</span>'
     
     metadata_items = [
         {'icon': 'fa-user', 'label': 'Uploaded by', 'value': resource.uploader.get_display_name()},
         {'icon': 'fa-calendar', 'label': 'Date', 'value': resource.created_at.strftime('%b %d, %Y')},
+        {'icon': 'fa-heart', 'label': 'Likes', 'value_html': like_html},
         {'icon': 'fa-download', 'label': 'Downloads', 'value': str(resource.download_count)},
         {'icon': 'fa-file', 'label': 'File Size', 'value': f'{resource.file_size // 1024} KB' if resource.file_size else 'N/A'},
     ]
+    # Add rating summary to metadata overview (shows average and total ratings)
+    avg_rating = resource.get_average_rating()
+    rating_count = resource.get_rating_count()
+    rating_html = f'<span class="avg-rating-number">{avg_rating}</span>/5 <span class="text-muted">({rating_count} ratings)</span>'
+    metadata_items.append({'icon': 'fa-star', 'label': 'Rating', 'value_html': rating_html})
     
     # 3. Feedback Interface Component
     rate_url = f'/resources/{resource.pk}/rate/'
@@ -189,7 +203,6 @@ def resource_detail(request, pk):
 
     context = {
         'resource': resource,
-        'user_has_liked': user_has_liked,
         'is_bookmarked': is_bookmarked,
         'user_rating': user_rating,
         'comments': comments,
@@ -675,12 +688,17 @@ def rate_resource(request, pk):
             return redirect('resources:resource_detail', pk=pk)
         
         # Get or create rating
-        rating, created = Rating.objects.update_or_create(
+        rating, created = Rating.objects.get_or_create(
             user=request.user,
             resource=resource,
             defaults={'stars': stars}
         )
-        
+
+        # Update if already exists
+        if not created:
+            rating.stars = stars
+            rating.save()
+
         action = 'rated' if created else 'updated rating for'
         avg_rating = resource.get_average_rating()
         rating_count = resource.get_rating_count()

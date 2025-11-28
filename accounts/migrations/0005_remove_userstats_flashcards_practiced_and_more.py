@@ -30,19 +30,7 @@ class Migration(migrations.Migration):
             name='default_dashboard',
             field=models.CharField(choices=[('student', 'Main Dashboard'), ('overview', 'Overview'), ('resources', 'Resources'), ('quizzes', 'Quizzes')], default='student', help_text='Default dashboard view on login', max_length=20),
         ),
-        migrations.CreateModel(
-            name='PasswordResetToken',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('token', models.CharField(max_length=6, unique=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('expires_at', models.DateTimeField()),
-                ('is_used', models.BooleanField(default=False)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='password_reset_token', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'verbose_name': 'Password Reset Token',
-                'verbose_name_plural': 'Password Reset Tokens',
-            },
-        ),
+        # PasswordResetToken was already created by initial migration in this
+        # codebase. This duplicate CreateModel has been removed to avoid
+        # duplicate-table errors on databases where the table exists.
     ]
