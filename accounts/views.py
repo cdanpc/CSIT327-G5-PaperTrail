@@ -838,7 +838,14 @@ def online_users(request):
 def profile(request):
     """User profile view and edit"""
     if request.method == 'POST':
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user)
+        # Create a mutable copy of POST data to potentially modify it
+        post_data = request.POST.copy()
+        
+        # If this is just a photo upload (from the camera icon), we need to be careful
+        # The form expects all fields, but the photo upload form might only send the photo
+        # and hidden fields. We should ensure we don't accidentally clear other fields.
+        
+        form = ProfileUpdateForm(post_data, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Your profile has been updated successfully!')
@@ -851,6 +858,10 @@ def profile(request):
                     messages.success(request, '🎉 Congratulations! You unlocked the Verified Student badge!')
             
             return redirect('accounts:profile')
+        else:
+            # If form is invalid, print errors to console for debugging
+            print(f"Profile update errors: {form.errors}")
+            messages.error(request, 'There was an error updating your profile. Please check the form.')
     else:
         form = ProfileUpdateForm(instance=request.user)
     

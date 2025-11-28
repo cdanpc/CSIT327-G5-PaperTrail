@@ -65,6 +65,7 @@
                                         <input type="hidden" name="year_level" value="{{ user.year_level|default:'' }}">
                                         <input type="hidden" name="bio" value="{{ user.bio|default:'' }}">
                                         <input type="hidden" name="tagline" value="{{ user.tagline|default:'' }}">
+                                        <input type="hidden" name="profile_visibility" value="{{ user.profile_visibility }}">
                                         <input type="file" id="photoUpload" name="profile_picture" accept="image/*" onchange="this.form.submit()">
                                     </form>
                                 </div>

@@ -128,8 +128,20 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
  
-MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+if ON_RENDER and SUPABASE_URL:
+    # Use Supabase Storage in production
+    DEFAULT_FILE_STORAGE = 'papertrail.storage_backends.SupabaseMediaStorage'
+    MEDIA_URL = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/"
+else:
+    # Use local filesystem in development
+    # To test Supabase locally, add USE_SUPABASE=True to your .env file
+    if SUPABASE_URL and config('USE_SUPABASE', default=False, cast=bool):
+        DEFAULT_FILE_STORAGE = 'papertrail.storage_backends.SupabaseMediaStorage'
+        MEDIA_URL = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/"
+    else:
+        MEDIA_URL = '/media/'
  
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 from django.contrib.messages import constants as message_constants
