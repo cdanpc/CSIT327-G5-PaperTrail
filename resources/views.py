@@ -626,21 +626,32 @@ def resource_download(request, pk):
     # For file URLs (Supabase storage), download and serve with correct filename
     if resource.file_url:
         # Get the original filename
-        if resource.original_filename:
+        if resource.original_filename and resource.original_filename.strip():
             filename = resource.original_filename
         else:
-            # Fallback: use title with extension based on resource type
-            extension_map = {
-                'pdf': '.pdf',
-                'ppt': '.ppt',
-                'pptx': '.pptx',
-                'docx': '.docx',
-                'txt': '.txt',
-                'image': '.jpg',
-                'link': ''
-            }
-            ext = extension_map.get(resource.resource_type, '')
-            filename = f"{resource.title}{ext}"
+            # Try to extract from file_url (last part of path)
+            from urllib.parse import urlparse
+            parsed_url = urlparse(resource.file_url)
+            path_parts = parsed_url.path.split('/')
+            filename_from_url = path_parts[-1] if path_parts else None
+            
+            # If URL has a UUID-like filename, fall back to title
+            if filename_from_url and len(filename_from_url) == 36 and filename_from_url.count('-') == 4:
+                # This looks like a UUID, use title instead
+                extension_map = {
+                    'pdf': '.pdf',
+                    'ppt': '.ppt',
+                    'pptx': '.pptx',
+                    'docx': '.docx',
+                    'txt': '.txt',
+                    'image': '.jpg',
+                    'link': ''
+                }
+                ext = extension_map.get(resource.resource_type, '')
+                filename = f"{resource.title}{ext}"
+            else:
+                # Use filename from URL
+                filename = filename_from_url if filename_from_url else f"{resource.title}.bin"
         
         try:
             # Download the file from Supabase

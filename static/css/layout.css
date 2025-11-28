@@ -7,7 +7,7 @@
 /* Reset page containers - padding only, no margin/width override */
 .main-content,
 .main-content-wrapper {
-    padding: 0;
+    padding: 0 40px;
     min-height: 100vh;
     /* margin-left and width handled by sidebar.css */
 }
