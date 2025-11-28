@@ -47,8 +47,9 @@
                                     <img id="profileImage" 
                                          src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&size=150&background=667eea&color=fff{% endif %}" 
                                          alt="Profile Photo" 
-                                         class="profile-photo-xl">
-                                    <div class="photo-edit-overlay" onclick="document.getElementById('photoUploadForm').querySelector('input[type=file]').click()">
+                                         class="profile-photo-xl"
+                                         data-saved="{% if user.profile_picture %}true{% else %}false{% endif %}">
+                                    <div class="photo-edit-overlay" onclick="document.getElementById('photoUploadForm').querySelector('input[type=file]').click()" title="Click to upload a new profile photo">
                                         <i class="fas fa-camera"></i>
                                         <span class="edit-text">Edit</span>
                                     </div>

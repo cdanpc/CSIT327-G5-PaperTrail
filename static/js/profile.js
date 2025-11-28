@@ -42,11 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const profileImage = document.getElementById('profileImage');
                     if (profileImage) {
                         profileImage.src = e.target.result;
-                        // Recalculate progress after photo change
-                        setTimeout(calculateProgress, 100);
+                        profileImage.setAttribute('data-saved', 'pending');
                     }
                 };
                 reader.readAsDataURL(file);
+                
+                // Submit form to save image to database
+                document.getElementById('photoUploadForm').submit();
             }
         });
     }

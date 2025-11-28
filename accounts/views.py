@@ -841,10 +841,15 @@ def profile(request):
         # Create a mutable copy of POST data to potentially modify it
         post_data = request.POST.copy()
         
-        # If this is just a photo upload (from the camera icon), we need to be careful
-        # The form expects all fields, but the photo upload form might only send the photo
-        # and hidden fields. We should ensure we don't accidentally clear other fields.
+        # Handle profile picture upload separately (direct save to DB)
+        if 'profile_picture' in request.FILES:
+            profile_picture_file = request.FILES['profile_picture']
+            request.user.profile_picture = profile_picture_file
+            request.user.save(update_fields=['profile_picture'])
+            messages.success(request, 'Profile photo uploaded successfully!')
+            return redirect('accounts:profile')
         
+        # For other form updates
         form = ProfileUpdateForm(post_data, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()

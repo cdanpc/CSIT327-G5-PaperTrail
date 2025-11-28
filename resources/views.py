@@ -598,9 +598,10 @@ def resource_delete(request, pk):
 @login_required
 def resource_download(request, pk):
     """Track download and serve file securely or redirect to external URL"""
-    from django.http import FileResponse
+    from django.http import FileResponse, HttpResponse
     import mimetypes
     import urllib.parse
+    import requests
     
     resource = get_object_or_404(Resource, pk=pk)
     
@@ -622,20 +623,45 @@ def resource_download(request, pk):
     if resource.external_url:
         return redirect(resource.external_url)
     
-    # For file URLs (Supabase storage), redirect with download parameter
+    # For file URLs (Supabase storage), download and serve with correct filename
     if resource.file_url:
-        # Since files are in Supabase storage, we redirect to the URL
-        # The storage should handle the download with proper headers
-        # If the URL doesn't auto-download, we can add download parameter
-        file_url = resource.file_url
-        
-        # Try to add download parameter if not already present
-        if '?' in file_url:
-            file_url += '&download=true'
+        # Get the original filename
+        if resource.original_filename:
+            filename = resource.original_filename
         else:
-            file_url += '?download=true'
+            # Fallback: use title with extension based on resource type
+            extension_map = {
+                'pdf': '.pdf',
+                'ppt': '.ppt',
+                'pptx': '.pptx',
+                'docx': '.docx',
+                'txt': '.txt',
+                'image': '.jpg',
+                'link': ''
+            }
+            ext = extension_map.get(resource.resource_type, '')
+            filename = f"{resource.title}{ext}"
         
-        return redirect(file_url)
+        try:
+            # Download the file from Supabase
+            response = requests.get(resource.file_url, timeout=30)
+            
+            if response.status_code == 200:
+                # Create HTTP response with the file content
+                file_response = HttpResponse(response.content, content_type=response.headers.get('content-type', 'application/octet-stream'))
+                
+                # Set proper Content-Disposition header with original filename
+                file_response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                file_response['Content-Length'] = len(response.content)
+                
+                return file_response
+            else:
+                messages.error(request, 'File not found on storage server.')
+                return redirect('resources:resource_detail', pk=pk)
+                
+        except requests.RequestException as e:
+            messages.error(request, f'Error downloading file: {str(e)}')
+            return redirect('resources:resource_detail', pk=pk)
     
     # No file available
     messages.error(request, 'No file available for download.')
