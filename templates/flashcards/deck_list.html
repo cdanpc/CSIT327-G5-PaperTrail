@@ -70,6 +70,11 @@
               <span class="like-count">{{ deck.likes.count|intword }}</span>
             </span>
             <span class="metric-dot">•</span>
+            <span class="rating-metric" title="Average Rating">
+              <i class="fas fa-star" style="color: var(--color-accent-10);"></i> 
+              <span>{{ deck.get_average_rating }}</span>
+            </span>
+            <span class="metric-dot">•</span>
             <span><i class="fas fa-layer-group"></i> {{ deck.cards_count }} card{{ deck.cards_count|pluralize }}</span>
             {% if deck.last_studied_at %}
               <span class="metric-dot">•</span>

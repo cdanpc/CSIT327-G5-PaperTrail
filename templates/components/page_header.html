@@ -54,13 +54,14 @@ Role-based features:
   <div class="dashboard-actions">
     {# Global Search - Available for all roles #}
     <div class="search-box-inline">
-      <form method="{{ search_method|default:'get' }}" action="{{ search_action|default:'/search/' }}">
+      <form method="{{ search_method|default:'get' }}" action="{{ search_action|default:'/search/' }}" class="position-relative">
         {% if extra_hidden_inputs %}{{ extra_hidden_inputs|safe }}{% endif %}
+        <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="z-index: 5;"></i>
         <input 
           type="text" 
           name="{{ search_name|default:'q' }}" 
           value="{{ search_value|default:'' }}" 
-          class="form-control global-search-input" 
+          class="form-control global-search-input ps-5" 
           placeholder="{{ search_placeholder|default:'Search...' }}"
           aria-label="{{ search_placeholder|default:'Search' }}"
           autocomplete="off"

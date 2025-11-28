@@ -1,24 +1,51 @@
 {% extends 'base_dashboard.html' %}
 {% load static %}
+
 {% block title %}Study: {{ deck.title }}{% endblock %}
-{% block page_title %}Flashcards{% endblock %}
+
+{% block header %}
+    {% url 'flashcards:deck_detail' deck.pk as back_url %}
+    {% include 'components/page_header.html' with page_title="Study: "|add:deck.title page_subtitle="Flashcards" back_url=back_url %}
+{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/flashcards.css' %}">
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+<style>
+    .study-controls {
+        max-width: 640px;
+        margin: 0 auto;
+    }
+    .study-btn {
+        min-width: 120px;
+    }
+</style>
 {% endblock %}
+
 {% block content %}
 <div class="fc-container fc-tight-top">
-    <div class="mb-2 bookmarks-header-row"><a href="{% url 'flashcards:deck_detail' deck.pk %}" class="btn btn-outline-primary-soft btn-pill"><i class="fas fa-arrow-left"></i> Back</a></div>
-    <div class="mb-3 d-flex justify-content-between align-items-center">
-        <h1 class="fc-title mb-0">Study: {{ deck.title }}</h1>
-        <div class="d-flex align-items-center gap-2">
-            <button id="flipBtn" class="fc-btn fc-btn-outline" type="button"><i class="fas fa-sync"></i><span> Flip</span></button>
-            <button id="prevBtn" class="fc-btn fc-btn-outline" type="button" disabled><i class="fas fa-chevron-left"></i></button>
-            <button id="nextBtn" class="fc-btn fc-btn-primary" type="button"><i class="fas fa-chevron-right"></i><span> Next</span></button>
-        </div>
+    
+    <!-- Card Counter -->
+    <div class="text-center mb-3">
+        <h5 class="fw-bold">Card <span id="cardIndex">1</span> / {{ total_cards }}</h5>
     </div>
-    <p class="text-muted small">Card <span id="cardIndex">1</span> / {{ total_cards }}</p>
 
+    <!-- Controls -->
+    <div class="study-controls d-flex justify-content-between align-items-center mb-4 gap-3">
+        <button id="prevBtn" class="fc-btn" type="button" disabled>
+            <i class="fas fa-chevron-left me-1"></i> Previous
+        </button>
+        
+        <button id="flipBtn" class="fc-btn" type="button">
+            <i class="fas fa-sync-alt me-1"></i> Flip
+        </button>
+        
+        <button id="nextBtn" class="fc-btn fc-btn-primary" type="button">
+            Next <i class="fas fa-chevron-right ms-1"></i>
+        </button>
+    </div>
+
+    <!-- Flashcard -->
     <div class="flashcard-container mb-4">
         <div class="flashcard" id="studyCard">
             <div class="flashcard-inner">
@@ -28,21 +55,75 @@
         </div>
     </div>
     
-    
     <script>
         const cards = JSON.parse('{{ cards_json|escapejs }}');
         let idx = 0; let flipped = false;
-        function render(){
+        
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const flipBtn = document.getElementById('flipBtn');
+        const cardInner = document.querySelector('.flashcard-inner');
+        const frontContent = document.getElementById('frontContent');
+        const backContent = document.getElementById('backContent');
+        const cardIndex = document.getElementById('cardIndex');
+
+        function render(instant = false){
             const c = cards[idx];
-            document.getElementById('frontContent').textContent = c.front_text;
-            document.getElementById('backContent').textContent = c.back_text;
-            document.getElementById('cardIndex').textContent = idx+1;
-            document.querySelector('.flashcard-inner').style.transform = flipped ? 'rotateY(180deg)' : 'none';
-            document.getElementById('prevBtn').disabled = idx === 0;
+            frontContent.textContent = c.front_text;
+            backContent.textContent = c.back_text;
+            cardIndex.textContent = idx+1;
+            
+            // If instant switch requested (e.g. next/prev card), disable transition temporarily
+            if (instant) {
+                cardInner.style.transition = 'none';
+            }
+
+            // Update Flip State
+            cardInner.style.transform = flipped ? 'rotateY(180deg)' : 'none';
+            
+            if (instant) {
+                // Force reflow to apply the transform without transition
+                void cardInner.offsetWidth;
+                // Restore transition
+                cardInner.style.transition = '';
+            }
+            
+            // Update Buttons State
+            prevBtn.disabled = idx === 0;
+            nextBtn.disabled = idx === cards.length - 1;
         }
-        document.getElementById('flipBtn').onclick = ()=>{ flipped = !flipped; render(); };
-        document.getElementById('nextBtn').onclick = ()=>{ if(idx < cards.length-1){ idx++; flipped=false; render(); } };
-        document.getElementById('prevBtn').onclick = ()=>{ if(idx>0){ idx--; flipped=false; render(); } };
+
+        flipBtn.onclick = () => { 
+            flipped = !flipped; 
+            render(); 
+        };
+
+        nextBtn.onclick = () => { 
+            if(idx < cards.length-1){ 
+                idx++; 
+                flipped = false; // Reset to front
+                render(true); // Instant render to avoid seeing answer
+            } 
+        };
+
+        prevBtn.onclick = () => { 
+            if(idx > 0){ 
+                idx--; 
+                flipped = false; // Reset to front
+                render(true); // Instant render
+            } 
+        };
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextBtn.click();
+            if (e.key === 'ArrowLeft') prevBtn.click();
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault(); // Prevent scrolling
+                flipBtn.click();
+            }
+        });
+
         render();
     </script>
 </div>

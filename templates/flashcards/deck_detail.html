@@ -113,7 +113,11 @@
                             <div class="border-bottom pb-3 mb-3">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="d-flex gap-3 flex-grow-1">
-                                        <div class="avatar-circle avatar-40"><span class="text-white small fw-bold">{{ c.user.get_display_name|first|upper }}</span></div>
+                                        {% if c.user.profile_picture %}
+                                            <img src="{{ c.user.profile_picture.url }}" alt="{{ c.user.get_display_name }}" class="avatar-circle avatar-40 object-fit-cover">
+                                        {% else %}
+                                            <div class="avatar-circle avatar-40"><span class="text-white small fw-bold">{{ c.user.get_display_name|first|upper }}</span></div>
+                                        {% endif %}
                                         <div class="flex-grow-1">
                                             <div class="d-flex align-items-center gap-2 mb-1"><strong class="title-strong">{{ c.user.get_display_name }}</strong>{% if c.user.is_professor %}<span class="badge badge-professor badge-sm">Professor</span>{% endif %}</div>
                                             <small class="text-muted d-block mb-2">{{ c.created_at|date:"M d, Y \a\t g:i A" }}</small>

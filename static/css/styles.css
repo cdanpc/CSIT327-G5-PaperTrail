@@ -14,6 +14,10 @@
 
     /* Border Colors (part of 30%) */
     --color-border: #e5e7eb;              /* Default border */
+    
+    /* Accent Colors */
+    --color-accent-10: #667eea;           /* Primary Purple */
+    --color-accent-dark: #764ba2;         /* Darker Purple */
 
     /* Legacy aliases for compatibility - Mapped to new system */
     --bg-cream: var(--color-bg-60);
@@ -169,28 +173,28 @@ h6 { font-size: var(--font-size-base); }
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--c-5) 0%, #8a3a33 100%);
+    background: linear-gradient(135deg, var(--color-accent-10) 0%, var(--color-accent-dark) 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(164, 74, 63, 0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #8a3a33 0%, var(--c-5) 100%);
+    background: linear-gradient(135deg, var(--color-accent-dark) 0%, var(--color-accent-10) 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(164, 74, 63, 0.4);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .btn-outline-primary {
-    color: var(--c-5);
-    border: 2px solid var(--c-5);
+    color: var(--color-accent-10);
+    border: 2px solid var(--color-accent-10);
     background: transparent;
 }
 
 .btn-outline-primary:hover {
-    background: var(--c-5);
+    background: var(--color-accent-10);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(164, 74, 63, 0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .btn-secondary {
