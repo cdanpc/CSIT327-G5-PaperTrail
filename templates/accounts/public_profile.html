@@ -183,7 +183,7 @@
                             <span class="learning-progress-percentage">{{ learning_summary.study_progress }}%</span>
                         </div>
                         <div class="learning-progress-bar">
-                            <div class="learning-progress-fill" style="width: {{ learning_summary.study_progress }}%"></div>
+                            <div class="learning-progress-fill" style="--progress: {{ learning_summary.study_progress|default:'0' }}%"></div>
                         </div>
                         <small class="text-muted">Based on {{ learning_summary.quizzes_completed }} quiz{{ learning_summary.quizzes_completed|pluralize }}</small>
                     </div>
