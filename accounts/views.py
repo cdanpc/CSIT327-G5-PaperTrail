@@ -836,32 +836,23 @@ def online_users(request):
 # Profile View
 @login_required
 def profile(request):
-    """User profile view and edit"""
+    """User profile view and edit - Clean version focused on core functionality"""
     if request.method == 'POST':
-        # Create a mutable copy of POST data to potentially modify it
+        # Create a mutable copy of POST data
         post_data = request.POST.copy()
-        
-        # If this is just a photo upload (from the camera icon), we need to be careful
-        # The form expects all fields, but the photo upload form might only send the photo
-        # and hidden fields. We should ensure we don't accidentally clear other fields.
         
         form = ProfileUpdateForm(post_data, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Your profile has been updated successfully!')
-            
-            # Check if profile is now 100% complete and unlock badge (Phase 7)
-            if request.user.check_profile_completion():
-                achievement = request.user.unlock_verified_student_badge()
-                if achievement and achievement.unlocked_date.date() == timezone.now().date():
-                    # Only show message if badge was just unlocked today
-                    messages.success(request, '🎉 Congratulations! You unlocked the Verified Student badge!')
-            
             return redirect('accounts:profile')
         else:
-            # If form is invalid, print errors to console for debugging
+            # If form is invalid, display validation errors via toast
             print(f"Profile update errors: {form.errors}")
-            messages.error(request, 'There was an error updating your profile. Please check the form.')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.replace('_', ' ').title()}: {error}")
+            # Form with errors will be passed to template for inline display
     else:
         form = ProfileUpdateForm(instance=request.user)
     
@@ -971,16 +962,25 @@ def profile(request):
     context = {
         'form': form,
         'user': request.user,
-        'user_resources': user_resources,
-        'user_bookmarks': user_bookmarks,
-        'user_achievements': achievements,
-        'profile_complete': profile_complete,
-        'completion_percentage': completion_percentage,
-        'impact_data': impact_data,
-        'learning_summary': learning_summary,
-        'customization': customization,
     }
     return render(request, 'accounts/profile.html', context)
+
+
+@login_required
+def update_profile_picture(request):
+    """Handle profile picture upload separately"""
+    if request.method == 'POST' and request.FILES.get('profile_picture'):
+        try:
+            # Update only the profile picture
+            request.user.profile_picture = request.FILES['profile_picture']
+            request.user.save(update_fields=['profile_picture'])
+            messages.success(request, 'Profile picture updated successfully!')
+        except Exception as e:
+            messages.error(request, f'Error uploading profile picture: {str(e)}')
+    else:
+        messages.error(request, 'No image file was provided.')
+    
+    return redirect('accounts:profile')
 
 
 @login_required
