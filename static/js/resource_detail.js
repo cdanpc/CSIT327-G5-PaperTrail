@@ -212,4 +212,119 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // === RATING SYSTEM ===
+  (function initRatingSystem() {
+    const ratingComponent = document.getElementById('rating-component');
+    if (!ratingComponent) return;
+
+    const currentSavedRating = parseInt(ratingComponent.dataset.currentRating) || 0;
+    const rateUrl = ratingComponent.dataset.rateUrl;
+    
+    let selectedRating = 0;
+    const stars = ratingComponent.querySelectorAll('.rating-star');
+    const submitBtn = document.getElementById('submitRatingBtn');
+    const editBtn = document.getElementById('editRatingBtn');
+    const ratingText = document.getElementById('userRatingText');
+    const starsContainer = ratingComponent.querySelector('.rating-stars');
+
+    // If user has already rated, lock the stars initially
+    let isLocked = currentSavedRating > 0;
+
+    function updateStars(value) {
+        stars.forEach(star => {
+            const starVal = parseInt(star.dataset.value);
+            if (starVal <= value) {
+                star.classList.remove('far');
+                star.classList.add('fas');
+            } else {
+                star.classList.remove('fas');
+                star.classList.add('far');
+            }
+        });
+    }
+
+    // Initialize
+    updateStars(currentSavedRating);
+    if (isLocked) {
+        starsContainer.style.pointerEvents = 'none';
+        starsContainer.style.opacity = '0.7';
+    } else {
+        starsContainer.style.pointerEvents = 'auto';
+        starsContainer.style.opacity = '1';
+    }
+
+    // Event Listeners
+    stars.forEach(star => {
+        star.addEventListener('mouseover', function() {
+            if (!isLocked) updateStars(this.dataset.value);
+        });
+        
+        star.addEventListener('mouseout', function() {
+            if (!isLocked) updateStars(selectedRating || currentSavedRating);
+        });
+
+        star.addEventListener('click', function() {
+            if (isLocked) return;
+            selectedRating = parseInt(this.dataset.value);
+            updateStars(selectedRating);
+            if (submitBtn) submitBtn.disabled = false;
+            if (ratingText) ratingText.textContent = `Selected: ${selectedRating} stars`;
+        });
+    });
+
+    // Edit Button Logic
+    if (editBtn) {
+        editBtn.addEventListener('click', function() {
+            isLocked = false;
+            starsContainer.style.pointerEvents = 'auto';
+            starsContainer.style.opacity = '1';
+            this.classList.add('d-none'); // Hide edit button
+            if (submitBtn) {
+                submitBtn.classList.remove('d-none'); // Show submit button
+                submitBtn.disabled = true; // Disable until new selection
+            }
+            if (ratingText) ratingText.textContent = 'Select new rating';
+        });
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function() {
+          if (!selectedRating) return;
+          
+          this.disabled = true;
+          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+          fetch(rateUrl, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'X-CSRFToken': csrftoken,
+                  'X-Requested-With': 'XMLHttpRequest'
+              },
+              body: 'stars=' + selectedRating
+          })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Network response was not ok');
+              }
+              return response.json();
+          })
+          .then(data => {
+              if (data.success) {
+                  if (ratingText) ratingText.textContent = `You rated: ${selectedRating} stars`;
+                  location.reload(); 
+              } else {
+                  throw new Error(data.error || 'Error submitting rating');
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              this.disabled = false;
+              this.textContent = 'Update Rating';
+              alert(error.message || 'An error occurred. Please try again.');
+          });
+      });
+    }
+  })();
 });

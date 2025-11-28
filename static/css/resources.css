@@ -238,3 +238,11 @@
     cursor: pointer;
     user-select: none;
 }
+
+/* Like Button */
+.liked {
+  color: #e74c3c !important;
+}
+.unliked {
+  color: #ccc !important;
+}

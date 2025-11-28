@@ -229,6 +229,8 @@
                                                 <input type="hidden" name="department" value="{{ user.department|default:'' }}">
                                                 <input type="hidden" name="year_level" value="{{ user.year_level|default:'' }}">
                                                 <input type="hidden" name="bio" value="{{ user.bio|default:'' }}">
+                                                <input type="hidden" name="tagline" value="{{ user.tagline|default:'' }}">
+                                                <input type="hidden" name="profile_visibility" value="{{ user.profile_visibility }}">
                                                 
                                                 <div class="form-grid">
                                                     <div class="form-group">
@@ -311,6 +313,8 @@
                                                 <input type="hidden" name="personal_email" value="{{ user.personal_email }}">
                                                 <input type="hidden" name="phone" value="{{ user.phone|default:'' }}">
                                                 <input type="hidden" name="bio" value="{{ user.bio|default:'' }}">
+                                                <input type="hidden" name="tagline" value="{{ user.tagline|default:'' }}">
+                                                <input type="hidden" name="profile_visibility" value="{{ user.profile_visibility }}">
                                                 
                                                 <div class="form-grid">
                                                     <!-- Read-only fields (set during registration) -->
@@ -367,9 +371,7 @@
                                         <div id="bioInfo-display">
                                             <div class="info-field">
                                                 <label class="info-field-label">Biography</label>
-                                                <div class="info-field-value {% if not user.bio %}empty{% endif %}" style="white-space: pre-wrap;">
-                                                    {{ user.bio|default:"No bio added yet. Click edit to add information about yourself." }}
-                                                </div>
+                                                <div class="info-field-value {% if not user.bio %}empty{% endif %}" style="white-space: pre-wrap;">{{ user.bio|default:"No bio added yet. Click edit to add information about yourself." }}</div>
                                             </div>
                                         </div>
 
@@ -386,12 +388,18 @@
                                                 <input type="hidden" name="stud_id" value="{{ user.stud_id }}">
                                                 <input type="hidden" name="department" value="{{ user.department|default:'' }}">
                                                 <input type="hidden" name="year_level" value="{{ user.year_level|default:'' }}">
+                                                <input type="hidden" name="tagline" value="{{ user.tagline|default:'' }}">
+                                                <input type="hidden" name="profile_visibility" value="{{ user.profile_visibility }}">
                                                 
                                                 <div class="form-group full-width">
                                                     <label for="bio" class="form-label">Biography</label>
                                                     <textarea class="form-control" id="bio" name="bio" rows="6" maxlength="500" placeholder="Tell us about yourself, your interests, academic goals...">{{ user.bio|default:'' }}</textarea>
                                                     <small class="text-muted">Maximum 500 characters</small>
                                                 </div>
+                                                
+                                                <div class="form-actions">
+                                                    <button type="button" class="btn btn-secondary" onclick="toggleEditMode('bioInfo')">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Save Changes</button>
                                                 </div>
                                             </form>
                                         </div>

@@ -6,7 +6,7 @@
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">{% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/resource_detail.js' %}?v=1.1"></script>
+<script src="{% static 'js/resource_detail.js' %}?v=1.2"></script>
 {% endblock %}
 
 {% block header %}
@@ -16,8 +16,71 @@
 
 {% block content %}
 <div class="ri-container">
-  <!-- Header Card Component -->
-  {% include 'components/detail_header_card.html' with title=resource.title description=resource.description file_type=resource.resource_type icon_name=resource_icon status_tags=status_tags primary_action=primary_action bookmark_form_action=bookmark_url is_bookmarked=is_bookmarked edit_url=edit_url show_bookmark=user.is_authenticated show_edit=is_owner %}
+  <!-- Custom Header Card -->
+  <div class="ri-card ri-main">
+    <div class="ri-header">
+      <div class="ri-icon"><i class="fas fa-{{ resource_icon }}"></i></div>
+      <div class="flex-grow-1">
+        <div class="ri-badges-row">
+          <div class="ri-badges">
+            <span class="ri-type">{{ resource.resource_type|upper }}</span>
+            {% for status in status_tags %}
+              <span class="badge {{ status.class }} badge-sm">
+                <i class="fas fa-{{ status.icon }}"></i> {{ status.label }}
+              </span>
+            {% endfor %}
+          </div>
+          <div class="ri-header-actions">
+            {% if user.is_authenticated %}
+              <form method="post" action="{{ bookmark_url }}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" class="ri-icon-btn" title="{% if is_bookmarked %}Remove Bookmark{% else %}Add Bookmark{% endif %}">
+                  <i class="{% if is_bookmarked %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
+                </button>
+              </form>
+            {% endif %}
+            {% if is_owner %}
+              <a href="{{ edit_url }}" class="ri-icon-btn" title="Edit"><i class="fas fa-edit"></i></a>
+            {% endif %}
+          </div>
+        </div>
+        <h2 class="ri-title mt-2 mb-0">{{ resource.title }}</h2>
+      </div>
+    </div>
+
+    {% if resource.description %}
+    <p class="ri-text para-muted pre-wrap mb-3">{{ resource.description }}</p>
+    {% endif %}
+
+    <!-- Primary Actions Row -->
+    <div class="ri-actions mt-2 d-flex align-items-center gap-3 flex-wrap">
+      <!-- Like Button -->
+      {% if user.is_authenticated %}
+      <div class="d-flex align-items-center me-2">
+        <i id="likeIcon" class="fas fa-heart {% if user_has_liked %}liked{% else %}unliked{% endif %}" 
+           style="cursor: pointer; font-size: 1.2rem; transition: all 0.2s ease;" 
+           data-resource-id="{{ resource.pk }}" 
+           title="{% if user_has_liked %}Unlike{% else %}Like{% endif %}"></i>
+        <span id="likeCount" class="ms-2 fw-bold" style="font-size: 1.1rem;">{{ resource.likes.count }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Download Button -->
+      {% if primary_action %}
+      <a href="{{ primary_action.url }}" class="btn {{ primary_action.class|default:'btn--primary' }} btn-pill" {% if primary_action.target %}target="{{ primary_action.target }}"{% endif %}>
+        <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
+      </a>
+      {% endif %}
+
+      <!-- Preview Button -->
+      {% if resource.file_url %}
+      <button type="button" class="btn btn-outline-primary btn-pill" data-bs-toggle="modal" data-bs-target="#previewModal">
+        <i class="fas fa-eye"></i> Preview
+      </button>
+      {% endif %}
+    </div>
+  </div>
 
   <!-- Metadata Overview Component -->
   {% include 'components/metadata_overview_card.html' with section_title='Resource Overview' metadata_items=metadata_items %}
@@ -34,10 +97,87 @@
   </div>
   {% endif %}
 
-  <!-- Feedback Interface Component -->
+  <!-- Rating System -->
   {% if resource.verification_status == 'verified' and user.is_authenticated and user != resource.uploader %}
-    {% include 'components/feedback_interface.html' with item_id=resource.pk item_type='resource' current_user_rating=user_rating.stars avg_rating=resource.get_average_rating rating_count=resource.get_rating_count rate_url=rate_url comment_url=comment_url delete_comment_url_name='resources:delete_comment' comments=comments show_rating=True show_comments=True current_user=user %}
+  <div class="ri-card mt-3" id="rating-component" 
+       data-current-rating="{{ user_rating.stars|default:0 }}"
+       data-rate-url="{% url 'resources:rate_resource' resource.pk %}">
+    <div class="rd2-section-title mb-2">Rate this Resource</div>
+    
+    <div class="d-flex align-items-center flex-wrap gap-3">
+        <div class="rating-stars" style="font-size: 1.5rem; color: #ffc107; cursor: pointer;">
+            {% for i in "12345" %}
+            <i class="far fa-star rating-star" data-value="{{ i }}"></i>
+            {% endfor %}
+        </div>
+        
+        {% if user_rating %}
+            <button id="editRatingBtn" class="btn btn-sm btn--secondary btn-pill">Edit Rating</button>
+            <button id="submitRatingBtn" class="btn btn-sm btn--primary btn-pill d-none" disabled>Update Rating</button>
+        {% else %}
+            <button id="submitRatingBtn" class="btn btn-sm btn--primary btn-pill" disabled>Submit Rating</button>
+        {% endif %}
+        
+        <span class="text-muted" id="userRatingText">
+            {% if user_rating %}You rated: {{ user_rating.stars }} stars{% else %}Select stars to rate{% endif %}
+        </span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Comments Section -->
+  {% if resource.verification_status == 'verified' and user.is_authenticated %}
+  <div class="ri-card mt-3">
+        <h6 class="mb-4 fw-bold" style="font-size: 1.1rem; color: #2c3e50;">Comments</h6>
+    
+    <!-- Comments List -->
+    <div class="comments-list mb-4">
+      {% if comments %}
+        {% for comment in comments %}
+          {% if not comment.parent_comment %}
+            {% include 'components/comment_post.html' with comment=comment delete_url_name='resources:delete_comment' current_user=user show_replies=True %}
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <p class="text-muted mb-0">No comments yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- Comment Input -->
+    <div class="d-flex gap-3">
+        <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&size=40&background=667eea&color=fff{% endif %}" 
+             class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+        <form method="post" action="{{ comment_url }}" class="flex-grow-1" id="commentForm">
+            {% csrf_token %}
+            <div class="form-group mb-0">
+                <textarea name="text" id="commentText" class="form-control" rows="1" placeholder="Comment as {{ user.get_full_name }}" 
+                          style="border-radius: 20px; resize: none; overflow: hidden; min-height: 40px; padding-top: 8px;"
+                          oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+            </div>
+            <div class="text-end mt-2">
+                <button type="submit" class="btn btn-primary btn-sm btn-pill px-4">Post</button>
+            </div>
+        </form>
+    </div>
+  </div>
   {% endif %}
 
 </div>
+
+<!-- Preview Modal -->
+{% if resource.file_url %}
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" style="height: 80vh;">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ resource.title }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe src="{{ resource.file_url }}" width="100%" height="100%" style="border: none;"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
