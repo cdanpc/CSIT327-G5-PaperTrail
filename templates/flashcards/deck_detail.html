@@ -45,7 +45,7 @@
                     <button type="submit" class="fc-icon-btn-round" title="Bookmark Deck">{% if is_bookmarked %}<i class="fas fa-bookmark"></i>{% else %}<i class="far fa-bookmark"></i>{% endif %}</button>
                 </form>
                 <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="fc-icon-btn-round" title="Edit Deck"><i class="fas fa-edit"></i></a>
-                <button type="button" class="fc-icon-btn-round" title="Delete Deck" onclick="showDeleteModal('{{ deck.pk }}', '{{ deck.title|escapejs }}', '{% url 'flashcards:deck_delete' deck.pk %}')"><i class="fas fa-trash"></i></button>
+                <button type="button" class="fc-icon-btn-round delete-deck-btn" title="Delete Deck" data-deck-id="{{ deck.pk }}" data-deck-title="{{ deck.title|escapejs }}" data-delete-url="{% url 'flashcards:deck_delete' deck.pk %}"><i class="fas fa-trash"></i></button>
             </div>
         </div>
 
@@ -125,7 +125,7 @@
                                         </div>
                                     </div>
                                     {% if c.user == user %}
-                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="showDeleteModal('{{ c.pk }}', 'this comment', '{% url 'flashcards:delete_deck_comment' deck.pk c.pk %}')">
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-comment-btn" title="Delete" data-comment-id="{{ c.pk }}" data-delete-url="{% url 'flashcards:delete_deck_comment' deck.pk c.pk %}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                     {% endif %}
@@ -152,7 +152,7 @@
                             <strong>Front Text</strong>
                             <div class="fc-manage-actions">
                                 <a href="{% url 'flashcards:card_edit' deck.pk card.pk %}" class="fc-manage-action-btn" title="Edit Card"><i class="fas fa-edit"></i></a>
-                                <button type="button" class="fc-manage-action-btn" title="Delete Card" onclick="showDeleteModal('{{ card.pk }}', 'Card: {{ card.front_text|truncatechars:30|escapejs }}', '{% url 'flashcards:card_delete' deck.pk card.pk %}')"><i class="fas fa-trash"></i></button>
+                                <button type="button" class="fc-manage-action-btn delete-card-btn" title="Delete Card" data-card-id="{{ card.pk }}" data-card-title="{{ card.front_text|truncatechars:30|escapejs }}" data-delete-url="{% url 'flashcards:card_delete' deck.pk card.pk %}"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
                         <div class="fc-manage-text">
@@ -168,18 +168,6 @@
             {% else %}
                 <p class="text-muted mb-0">No cards yet.</p>
             {% endif %}
-        </div>
-    </div>
-</div>
-
-<!-- Toast for empty deck -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="emptyDeckToast" class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body">
-                <i class="fas fa-exclamation-triangle me-2"></i>This deck has no cards yet. Add cards before studying.
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>

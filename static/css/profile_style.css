@@ -1722,3 +1722,117 @@ select:focus-visible,
 .d-block {
     display: block !important;
 }
+
+/* ==================== CUSTOM CONFIRM MODAL ==================== */
+.custom-confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.custom-confirm-modal.show {
+    opacity: 1;
+}
+
+.custom-confirm-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.custom-confirm-content {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.custom-confirm-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.custom-confirm-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.custom-confirm-title i {
+    font-size: 1.5rem;
+}
+
+.custom-confirm-body {
+    padding: 1.5rem;
+}
+
+.custom-confirm-body p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.custom-confirm-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.custom-confirm-footer .btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.custom-confirm-footer .btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.custom-confirm-footer .btn-secondary:hover {
+    background: #d1d5db;
+}
+
+.custom-confirm-footer .btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.custom-confirm-footer .btn-danger:hover {
+    background: #dc2626;
+}

@@ -28,6 +28,7 @@ urlpatterns = [
     
     # Profile
     path('profile/', views.profile, name='profile'),
+    path('profile/update-picture/', views.update_profile_picture, name='update_profile_picture'),
     path('profile/<str:username>/', views.public_profile, name='public_profile'),
     path('settings/', views.settings_view, name='settings'),
     path('password-change/', views.password_change, name='password_change'),
