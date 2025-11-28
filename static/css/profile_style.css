@@ -49,6 +49,16 @@ html {
     margin: 0 auto;
 }
 
+/* ==================== SIDEBAR ==================== */
+.deck-detail-sidebar {
+    background: #f3f0ff;
+    border-radius: var(--card-radius);
+    padding: var(--padding-card);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
 /* ==================== LEFT COLUMN: MAIN CONTENT ==================== */
 .profile-main-column {
     display: flex;
