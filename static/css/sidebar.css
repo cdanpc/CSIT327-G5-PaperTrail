@@ -3,10 +3,10 @@
 :root {
     --sidebar-collapsed-width: 68px;
     --sidebar-expanded-width: 210px;
-    --sidebar-bg: #1e293b;
-    --sidebar-hover: #334155;
+    --sidebar-bg: #f3f0ff;
+    --sidebar-hover: #e9e4f0;
     --sidebar-active: #667eea;
-    --sidebar-text: #cbd5e1;
+    --sidebar-text: #2d3748;
     --sidebar-text-active: #ffffff;
     --transition-speed: 0.3s;
     --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
