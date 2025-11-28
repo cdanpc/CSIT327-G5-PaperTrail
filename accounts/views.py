@@ -963,7 +963,7 @@ def profile(request):
         'form': form,
         'user': request.user,
     }
-    return render(request, 'accounts/profile_clean.html', context)
+    return render(request, 'accounts/profile.html', context)
 
 
 @login_required
