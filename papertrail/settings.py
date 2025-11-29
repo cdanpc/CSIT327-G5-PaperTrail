@@ -125,7 +125,13 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
  
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+ 
+# WhiteNoise static files storage (use manifest for cache busting)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise static files storage (use manifest for cache busting)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
  
 MEDIA_ROOT = BASE_DIR / 'media'
