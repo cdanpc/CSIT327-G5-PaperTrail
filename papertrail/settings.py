@@ -125,13 +125,15 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
  
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+<<<<<<<<< Temporary merge branch 1
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
  
-# WhiteNoise static files storage (use manifest for cache busting)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-# WhiteNoise static files storage (use manifest for cache busting)
+# WhiteNoise static files storage (no manifest - compatible with Render's ephemeral filesystem)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+=========
+STATICFILES_DIRS = [BASE_DIR / 'static']
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
  
 MEDIA_ROOT = BASE_DIR / 'media'
