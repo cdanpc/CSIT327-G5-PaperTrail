@@ -1,0 +1,139 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block header %}
+{% include 'components/page_header.html' with page_title='Notifications' %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if notifications %}
+                    <div class="notification-list-full">
+                        {% for notification in notifications %}
+                        <div class="notification-item-full {% if not notification.is_read %}notification-item-full--unread{% endif %}">
+                            <div class="notification-icon notification-icon--{{ notification.type }}">
+                                {% if notification.type == 'new_upload' %}
+                                    <i class="fas fa-upload"></i>
+                                {% elif notification.type == 'new_comment' %}
+                                    <i class="fas fa-comment"></i>
+                                {% elif notification.type == 'new_rating' %}
+                                    <i class="fas fa-star"></i>
+                                {% elif notification.type == 'verification_approved' %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif notification.type == 'verification_rejected' %}
+                                    <i class="fas fa-times-circle"></i>
+                                {% elif notification.type == 'new_bookmark' %}
+                                    <i class="fas fa-bookmark"></i>
+                                {% elif notification.type == 'quiz_attempt' %}
+                                    <i class="fas fa-clipboard-check"></i>
+                                {% else %}
+                                    <i class="fas fa-bell"></i>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="notification-content-full">
+                                <div class="notification-message-full">{{ notification.message }}</div>
+                                <div class="notification-time-full">
+                                    <i class="far fa-clock"></i>
+                                    {{ notification.created_at|timesince }} ago
+                                </div>
+                            </div>
+                            
+                            {% if notification.url %}
+                            <a href="{{ notification.url }}" class="notification-link-full">
+                                View <i class="fas fa-arrow-right"></i>
+                            </a>
+                            {% endif %}
+                            
+                            {% if not notification.is_read %}
+                            <span class="notification-unread-dot"></span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No notifications yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.notification-list-full {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: #f3f4f6;
+}
+
+.notification-item-full {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: white;
+    transition: background-color 0.15s ease;
+    position: relative;
+}
+
+.notification-item-full:hover {
+    background-color: #f9fafb;
+}
+
+.notification-item-full--unread {
+    background-color: #fef3f2;
+}
+
+.notification-item-full--unread:hover {
+    background-color: #fde8e7;
+}
+
+.notification-content-full {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-message-full {
+    font-size: 15px;
+    color: #1f2937;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.notification-time-full {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.notification-link-full {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: transform 0.15s ease;
+}
+
+.notification-link-full:hover {
+    transform: translateX(2px);
+    color: white;
+}
+</style>
+{% endblock %}

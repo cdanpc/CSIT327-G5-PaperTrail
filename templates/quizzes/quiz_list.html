@@ -1,115 +1,162 @@
 {% extends 'base_dashboard.html' %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}Quizzes{% endblock %}
-{% block page_title %}Quizzes{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
-<link rel="stylesheet" href="{% static 'css/quizzes.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/components/quizzes.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/components.css' %}">
 {% endblock %}
 
-{% block header_actions %}
-<div class="dashboard-actions d-flex align-items-center gap-2">
-    <form method="get" action="" class="search-box-inline d-flex align-items-center gap-2">
-        {% if scope %}<input type="hidden" name="scope" value="{{ scope }}">{% endif %}
-        <i class="fas fa-search"></i>
-        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search quizzes..." aria-label="Search quizzes">
-    </form>
-    <a href="{% url 'quizzes:quiz_moderation_list' %}" class="btn btn-outline-primary-soft btn-pill" style="text-decoration:none;"><i class="fas fa-check-circle"></i> Moderate</a>
-    {# Removed toasts/messages per request #}
-    <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-2 profile-link" title="Profile" style="text-decoration:none;">
-        {% if user.profile_picture %}
-            <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
-        {% else %}
-            <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
-                <i class="fas fa-user"></i>
-            </span>
-        {% endif %}
-    </a>
-</div>
+{% block header %}
+{% include 'components/page_header.html' with page_title="Quizzes" search_placeholder="Search quizzes..." search_name="q" search_value=query show_moderate_btn=user.is_staff moderate_url="quizzes:quiz_moderation_list" extra_hidden_inputs=scope_html %}
 {% endblock %}
 
 {% block content %}
 
-<div class="resources-tabs-row d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-  <div class="resources-tabs quizzes-tabs" role="tablist" aria-label="Quizzes scope">
-    <a href="{% url 'quizzes:quiz_create' %}" class="upload-inline-btn" role="button" title="Create a new quiz">+ New Quiz</a>
-    <a href="{% url 'quizzes:quiz_list' %}?scope=all" class="rtab {% if scope != 'mine' %}active{% endif %}" role="tab" aria-selected="{% if scope != 'mine' %}true{% else %}false{% endif %}">All Quizzes</a>
-    <a href="{% url 'quizzes:quiz_list' %}?scope=mine" class="rtab {% if scope == 'mine' %}active{% endif %}" role="tab" aria-selected="{% if scope == 'mine' %}true{% else %}false{% endif %}">My Quizzes</a>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+  <div class="d-flex align-items-center gap-2 flex-wrap" role="tablist" aria-label="Quizzes scope">
+    <a href="{% url 'quizzes:quiz_create' %}" class="btn-pill btn-pill--primary" role="button" title="Create a new quiz"><i class="fas fa-plus"></i> New Quiz</a>
+    <a href="{% url 'quizzes:quiz_list' %}?scope=all" class="btn-tab {% if scope != 'mine' %}active{% endif %}" role="tab" aria-selected="{% if scope != 'mine' %}true{% else %}false{% endif %}">All Quizzes</a>
+    <a href="{% url 'quizzes:quiz_list' %}?scope=mine" class="btn-tab {% if scope == 'mine' %}active{% endif %}" role="tab" aria-selected="{% if scope == 'mine' %}true{% else %}false{% endif %}">My Quizzes</a>
   </div>
-  {% comment %} Removed helper row per user request {% endcomment %}
-
-</div>
+  <div>
+    {% include 'components/filter_sort.html' with filter_name="status" filter_label="Filter by status" filter_options=status_filter_options selected_value=status_filter %}
+  </div>
+    </div>
 
                 <div class="row g-3">
                     {% if quizzes %}
                         {% for quiz in quizzes %}
                         <div class="col-md-6 col-lg-4">
-                            <div class="card dashboard-card">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
-                                                                                <div class="d-flex justify-content-between align-items-start w-100 gap-2">
-                                                                                    <h5 class="card-title mb-0">{{ quiz.title }}</h5>
-                                                                                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                                                                                        <form method="post" action="{% url 'quizzes:toggle_quiz_bookmark' quiz.pk %}" class="m-0">
-                                                                                            {% csrf_token %}
-                                                                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                                                                            <button type="submit" class="btn btn-sm btn-outline-primary-soft" title="{% if quiz.id in bookmarked_ids %}Remove Bookmark{% else %}Add Bookmark{% endif %}">
-                                                                                                <i class="{% if quiz.id in bookmarked_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
-                                                                                            </button>
-                                                                                        </form>
-                                                                                        {% if not quiz.is_public %}
-                                                                                            <span class="badge bg-secondary" style="font-size:0.65rem;"><i class="fas fa-lock"></i> Private</span>
-                                                                                        {% else %}
-                                                                                            {% if quiz.verification_status == 'verified' %}
-                                                                                                <span class="badge badge-verified" style="font-size:0.65rem;"><i class="fas fa-check-circle"></i> Verified</span>
-                                                                                            {% elif quiz.verification_status == 'pending' %}
-                                                                                                {% if user.is_professor or quiz.creator == user %}
-                                                                                                    <span class="badge badge-pending" style="font-size:0.65rem;"><i class="fas fa-clock"></i> Pending</span>
-                                                                                                {% endif %}
-                                                                                            {% endif %}
-                                                                                            <span class="badge bg-success" style="font-size:0.65rem;"><i class="fas fa-globe"></i> Public</span>
-                                                                                        {% endif %}
-                                                                                    </div>
-                                                                                </div>
+                            <div class="study-card">
+                                <div class="study-card__header">
+                                    <span class="study-card__type">Quiz</span>
+                                    <form method="post" action="{% url 'quizzes:toggle_quiz_bookmark' quiz.pk %}" class="study-card__bookmark-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <button type="submit" class="study-card__bookmark-btn" aria-label="{% if quiz.id in bookmarked_ids %}Remove Bookmark{% else %}Add Bookmark{% endif %}">
+                                            <i class="{% if quiz.id in bookmarked_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="study-card__body">
+                                    <h3 class="study-card__title">{{ quiz.title }}</h3>
+                                    
+                                    <div class="study-card__tags">
+                                        {% if not quiz.is_public %}
+                                            <span class="study-card__tag study-card__tag--private"><i class="fas fa-lock"></i> Private</span>
+                                        {% else %}
+                                            {% if quiz.verification_status == 'verified' %}
+                                                <span class="study-card__tag study-card__tag--verified"><i class="fas fa-check-circle"></i> Verified</span>
+                                            {% elif quiz.verification_status == 'pending' %}
+                                                {% if user.is_professor or quiz.creator == user %}
+                                                    <span class="study-card__tag study-card__tag--pending"><i class="fas fa-clock"></i> Pending</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endif %}
                                     </div>
-                                    {% if quiz.description %}
-                                    <p class="text-muted small mb-2">{{ quiz.description|truncatewords:15 }}</p>
-                                    {% endif %}
-                                    <div class="d-flex justify-content-between align-items-center mb-3 small text-muted">
+
+                                    <p class="study-card__author">By: {{ quiz.creator.get_display_name }}</p>
+
+                                    <div class="study-card__metrics">
+                                        <span class="like-metric" data-quiz-id="{{ quiz.pk }}" style="cursor: pointer;">
+                                          <i class="fas fa-heart {% if quiz.user_has_liked %}liked{% else %}unliked{% endif %}"></i> 
+                                          <span class="like-count">{{ quiz.likes.count|intword }}</span>
+                                        </span>
+                                        <span class="metric-dot">•</span>
                                         <span><i class="fas fa-question-circle"></i> {{ quiz.total_questions }} Q</span>
-                                        <span><i class="fas fa-chart-line"></i> {{ quiz.attempts_count }} attempt{% if quiz.attempts_count != 1 %}s{% endif %}</span>
-                                        <span><i class="fas fa-user"></i> {{ quiz.creator.get_display_name }}</span>
+                                        <span class="metric-dot">•</span>
+                                        <span><i class="fas fa-chart-line"></i> {{ quiz.attempts_count }} attempt{{ quiz.attempts_count|pluralize }}</span>
                                     </div>
-                                                                        {% if quiz.creator == user %}
-                                                                            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-sm w-100 btn-gradient-primary"><i class="fas fa-edit"></i> Manage / Attempt</a>
-                                                                        {% elif quiz.is_public and quiz.verification_status == 'verified' %}
-                                                                            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-sm w-100 btn-gradient-primary"><i class="fas fa-play"></i> Start Quiz</a>
-                                                                        {% else %}
-                                                                            <button class="btn btn-sm w-100 btn-outline-secondary" disabled title="Not available yet"><i class="fas fa-lock"></i> Unavailable</button>
-                                                                        {% endif %}
+                                </div>
+
+                                <div class="study-card__footer">
+                                    {% if quiz.creator == user %}
+                                        <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn--primary btn--block"><i class="fas fa-edit"></i> Manage / Attempt</a>
+                                    {% elif quiz.is_public and quiz.verification_status == 'verified' %}
+                                        <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn--primary btn--block"><i class="fas fa-play"></i> Start Quiz</a>
+                                    {% else %}
+                                        <button class="btn btn--primary btn--block" disabled><i class="fas fa-lock"></i> Unavailable</button>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
                         {% endfor %}
                     {% else %}
                         <div class="col-12">
-                            <div class="card dashboard-card">
-                                <div class="card-body text-center py-5">
-                                    <i class="fas fa-clipboard-list empty-icon mb-3"></i>
+                            <div class="card dashboard-card" style="min-height: 500px;">
+                                <div class="card-body">
                                     {% if scope == 'mine' %}
-                                        <h5 class="text-muted">You haven't created any quizzes yet</h5>
-                                        <p class="text-muted">Create one to get started!</p>
+                                        {% include 'components/empty_state.html' with icon='fas fa-clipboard-list' main_message="You haven't created any quizzes yet" sub_message='Create one to get started!' show_action_buttons=True primary_action_url='/quizzes/create/' primary_action_text='New Quiz' primary_action_icon='fas fa-plus' %}
                                     {% else %}
-                                        <h5 class="text-muted">No quizzes available yet</h5>
-                                        <p class="text-muted">Please check back later.</p>
+                                        {% include 'components/empty_state.html' with icon='fas fa-clipboard-list' main_message='No quizzes available yet' sub_message='Please check back later.' show_action_buttons=True primary_action_url='/quizzes/create/' primary_action_text='New Quiz' primary_action_icon='fas fa-plus' %}
                                     {% endif %}
-                                    <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-gradient-primary"><i class="fas fa-plus"></i> New Quiz</a>
                                 </div>
                             </div>
                         </div>
                     {% endif %}
                 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+    // Handle like clicks on quiz list
+    document.querySelectorAll('.like-metric').forEach(metric => {
+      metric.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const quizId = this.getAttribute('data-quiz-id');
+        if (!quizId) return;
+
+        const icon = this.querySelector('.fa-heart');
+        const countSpan = this.querySelector('.like-count');
+
+        // Disable during request
+        this.style.pointerEvents = 'none';
+        this.style.opacity = '0.7';
+
+        try {
+          const response = await fetch(`/quizzes/${quizId}/like/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Update like count
+            countSpan.textContent = data.like_count;
+
+            // Update icon appearance
+            if (data.action === 'liked') {
+              icon.classList.remove('unliked');
+              icon.classList.add('liked');
+            } else {
+              icon.classList.remove('liked');
+              icon.classList.add('unliked');
+            }
+          }
+        } catch (error) {
+          console.error('Error toggling like:', error);
+        } finally {
+          // Re-enable
+          this.style.pointerEvents = 'auto';
+          this.style.opacity = '1';
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}
 

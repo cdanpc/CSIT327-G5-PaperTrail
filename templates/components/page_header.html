@@ -1,0 +1,101 @@
+{% comment %}
+Page Header Component - Role-Aware
+Standardized dashboard header with title on left, search/actions on right
+Dynamically adjusts based on user role (Student, Professor, Admin)
+
+Usage:
+  {% include 'components/page_header.html' with 
+    page_title='Quizzes'
+    search_placeholder='Search quizzes...'
+    search_name='q'
+    search_value=query
+    search_action=''
+    search_method='get'
+    show_moderate_btn=True
+    moderate_url='quizzes:quiz_moderation_list'
+    show_notifications=True
+    show_profile=True
+    extra_hidden_inputs=scope_html
+  %}
+
+Parameters:
+- page_title: Page title displayed on the left
+- back_url: Optional back button URL (if provided, shows back arrow)
+- search_placeholder: Placeholder text for search input
+- search_name: Input name attribute (default: 'q')
+- search_value: Pre-filled search value
+- search_action: Form action URL (default: '')
+- search_method: Form method (default: 'get')
+- show_moderate_btn: Show moderate button (requires moderate_url, auto-shown for professors/admins)
+- moderate_url: URL name for moderate page
+- show_notifications: Show notification bell (default: True, role-aware)
+- show_profile: Show profile link (default: True)
+- extra_hidden_inputs: Additional hidden form fields (safe HTML)
+
+Role-based features:
+- Search: Visible for all roles
+- Moderate button: Auto-shown for Professors and Admins
+- Notifications: Role-filtered (Students see uploads/feedback, Professors see review requests, Admins see registrations)
+{% endcomment %}
+
+<div class="dashboard-header">
+  <div class="dashboard-title-section">
+    {% if back_url %}
+      {% include 'components/back_link.html' with back_url=back_url %}
+    {% endif %}
+    {% if page_title_html %}
+      {{ page_title_html|safe }}
+    {% else %}
+      <h1 class="dashboard-title">{{ page_title|default:'Dashboard' }}</h1>
+      {% if page_subtitle %}<p class="dashboard-date">{{ page_subtitle }}</p>{% endif %}
+    {% endif %}
+  </div>
+
+  <div class="dashboard-actions">
+    {# Global Search - Available for all roles #}
+    <div class="search-box-inline">
+      <form method="{{ search_method|default:'get' }}" action="{{ search_action|default:'/search/' }}" class="position-relative">
+        {% if extra_hidden_inputs %}{{ extra_hidden_inputs|safe }}{% endif %}
+        <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="z-index: 5;"></i>
+        <input 
+          type="text" 
+          name="{{ search_name|default:'q' }}" 
+          value="{{ search_value|default:'' }}" 
+          class="form-control global-search-input ps-5" 
+          placeholder="{{ search_placeholder|default:'Search...' }}"
+          aria-label="{{ search_placeholder|default:'Search' }}"
+          autocomplete="off"
+        >
+      </form>
+      {% include 'components/search_results_dropdown.html' %}
+    </div>
+
+    {# Moderate Button - Auto-shown for Professors and Admins, or when explicitly requested #}
+    {% if show_moderate_btn and moderate_url or user.is_professor or user.is_staff %}
+      {% if moderate_url %}
+      <a href="{% url moderate_url %}" class="btn btn-pill btn-pill--secondary" title="Moderate content">
+        <i class="fas fa-check-circle"></i>
+        <span class="d-none d-md-inline">Moderate</span>
+      </a>
+      {% endif %}
+    {% endif %}
+
+    {# Role-Aware Notification Bell #}
+    {% if show_notifications|default:True %}
+      {% include 'components/notification_bell.html' %}
+    {% endif %}
+
+    {# Profile Link - Available for all roles #}
+    {% if show_profile|default:True %}
+    <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-2 profile-link" title="View Profile">
+      {% if user.profile_picture %}
+        <img src="{{ user.profile_picture.url }}" alt="{{ user.get_display_name }}" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
+      {% else %}
+        <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
+          <i class="fas fa-user"></i>
+        </span>
+      {% endif %}
+    </a>
+    {% endif %}
+  </div>
+</div>

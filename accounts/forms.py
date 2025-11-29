@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm as DjangoPasswordChangeForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm as DjangoPasswordChangeForm, PasswordResetForm, SetPasswordForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
@@ -168,7 +168,7 @@ class ProfileUpdateForm(forms.ModelForm):
         fields = [
             'first_name', 'last_name', 'personal_email', 'univ_email', 
             'stud_id', 'profile_picture', 'tagline', 'bio', 
-            'department', 'year_level', 'phone'
+            'department', 'year_level', 'phone', 'profile_visibility'
         ]
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -196,6 +196,11 @@ class ProfileUpdateForm(forms.ModelForm):
                 ('4', '4th Year'),
             ]),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'profile_visibility': forms.Select(attrs={'class': 'form-control'}, choices=[
+                ('public', 'Public - Anyone can view my profile'),
+                ('students_only', 'Students Only - Only students can view my profile'),
+                ('private', 'Private - Only I can view my profile'),
+            ]),
         }
 
     def clean_univ_email(self):
@@ -416,6 +421,107 @@ class ChangePersonalEmailForm(forms.Form):
             raise ValidationError('Email addresses do not match.')
         
         return cleaned_data
+
+
+class CITPasswordResetForm(PasswordResetForm):
+    """
+    Custom password reset form that accepts Gmail only (@gmail.com)
+    for password resets using Gmail SMTP
+    """
+    email = forms.EmailField(
+        label='Gmail Address',
+        max_length=254,
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'your.email@gmail.com',
+            'autofocus': True
+        }),
+        help_text='Enter your Gmail address associated with your account'
+    )
+    
+    def send_mail(self, subject_template_name, email_template_name,
+                  context, from_email, to_email, html_email_template_name=None):
+        """
+        Override to use the correct domain from settings instead of localhost
+        """
+        from django.conf import settings
+        
+        # Determine protocol based on DEBUG mode
+        context['protocol'] = 'http' if settings.DEBUG else 'https'
+        context['domain'] = settings.SITE_DOMAIN
+        
+        super().send_mail(
+            subject_template_name, email_template_name, context, from_email,
+            to_email, html_email_template_name
+        )
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            email = email.lower().strip()
+            
+            # Accept Gmail only
+            if not email.endswith('@gmail.com'):
+                raise ValidationError(
+                    'Please use your Gmail address (@gmail.com).',
+                    code='invalid_domain'
+                )
+            
+            # Check if a user exists with this Gmail
+            user_exists = User.objects.filter(
+                personal_email__iexact=email
+            ).exists()
+            
+            if not user_exists:
+                # For security, we still show success message but don't reveal if email exists
+                # The form will handle this in get_users()
+                pass
+        
+        return email
+    
+    def get_users(self, email):
+        """
+        Override to query by personal_email field only (Gmail)
+        """
+        active_users = User.objects.filter(
+            personal_email__iexact=email,
+            is_active=True
+        )
+        return (u for u in active_users)
+
+
+class CITSetPasswordForm(SetPasswordForm):
+    """
+    Custom set password form with enhanced styling and validation
+    """
+    new_password1 = forms.CharField(
+        label='New Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter new password',
+            'autofocus': True
+        }),
+        help_text='Must be at least 8 characters with letters and numbers'
+    )
+    new_password2 = forms.CharField(
+        label='Confirm New Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Re-enter new password'
+        })
+    )
+    
+    def clean_new_password1(self):
+        password = self.cleaned_data.get('new_password1')
+        if password:
+            if len(password) < 8:
+                raise ValidationError('Password must be at least 8 characters long.')
+            if not re.search(r'[A-Za-z]', password):
+                raise ValidationError('Password must contain at least one letter.')
+            if not re.search(r'\d', password):
+                raise ValidationError('Password must contain at least one number.')
+        return password
 
 
 class ChangeUniversityEmailForm(forms.Form):

@@ -14,7 +14,12 @@
     <nav class="sidebar-nav">
         <ul class="nav-list">
             <li class="nav-item">
-                {% if request.user.is_professor %}
+                {% if request.user.is_staff or request.user.is_superuser %}
+                    <a href="{% url 'accounts:admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" title="Dashboard">
+                        <i class="fas fa-home"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                {% elif request.user.is_professor %}
                     <a href="{% url 'accounts:professor_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'professor_dashboard' %}active{% endif %}" title="Dashboard">
                         <i class="fas fa-home"></i>
                         <span class="nav-text">Dashboard</span>
@@ -26,7 +31,7 @@
                     </a>
                 {% endif %}
             </li>
-                        {% if request.user.is_professor %}
+                        {% if request.user.is_staff or request.user.is_superuser or request.user.is_professor %}
                         <li class="nav-item">
                             <a href="{% url 'resources:moderation_list' %}" class="nav-link {% if request.resolver_match.url_name == 'moderation_list' %}active{% endif %}" title="Verify Content">
                                 <i class="fas fa-check-circle"></i>
@@ -35,7 +40,7 @@
                         </li>
                         {% endif %}
             <li class="nav-item">
-                <a href="{% url 'resources:resource_list' %}" class="nav-link {% if 'resources' in request.path %}active{% endif %}" title="Resources">
+                <a href="{% url 'resources:resource_list' %}" class="nav-link {% if request.resolver_match.url_name == 'resource_list' %}active{% endif %}" title="Resources">
                     <i class="fas fa-book"></i>
                     <span class="nav-text">Resources</span>
                 </a>

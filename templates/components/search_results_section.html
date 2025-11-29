@@ -1,0 +1,32 @@
+{# Generic search results section component #}
+{# Parameters: title, icon, items, type #}
+<div class="search-section">
+  <div class="search-section-header">
+    <h2 class="search-section-title"><i class="fas fa-{{ icon|default:'list' }}"></i> {{ title }}</h2>
+    <span class="search-section-count">{{ items|length }} result{{ items|length|pluralize }}</span>
+  </div>
+  {% if items %}
+    <ul class="search-section-list">
+      {% for obj in items %}
+        <li class="search-item">
+          <a href="{% if type == 'resource' %}{% url 'resources:resource_detail' obj.pk %}{% elif type == 'quiz' %}{% url 'quizzes:quiz_detail' obj.pk %}{% elif type == 'flashcard' %}{% url 'flashcards:deck_detail' obj.pk %}{% endif %}" class="search-item-link">
+            <div class="search-item-icon">
+              {% if type == 'resource' %}<i class="fas fa-file-alt"></i>
+              {% elif type == 'quiz' %}<i class="fas fa-question-circle"></i>
+              {% elif type == 'flashcard' %}<i class="fas fa-layer-group"></i>
+              {% else %}<i class="fas fa-file"></i>{% endif %}
+            </div>
+            <div class="search-item-content">
+              <div class="search-item-title">{{ obj.title }}</div>
+              {% if obj.description %}<div class="search-item-desc">{{ obj.description|truncatechars:140 }}</div>{% endif %}
+              <div class="search-item-meta">By {% if type == 'flashcard' %}{{ obj.owner.username }}{% elif type == 'quiz' %}{{ obj.creator.username }}{% else %}{{ obj.uploader.username }}{% endif %}</div>
+            </div>
+            {% if obj.verification_status == 'verified' %}<span class="search-item-badge" title="Verified"><i class="fas fa-check-circle"></i></span>{% endif %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="search-section-empty">No {{ title|lower }} matched your search.</div>
+  {% endif %}
+</div>

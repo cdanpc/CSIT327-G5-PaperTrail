@@ -3,11 +3,13 @@
 :root {
     --sidebar-collapsed-width: 68px;
     --sidebar-expanded-width: 210px;
-    --sidebar-bg: #1e293b;
-    --sidebar-hover: #334155;
-    --sidebar-active: #667eea;
-    --sidebar-text: #cbd5e1;
-    --sidebar-text-active: #ffffff;
+    /* --- COLOR MODIFICATIONS START HERE --- */
+    --sidebar-bg: #FFFFFF;        /* Pure White Background */
+    --sidebar-hover: #F3F0FF;     /* Light Purple Hover (Brand-aligned) */
+    --sidebar-active: #667eea;    /* Primary Purple Active State (Brand Color) */
+    --sidebar-text: #4B5563;      /* Dark Grey Default Text */
+    --sidebar-text-active: #FFFFFF; /* White Active Text */
+    /* --- COLOR MODIFICATIONS END HERE --- */
     --transition-speed: 0.3s;
     --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
     
@@ -78,7 +80,7 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-    color: var(--sidebar-text-active);
+    color: var(--sidebar-active);
     cursor: pointer;
     position: relative;
     height: var(--logo-icon-size);
@@ -104,7 +106,7 @@
     top: 0;
     width: var(--logo-icon-size);
     height: var(--logo-icon-size);
-    filter: brightness(0) invert(1);
+    filter: invert(0.4) sepia(1) hue-rotate(210deg) saturate(1.5);
     opacity: 0;
     transform: scale(0.85);
     transition: opacity 0.2s var(--transition-timing), 
@@ -139,6 +141,7 @@
     font-weight: 700;
     font-size: var(--logo-text-size);
     line-height: 1;
+    color: var(--sidebar-active);
     opacity: 0;
     width: 0;
     overflow: hidden;
@@ -177,16 +180,13 @@
     display: block;
     width: var(--logo-icon-size);
     height: var(--logo-icon-size);
-    filter: brightness(0) invert(1);
-    transition: transform 0.2s var(--transition-timing);
+    filter: invert(0.4) sepia(1) hue-rotate(210deg) saturate(1.5);
+    transition: transform 0.2s var(--transition-timing), filter 0.2s var(--transition-timing);
 }
 
 .sidebar-toggle:hover .toggle-close-icon {
     transform: scale(1.15);
-    filter: brightness(1) invert(1)
-            drop-shadow(0 0 4px rgba(255,255,255,0.9))
-            drop-shadow(0 0 10px rgba(102,126,234,0.9))
-            drop-shadow(0 0 18px rgba(102,126,234,0.6));
+    filter: invert(53%) sepia(35%) saturate(2256%) hue-rotate(211deg) brightness(99%);
 }
 
 /* Logo hover glow */
@@ -259,21 +259,41 @@
 }
 
 /* Icon glow on hover */
-.nav-link:hover i {
-    color: var(--sidebar-text-active);
-    text-shadow: 0 0 6px rgba(102, 126, 234, 0.8), 0 0 12px rgba(102, 126, 234, 0.6);
-    filter: drop-shadow(0 0 2px rgba(102,126,234,0.4));
+/* Icon glow on hover (exclude active so it stays white) */
+.nav-link:not(.active):hover i {
+    color: var(--sidebar-active);
+    text-shadow: 0 0 6px rgba(102, 126, 234, 0.6), 0 0 12px rgba(102, 126, 234, 0.4);
+    filter: drop-shadow(0 0 2px rgba(102, 126, 234, 0.3));
 }
 
 /* When expanded, glow the label too */
-.sidebar.expanded .nav-link:hover .nav-text {
-    color: var(--sidebar-text-active);
-    text-shadow: 0 0 6px rgba(102,126,234,0.8), 0 0 12px rgba(102,126,234,0.6);
+/* Label glow on hover (exclude active) */
+.sidebar.expanded .nav-link:not(.active):hover .nav-text {
+    color: var(--sidebar-active);
+    text-shadow: 0 0 6px rgba(102, 126, 234, 0.6), 0 0 12px rgba(102, 126, 234, 0.4);
 }
 
 .nav-link.active {
     background: var(--sidebar-active);
-    color: var(--sidebar-text-active);
+    color: #4B5563; /* dark grey when not hovered */
+}
+
+.nav-link.active i {
+    color: #4B5563; /* icon matches text when not hovered */
+}
+
+.nav-link.active .nav-text {
+    color: #4B5563; /* ensure label uses dark grey */
+}
+
+.nav-link.active:hover {
+    background: #5568d3; /* slightly darker purple */
+    color: #FFFFFF; /* text turns white on hover */
+}
+
+.nav-link.active:hover i,
+.nav-link.active:hover .nav-text {
+    color: #FFFFFF; /* icon and label both white on hover */
 }
 
 /* Icon Styling */
@@ -377,9 +397,10 @@
 /* Glow the avatar/icon instead of background */
 .user-profile:hover .user-avatar-placeholder i {
     text-shadow: 0 0 6px rgba(102, 126, 234, 0.8), 0 0 12px rgba(102, 126, 234, 0.6);
+    color: #667eea;
 }
 .user-profile:hover .user-avatar {
-    box-shadow: 0 0 0 2px rgba(102,126,234,0.6), 0 0 10px rgba(102,126,234,0.5);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.6), 0 0 10px rgba(102, 126, 234, 0.5);
 }
 
 /* Account caret */

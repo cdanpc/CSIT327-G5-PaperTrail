@@ -1,0 +1,30 @@
+{% comment %}
+Toast Messages Component
+Displays Django messages as toast notifications outside the main content area
+
+Usage:
+  {% include 'components/toast_messages.html' %}
+  
+Features:
+- Auto-dismisses after 5 seconds
+- Positioned fixed at top-right
+- Works with Django's messages framework
+- Supports: success, error, warning, info
+- Accessible (ARIA labels)
+{% endcomment %}
+
+{% if messages %}
+<div class="toast-messages-container">
+    {% for message in messages %}
+    <div class="toast-notification toast-{{ message.tags }}" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="true">
+        <div class="toast-notification__content">
+            <i class="toast-notification__icon fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}times-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            <span class="toast-notification__message">{{ message }}</span>
+        </div>
+        <button type="button" class="toast-notification__close" aria-label="Close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

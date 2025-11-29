@@ -12,17 +12,26 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Global CSS - Design tokens and typography -->
+    <link rel="stylesheet" href="{% static 'css/globals.css' %}?v=1.0">
+    
     <!-- Common CSS Files -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=1.3">
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=3.9">
     <link rel="stylesheet" href="{% static 'css/coming-soon-notification.css' %}?v=1.0">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=5.4">
+    <link rel="stylesheet" href="{% static 'css/modal.css' %}?v=1.0">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}?v=1.0">
+    <link rel="stylesheet" href="{% static 'css/search_notifications.css' %}?v=1.0">
+    <link rel="stylesheet" href="{% static 'css/toast.css' %}?v=1.0">
     
     <!-- Page-specific CSS -->
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Toast Messages Component -->
+    {% include 'components/toast_messages.html' %}
     <!-- Include Sidebar -->
     {% include 'includes/sidebar.html' %}
     
@@ -34,32 +43,7 @@
             <div class="container-fluid">
                 <!-- Dashboard Header -->
                 {% block header %}
-                <div class="dashboard-header">
-                    <div class="dashboard-title-section">
-                        <h1 class="dashboard-title mb-0">{% block page_title %}Dashboard{% endblock %}</h1>
-                    </div>
-
-                    {% block header_actions %}
-                    <div class="dashboard-actions d-flex align-items-center gap-2">
-                        <div class="search-box-inline">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search..." aria-label="Search">
-                        </div>
-                        <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
-                            <i class="fas fa-bell"></i>
-                        </button>
-                        <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-2 profile-link" title="Profile" style="text-decoration:none;">
-                            {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
-                            {% else %}
-                                <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                            {% endif %}
-                        </a>
-                    </div>
-                    {% endblock %}
-                </div>
+                {% include 'components/page_header.html' with page_title="Dashboard" search_placeholder="Search..." %}
                 {% endblock %}
                 
                 <!-- Page Content -->
@@ -70,14 +54,29 @@
     </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    {% include 'components/delete_modal.html' %}
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Toast Notifications JS -->
+    <script src="{% static 'js/toast.js' %}?v=1.0"></script>
     
     <!-- Sidebar JavaScript -->
     <script src="{% static 'js/sidebar.js' %}?v=3.1"></script>
     
     <!-- Coming Soon Notification -->
     <script src="{% static 'js/coming-soon-notification.js' %}?v=1.0"></script>
+    
+    <!-- Delete Modal JavaScript -->
+    <script src="{% static 'js/delete_modal.js' %}?v=1.0"></script>
+    
+    <!-- Global Search JavaScript -->
+    <script src="{% static 'js/global_search.js' %}?v=1.0"></script>
+    
+    <!-- Notifications JavaScript -->
+    <script src="{% static 'js/notifications.js' %}?v=1.0"></script>
     
     <!-- Common JavaScript -->
     <script src="{% static 'js/script.js' %}?v=4.0"></script>

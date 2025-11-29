@@ -1,0 +1,55 @@
+{% comment %}
+Empty State Component
+Standardized message for empty lists with improved centering and visibility
+
+Usage:
+  {% include 'components/empty_state.html' with 
+    icon='fas fa-folder-open'
+    main_message='No resources yet.'
+    sub_message='Start uploading documents or linking external files.'
+    show_action_buttons=False
+    primary_action_text='Upload Resource'
+    primary_action_url='/resources/upload/'
+    primary_action_icon='fas fa-upload'
+  %}
+
+Features:
+- Fills available vertical space
+- Perfect horizontal and vertical centering
+- Dark, readable text colors
+- Larger, more prominent icons
+{% endcomment %}
+
+<div class="empty-state">
+  <div class="empty-state__icon">
+    <i class="{{ icon|default:'fas fa-inbox' }}" aria-hidden="true"></i>
+  </div>
+  
+  <h3 class="empty-state__title">{{ main_message|default:'Nothing here yet' }}</h3>
+  
+  {% if sub_message %}
+  <p class="empty-state__message">{{ sub_message }}</p>
+  {% endif %}
+
+  {% if show_action_buttons %}
+  <div class="empty-state__actions">
+    {% if primary_action_url %}
+    <a href="{{ primary_action_url }}" class="btn btn--primary">
+      {% if primary_action_icon %}<i class="{{ primary_action_icon }}"></i> {% endif %}
+      {{ primary_action_text|default:'Get Started' }}
+    </a>
+    {% endif %}
+    
+    {% if secondary_actions %}
+    <div class="empty-state__secondary-actions">
+      {% for action in secondary_actions %}
+      <a href="{{ action.url }}" class="btn btn--secondary btn--sm">
+        {% if action.icon %}<i class="{{ action.icon }}"></i> {% endif %}
+        {{ action.text }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>

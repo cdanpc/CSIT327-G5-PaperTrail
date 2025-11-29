@@ -7,7 +7,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Font family inherited from globals.css */
     background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
     color: #2d3748;
     overflow-x: hidden;
@@ -260,50 +260,145 @@ body {
     box-shadow: 0 4px 8px rgba(164, 74, 63, 0.3);
 }
 
-/* ==================== RESOURCE CARDS ==================== */
-.resource-card {
-    background-color: white;
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    cursor: pointer;
+/* ==================== LEGACY RESOURCE CARDS - REMOVED ==================== */
+/* These styles are replaced by the new .study-card component system */
+/* See components.css for the unified card styling */
+
+/* Dashboard Header */
+.dashboard-header {
     display: flex;
-    gap: 0.875rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
-.resource-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-}
-
-/* Resource Icon */
-.resource-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
+.dashboard-title-section {
     display: flex;
     align-items: center;
+    gap: 0.75rem;
+    flex: 0 0 auto;
+    min-width: 200px;
+}
+
+/* Back Link Component */
+.back-link {
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    font-size: 1.35rem;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background-color: transparent;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: all var(--transition-base);
+    font-size: 1.25rem;
+}
+
+.back-link:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    transform: translateX(-2px);
+}
+
+.back-link:active {
+    transform: translateX(-2px) scale(0.95);
+}
+
+.dashboard-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0;
+}
+
+.dashboard-date {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.dashboard-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+    margin-left: auto;
+}
+
+/* Inline Search Box */
+.search-box-inline {
+    position: relative;
+    width: 250px;
+}
+
+.search-box-inline i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #667eea;
+    font-size: 0.875rem;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.search-box-inline input {
+    width: 100%;
+    height: 44px;
+    padding: 0.625rem 0.875rem 0.625rem 2.75rem;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 12px;
+    font-size: 0.875rem;
+    background-color: rgba(102, 126, 234, 0.05);
+    transition: all 0.3s ease;
+    color: #1e293b;
+}
+
+.search-box-inline input::placeholder {
+    color: #94a3b8;
+}
+
+.search-box-inline input:focus {
+    outline: none;
+    border-color: #667eea;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Icon Button (Notification Bell) */
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    background-color: rgba(102, 126, 234, 0.05);
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    color: #667eea;
     flex-shrink: 0;
 }
 
-.pdf-icon {
-    background-color: rgba(164, 74, 63, 0.1);
-    color: var(--color-accent-10);
+.icon-btn:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.quiz-icon {
-    background-color: rgba(200, 230, 201, 0.5);
-    color: #4CAF50;
+.profile-link {
+    text-decoration: none;
+    transition: transform 0.2s ease;
 }
 
-/* flashcard-icon moved to flashcards.css */
-
-/* Resource Info */
-.resource-info {
-    flex: 1;
+.profile-link:hover {
+    transform: scale(1.05);
 }
 
 .resource-type {
@@ -798,93 +893,8 @@ body {
     font-size: 0.95rem;
 }
 
-/* New Resource Cards */
-.resource-card-new {
-    background: white;
-    border: 1px solid rgba(102, 126, 234, 0.15);
-    border-radius: 12px;
-    padding: 1.25rem;
-    display: flex;
-    gap: 1rem;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    cursor: pointer;
-}
-
-.resource-card-new:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
-    border-color: #667eea;
-}
-
-.resource-icon-new {
-    width: 45px;
-    height: 45px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    flex-shrink: 0;
-    transition: all 0.3s ease;
-}
-
-.resource-card-new:hover .resource-icon-new {
-    transform: scale(1.1) rotate(5deg);
-}
-
-.pdf-icon {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-    color: #667eea;
-}
-
-.quiz-icon {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(72, 187, 120, 0.12) 100%);
-    color: #48bb78;
-}
-
-.resource-info-new {
-    flex: 1;
-    min-width: 0;
-}
-
-.resource-type-new {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #6c757d;
-    margin-bottom: 0.25rem;
-    letter-spacing: 0.5px;
-}
-
-.resource-title-new {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 0.25rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.resource-subject-new {
-    font-size: 0.8rem;
-    color: #6c757d;
-    margin-bottom: 0.5rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.resource-meta-new {
-    display: flex;
-    gap: 1rem;
-    font-size: 0.75rem;
-    color: #6c757d;
-}
-
-.resource-meta-new i {
-    margin-right: 0.25rem;
-}
+/* ==================== LEGACY RESOURCE CARDS - REMOVED ==================== */
+/* Replaced by .study-card component - see components.css */
 
 /* Activity Items */
 .activity-item {

@@ -1,0 +1,94 @@
+{% comment %}
+Base Profile Header Component
+Displays user photo, name, role badge, and tagline
+Can be extended with role-specific badges and information
+{% endcomment %}
+
+<div class="profile-card profile-header-card">
+    <div class="profile-header-content">
+        <!-- Profile Photo with Edit Overlay -->
+        <div class="profile-photo-wrapper">
+            <img id="profileImage" 
+                 src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&size=150&background=667eea&color=fff{% endif %}" 
+                 alt="Profile Photo" 
+                 class="profile-photo-xl">
+            {% if is_own_profile %}
+            <div class="photo-edit-overlay" onclick="document.getElementById('photoUploadForm').querySelector('input[type=file]').click()">
+                <i class="fas fa-camera"></i>
+                <span class="edit-text">Edit</span>
+            </div>
+            <form id="photoUploadForm" method="post" enctype="multipart/form-data" action="{% url 'accounts:profile' %}" style="display: none;">
+                {% csrf_token %}
+                <input type="hidden" name="first_name" value="{{ user.first_name }}">
+                <input type="hidden" name="last_name" value="{{ user.last_name }}">
+                <input type="hidden" name="personal_email" value="{{ user.personal_email }}">
+                <input type="hidden" name="phone" value="{{ user.phone|default:'' }}">
+                <input type="hidden" name="univ_email" value="{{ user.univ_email }}">
+                <input type="hidden" name="stud_id" value="{{ user.stud_id }}">
+                <input type="hidden" name="department" value="{{ user.department|default:'' }}">
+                <input type="hidden" name="year_level" value="{{ user.year_level|default:'' }}">
+                <input type="hidden" name="bio" value="{{ user.bio|default:'' }}">
+                <input type="hidden" name="tagline" value="{{ user.tagline|default:'' }}">
+                <input type="file" id="photoUpload" name="profile_picture" accept="image/*" onchange="this.form.submit()">
+            </form>
+            {% endif %}
+        </div>
+        
+        <!-- User Identity Section -->
+        <div class="profile-identity">
+            <div class="profile-name-row">
+                <h2 class="profile-name">{{ user.get_full_name|default:user.username }}</h2>
+                {% if user.achievements.all|length > 0 %}
+                <span class="verified-badge" title="Verified User">
+                    <i class="fas fa-check-circle"></i>
+                </span>
+                {% endif %}
+            </div>
+            
+            <!-- Tagline & Role -->
+            <div class="profile-tagline-section">
+                {% if user.tagline %}
+                <p class="profile-tagline">{{ user.tagline }}</p>
+                {% elif is_own_profile %}
+                <p class="profile-tagline empty" onclick="toggleEditMode('taglineEdit')">
+                    <i class="fas fa-plus-circle"></i> Add tagline
+                </p>
+                {% endif %}
+                
+                <span class="profile-role-badge profile-role-badge--{{ user_role }}">
+                    {% if user.is_staff or user.is_superuser %}
+                    <i class="fas fa-crown"></i> Admin
+                    {% elif user.is_professor %}
+                    <i class="fas fa-chalkboard-teacher"></i> Professor
+                    {% else %}
+                    <i class="fas fa-user-graduate"></i> Student
+                    {% endif %}
+                </span>
+            </div>
+            
+            <!-- Contact Info -->
+            <div class="profile-contact-row">
+                {% if user.univ_email %}
+                <span class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    {{ user.univ_email }}
+                </span>
+                {% endif %}
+                
+                {% if user.department %}
+                <span class="contact-item">
+                    <i class="fas fa-building"></i>
+                    {{ user.department }}
+                </span>
+                {% endif %}
+                
+                {% if user.stud_id %}
+                <span class="contact-item">
+                    <i class="fas fa-id-card"></i>
+                    {{ user.stud_id }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

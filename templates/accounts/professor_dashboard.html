@@ -36,12 +36,14 @@
                         <button class="icon-btn" data-feature="coming-soon" aria-label="Notifications">
                             <i class="fas fa-bell"></i>
                         </button>
-                        <!-- Profile Icon -->
-                        <a href="{% url 'accounts:profile' %}" class="icon-btn" aria-label="Profile" style="margin-left: 8px;">
-                            {% if request.user.profile_pic %}
-                                <img src="{{ request.user.profile_pic.url }}" alt="Profile" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;">
+                        <!-- Profile -->
+                        <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-2 profile-link" title="Profile" style="text-decoration:none;">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
                             {% else %}
-                                <i class="fas fa-user-circle" style="font-size: 1.7rem;"></i>
+                                <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:34px; height:34px; color:white;">
+                                    <i class="fas fa-user"></i>
+                                </span>
                             {% endif %}
                         </a>
                     </div>
@@ -100,7 +102,7 @@
                                 {% if professor_resources %}
                                     <span class="badge bg-info text-dark mt-2">{{ professor_resources.count }} uploaded</span>
                                 {% else %}
-                                    <span class="badge bg-secondary mt-2">No resources yet</span>
+                                    <p class="text-muted mb-3">You have no uploaded resources</p>
                                 {% endif %}
                             </div>
                         </a>
@@ -122,7 +124,7 @@
                         </a>
                     </div>
                     <div class="col-lg-4 col-md-6">
-                        <div class="card dashboard-card">
+                        <a href="{% url 'quizzes:quiz_create' %}" class="card dashboard-card" style="text-decoration: none; color: inherit;">
                             <div class="card-body text-center">
                                 <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
                                     <i class="fas fa-file-alt"></i>
@@ -132,13 +134,10 @@
                                 {% if quizzes %}
                                     <span class="badge bg-info text-dark mt-2">{{ quizzes.count }} quizzes</span>
                                 {% else %}
-                                    <span class="badge bg-secondary mt-2">No quizzes yet</span>
+                                    <p class="text-muted mb-3">You have not created a quiz yet</p>
                                 {% endif %}
-                                <button class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600;" data-feature="in-progress">
-                                    <i class="fas fa-plus"></i> Create
-                                </button>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 </div>
                 
@@ -147,10 +146,10 @@
                     <!-- Left Column: Pending Verifications -->
                     <div class="col-lg-6">
                         <div class="card dashboard-card">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">Pending Verifications</h5>
-                                <a href="{% url 'resources:moderation_list' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
-                                    View All
+                                <a href="{% url 'resources:moderation_list' %}" class="text-decoration-none" style="color: #667eea; font-weight: 600; font-size: 0.875rem;">
+                                    View All>>
                                 </a>
                             </div>
                             <div class="card-body">
@@ -232,10 +231,10 @@
                     <!-- Right Column: My Resources -->
                     <div class="col-lg-6">
                         <div class="card dashboard-card">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">My Resources</h5>
-                                <a href="{% url 'resources:my_resources' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
-                                    View All
+                                <a href="{% url 'resources:my_resources' %}" class="text-decoration-none" style="color: #667eea; font-weight: 600; font-size: 0.875rem;">
+                                    View All>>
                                 </a>
                             </div>
                             <div class="card-body">
@@ -280,10 +279,10 @@
                 <div class="row g-3 mt-3">
                     <div class="col-12">
                         <div class="card dashboard-card">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">Recently Verified Resources</h5>
-                                <a href="{% url 'resources:verified_resources_list' %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
-                                    View All
+                                <a href="{% url 'resources:verified_resources_list' %}" class="text-decoration-none" style="color: #667eea; font-weight: 600; font-size: 0.875rem;">
+                                    View All>>
                                 </a>
                             </div>
                             <div class="card-body">

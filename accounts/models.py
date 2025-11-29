@@ -74,7 +74,7 @@ class User(AbstractUser):
 
     # Preferences (Phase 3)
     DASHBOARD_CHOICES = [
-        ('student', 'Student Dashboard'),
+        ('student', 'Main Dashboard'),
         ('overview', 'Overview'),
         ('resources', 'Resources'),
         ('quizzes', 'Quizzes'),
@@ -296,53 +296,6 @@ class User(AbstractUser):
         return achievement
 
 
-class PasswordResetToken(models.Model):
-    """Model to store password reset tokens"""
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
-    email = models.EmailField(help_text='Email where the link was sent')
-    token = models.CharField(max_length=100, unique=True, help_text='Unique reset token', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(help_text='Token expires 1 hour after creation')
-    is_used = models.BooleanField(default=False, help_text='Whether the token has been used')
-    
-    class Meta:
-        db_table = 'accounts_password_reset_token'
-        verbose_name = 'Password Reset Token'
-        verbose_name_plural = 'Password Reset Tokens'
-        ordering = ['-created_at']
-    
-    def save(self, *args, **kwargs):
-        # Generate token if not set
-        if not self.token:
-            self.token = self.generate_token()
-        # Set expiry to 1 hour from creation
-        if not self.expires_at:
-            self.expires_at = timezone.now() + timedelta(hours=1)
-        super().save(*args, **kwargs)
-    
-    @staticmethod
-    def generate_token():
-        """Generate a secure random token"""
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=64))
-    
-    def is_valid(self):
-        """Check if the token is still valid (not expired and not used)"""
-        if self.is_used:
-            return False
-        if timezone.now() > self.expires_at:
-            return False
-        return True
-    
-    def mark_as_used(self):
-        """Mark the token as used"""
-        self.is_used = True
-        self.save()
-    
-    def __str__(self):
-        return f"Reset token for {self.user.get_display_name()} ({'Used' if self.is_used else 'Active' if self.is_valid() else 'Expired'})"
-
-
 class Badge(models.Model):
     """Model for profile badges"""
     
@@ -512,3 +465,152 @@ class UserPreferences(models.Model):
 
     def __str__(self):
         return f"Preferences for {self.user.get_display_name()}"
+
+
+class Notification(models.Model):
+    """Stores user notifications for various events."""
+    
+    NOTIFICATION_TYPES = [
+        # Student notifications
+        ('new_upload', 'New Upload'),
+        ('new_comment', 'New Comment'),
+        ('new_rating', 'New Rating'),
+        ('verification_approved', 'Verification Approved'),
+        ('verification_rejected', 'Verification Rejected'),
+        ('new_bookmark', 'New Bookmark'),
+        ('quiz_attempt', 'Quiz Attempt'),
+        # Professor notifications
+        ('content_review', 'Content Review Required'),
+        ('student_question', 'Student Question'),
+        ('new_enrollment', 'New Enrollment'),
+        # Admin notifications
+        ('new_user_registration', 'New User Registration'),
+        ('reported_content', 'Reported Content'),
+        ('system_alert', 'System Alert'),
+        ('password_reset_request', 'Password Reset Request'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES)
+    message = models.TextField()
+    url = models.URLField(blank=True, null=True, help_text='Link to related content')
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Generic foreign key fields for flexibility
+    related_object_type = models.CharField(
+        max_length=50, 
+        blank=True, 
+        null=True,
+        help_text='Type of related object (resource, quiz, flashcard, etc.)'
+    )
+    related_object_id = models.PositiveIntegerField(
+        blank=True, 
+        null=True,
+        help_text='ID of the related object'
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'is_read']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_type_display()} for {self.user.get_display_name()}"
+    
+    def mark_as_read(self):
+        """Mark notification as read."""
+        if not self.is_read:
+            self.is_read = True
+            self.save(update_fields=['is_read'])
+
+
+class PasswordResetToken(models.Model):
+    """Model to store password reset tokens for users"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='password_reset_token')
+    token = models.CharField(max_length=6, unique=True)  # 6-digit code
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    
+    class Meta:
+        verbose_name = 'Password Reset Token'
+        verbose_name_plural = 'Password Reset Tokens'
+    
+    def __str__(self):
+        return f"Reset token for {self.user.get_display_name()}"
+    
+    def is_valid(self):
+        """Check if token is still valid (not expired and not used)"""
+        return timezone.now() <= self.expires_at and not self.is_used
+    
+    @staticmethod
+    def generate_token():
+        """Generate a random 6-digit code"""
+        return ''.join(random.choices(string.digits, k=6))
+    
+    @staticmethod
+    @staticmethod
+    def create_for_user(user):
+        """Create a new password reset token for a user"""
+        # Delete existing token if any
+        PasswordResetToken.objects.filter(user=user).delete()
+        
+        # Create new token (valid for 15 minutes)
+        token = PasswordResetToken.generate_token()
+        reset_token = PasswordResetToken.objects.create(
+            user=user,
+            token=token,
+            expires_at=timezone.now() + timedelta(minutes=15)
+        )
+        return reset_token
+
+
+class PasswordResetRequest(models.Model):
+    """Model to track admin password reset requests"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('denied', 'Denied'),
+        ('completed', 'Completed'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_requests')
+    contact_info = models.CharField(max_length=255, help_text='Email or phone number provided by user')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_reset_requests')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True, help_text='Admin notes about the request')
+    temporary_password = models.CharField(max_length=20, blank=True, help_text='Temporary password generated by admin')
+    
+    class Meta:
+        verbose_name = 'Password Reset Request'
+        verbose_name_plural = 'Password Reset Requests'
+        ordering = ['-requested_at']
+    
+    def __str__(self):
+        return f"Reset request for {self.user.get_display_name()} - {self.get_status_display()}"
+    
+    def approve(self, admin_user, temp_password):
+        """Approve the reset request and generate temporary password"""
+        self.status = 'approved'
+        self.reviewed_by = admin_user
+        self.reviewed_at = timezone.now()
+        self.temporary_password = temp_password
+        self.save()
+    
+    def deny(self, admin_user, notes=''):
+        """Deny the reset request"""
+        self.status = 'denied'
+        self.reviewed_by = admin_user
+        self.reviewed_at = timezone.now()
+        self.notes = notes
+        self.save()
+    
+    def complete(self):
+        """Mark request as completed after password is reset"""
+        self.status = 'completed'
+        self.save()

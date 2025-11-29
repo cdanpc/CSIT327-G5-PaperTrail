@@ -69,4 +69,7 @@ The application will be available at `http://localhost:8000`
 
 The application is currently in development. Deployment link is available below:
 
+(https://csit327-g5-papertrail-1.onrender.com/)
+
+Fork:
 (https://papertrail-6jxj.onrender.com/)

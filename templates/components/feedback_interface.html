@@ -1,0 +1,64 @@
+{% comment %}
+  Feedback Interface Component
+  
+  Purpose: Displays comments list only (comment form is now a sticky bottom bar)
+  Reusable for: Resource, Quiz, Deck detail pages
+  
+  Required Context Variables:
+    - item_id: ID of the item being rated/commented on
+    - item_type: Type of item ('resource', 'quiz', 'deck')
+    - comment_url: URL for comment submission
+    - delete_comment_url_name: URL name for comment deletion
+    - comments: QuerySet or list of comment objects
+    - show_comments: Boolean to show/hide comments section
+    - current_user: Current user object
+{% endcomment %}
+
+<div id="feedback-section" class="ri-card mt-3">
+  {% if show_comments %}
+  <div class="mt-3">
+    <h6 class="page-meta mb-1">Comments</h6>
+    
+    {% if comments %}
+      {% for comment in comments %}
+        {% if not comment.parent_comment %}
+          {% include 'components/comment_post.html' with comment=comment delete_url_name=delete_comment_url_name current_user=current_user show_replies=True %}
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <p class="text-muted mb-0">No comments yet. Be the first to share your thoughts!</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% comment %}
+  Sticky Comment Submission Bar
+  Scroll-aware positioning with integrated submit icon
+{% endcomment %}
+<div id="sticky-comment-bar-wrapper">
+  <form method="post" action="{{ comment_url }}" class="sticky-comment-form" id="commentForm">
+    {% csrf_token %}
+    <input type="hidden" name="parent_comment_id" id="parentCommentId" value="">
+    
+    <div class="sticky-comment-form__content">
+      <div class="integrated-input-container">
+        <textarea 
+          name="text" 
+          class="form-control" 
+          rows="1" 
+          placeholder="Share your thoughts..." 
+          required 
+          id="commentText">
+        </textarea>
+        <button type="submit" class="submit-icon-btn" aria-label="Submit comment">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+      
+      <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="cancelReplyBtn">
+        <i class="fas fa-times"></i> Cancel Reply
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,20 +1,9 @@
-.bookmarks-header-row { margin-top:1.25rem; }
 /* Resources module shared styles */
 
-/* Global button sizing token */
-:root { --btn-h: 40px; }
-
-/* Buttons */
-.btn-gradient-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff !important;
-  border: none;
-}
-.btn-outline-primary-soft {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea !important;
-  border: 1px solid rgba(102, 126, 234, 0.2);
-}
+/* ========== LEGACY BUTTONS - REMOVED ========== */
+/* Button styles moved to components.css */
+/* Use .btn--primary, .btn--secondary, .btn-pill classes instead */
+/* Button height now defined in globals.css as --btn-height: 40px */
 
 /* Badges */
 .badge-verified {
@@ -111,7 +100,6 @@
 .resources-filter-bar { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
 .search-pill-new { display:flex; align-items:center; background:#eef1f6; padding:.5rem .75rem; border-radius:14px; width:240px; max-width:100%; }
 .search-pill-new input { border:0; background:transparent; flex:1; font-size:.75rem; outline:none; }
-.filter-select { background:#fff; border:1px solid rgba(102,126,234,.25); border-radius:10px; padding:.5rem .75rem; font-size:.7rem; }
 /* --- Custom Dropdown Redesign (progressive enhancement) --- */
 .filter-dd { position:relative; display:inline-block; font-size:.7rem; }
 .filter-dd-trigger { background:#ffffff; border:1px solid rgba(102,126,234,.25); padding:.55rem .9rem; border-radius:12px; font-weight:600; display:inline-flex; align-items:center; gap:.5rem; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,.06); transition:.25s; color:#334155; }
@@ -137,28 +125,7 @@
 .resources-subtitle-row { margin-top: 0; }
 .resources-tabs-row { margin-top:1.5rem; }
 .resources-tabs { display:flex; gap:.6rem; }
-.rtab { background:#fff; border:1px solid rgba(102,126,234,.35); color:#667eea; font-size:.65rem; font-weight:600; padding:.45rem .9rem; border-radius:999px; cursor:pointer; transition:.25s; box-shadow:0 2px 4px rgba(0,0,0,.08); }
-.resources-tabs a.rtab { text-decoration:none; }
-.resources-tabs a.rtab:hover { text-decoration:none; }
-.rtab:hover { background:rgba(102,126,234,.08); }
-.resources-tabs .upload-inline-btn {
-  background: linear-gradient(135deg,#667eea,#764ba2);
-  color:#fff;
-  border: none;
-  padding: 0.45rem 0.85rem;
-  font-size: .75rem;
-  font-weight:600;
-  border-radius: 6px;
-  text-decoration:none;
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  transition:.25s ease;
-}
-.resources-tabs .upload-inline-btn:hover { filter: brightness(1.08); transform: translateY(-2px); }
-.resources-tabs .upload-inline-btn:active { transform: translateY(0); }
-.rtab.active { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border-color:transparent; box-shadow:0 6px 14px rgba(102,126,234,.25); }
-.rtab:focus-visible { outline:2px solid rgba(102,126,234,.6); outline-offset:2px; }
+/* Legacy .rtab styles removed - use .btn-tab from components.css instead */
 .resources-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1.25rem; margin-top:1rem; }
 .res-card { background:linear-gradient(135deg, rgba(102,126,234,.06), rgba(118,75,162,.06)); border:1px solid rgba(102,126,234,.15); border-radius:16px; padding:1rem .9rem .85rem; min-height:180px; display:flex; flex-direction:column; gap:.55rem; text-decoration:none; color:#111; position:relative; transition:.25s; }
 .res-card:hover { transform:translateY(-4px); box-shadow:0 10px 24px rgba(102,126,234,.18); border-color:#667eea; }
@@ -180,37 +147,8 @@
 .upload-inline:hover { text-decoration:underline; }
 .pagination-wrap { margin-top:1.75rem; }
 
-/* ============== Redesigned Resource Cards (v2) ============== */
-.resource-card-v2 { background:#ffffff; border:1px solid rgba(102,126,234,.25); border-radius:14px; padding:1.05rem 1.05rem .85rem; display:flex; flex-direction:column; gap:.65rem; position:relative; transition:.25s; }
-.resource-card-v2:hover { box-shadow:0 6px 18px rgba(102,126,234,.25); border-color:#667eea; transform:translateY(-3px); }
-.rcv2-head { display:flex; justify-content:space-between; align-items:center; }
-.rcv2-type { font-size:.6rem; font-weight:600; padding:.25rem .5rem; border:1px solid rgba(102,126,234,.35); color:#667eea; background:rgba(102,126,234,.06); border-radius:999px; letter-spacing:.5px; }
-.rcv2-bookmark-indicator { display:inline-flex; align-items:center; justify-content:center; font-size:.9rem; color:#667eea; padding:2px 4px; }
-.rcv2-bookmark-indicator .fa-bookmark { transition:color .25s ease, transform .25s ease; }
-.rcv2-bookmark-indicator .fas.fa-bookmark { color:#5b55e7; }
-.rcv2-remove-indicator { display:inline-flex; align-items:center; justify-content:center; font-size:.9rem; color:#dc3545; padding:2px 4px; cursor:pointer; transition:color .25s ease, transform .25s ease; }
-.rcv2-remove-indicator:hover { color:#b30014; transform:scale(1.05); }
-.rcv2-remove-indicator:active { transform:scale(.92); }
-.rcv2-body { text-decoration:none; color:#111; display:flex; flex-direction:column; gap:.4rem; }
-.rcv2-icon-wrapper { position:relative; width:38px; height:38px; }
-.rcv2-icon { width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; box-shadow:0 3px 8px rgba(0,0,0,.12); }
-.rcv2-verify-badge, .rcv2-pending-badge { position:absolute; bottom:-6px; right:-6px; width:18px; height:18px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.6rem; color:#fff; }
-.rcv2-verify-badge { background:linear-gradient(135deg,#34d399,#10b981); }
-.rcv2-pending-badge { background:linear-gradient(135deg,#c3b5ff,#a48bfa); }
-.rcv2-title { font-size:.95rem; font-weight:600; line-height:1.25; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.rcv2-body .rcv2-metrics { margin-top:.15rem; }
-.rcv2-metrics { display:flex; gap:.85rem; font-size:.65rem; color:#444; font-weight:500; }
-.rcv2-metrics span { display:inline-flex; align-items:center; gap:4px; }
-.rcv2-tags { display:flex; flex-wrap:wrap; gap:4px; }
-.rcv2-tag { background:rgba(102,126,234,.12); color:#667eea; font-size:.5rem; padding:.2rem .4rem; border-radius:6px; font-weight:600; letter-spacing:.3px; }
-.rcv2-tag.more { background:rgba(118,75,162,.15); color:#764ba2; }
-.rcv2-footer { margin-top:.25rem; padding-top:.45rem; border-top:1px solid rgba(0,0,0,.05); display:flex; justify-content:space-between; align-items:center; font-size:.55rem; color:#555; }
-.rcv2-author { max-width:55%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.rcv2-age { opacity:.8; }
-@media (max-width: 575px){
-  .resource-card-v2 { padding:.85rem .85rem .7rem; }
-  .rcv2-title { font-size:.8rem; }
-}
+/* ============== LEGACY Resource Cards (v2) - REMOVED ============== */
+/* Replaced by .study-card component system - see components.css */
 
 /* ===== Resource Detail v2 (rd2) ===== */
 .rd2-hero { display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem; }
@@ -246,10 +184,65 @@
 .ri-icon-btn { background:rgba(102,126,234,.08); border:1px solid rgba(102,126,234,.25); width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; color:#667eea; font-size:1rem; line-height:1; cursor:pointer; transition:.25s; text-decoration:none; }
 .ri-icon-btn:hover { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(102,126,234,.35); }
 .ri-icon-btn:focus-visible { outline:2px solid rgba(102,126,234,.6); outline-offset:2px; }
-.btn-pill { border-radius:999px; padding:.55rem 1rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; min-height:var(--btn-h); }
+/* .btn-pill styles moved to components.css */
 .ri-overview { display:flex; flex-direction:column; gap:.5rem; }
 .ri-overview .row-item { display:flex; justify-content:space-between; align-items:center; font-size:.85rem; background:rgba(102,126,234,.06); padding:.45rem .6rem; border-radius:10px; }
 .ri-overview .label { color:#475569; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
 .ri-overview .value { font-weight:700; color:#1e293b; }
 .ri-taglist { display:flex; flex-wrap:wrap; gap:.4rem; }
 .ri-tag { background:rgba(102,126,234,.12); color:#667eea; font-size:.65rem; padding:.3rem .55rem; border-radius:999px; font-weight:700; }
+/* Tags Scroll Container */
+.tags-scroll-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    background: rgba(102, 126, 234, 0.02);
+}
+
+.tags-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tags-scroll-container::-webkit-scrollbar-track {
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 3px;
+}
+
+.tags-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 3px;
+}
+
+.tags-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.4);
+}
+
+/* Custom spacing for tags checkboxes */
+.tags-scroll-container .form-check {
+    display: flex;
+    align-items: center;
+    padding-left: 0; /* Override Bootstrap's default padding */
+    margin-bottom: 0.5rem;
+}
+
+.tags-scroll-container .form-check-input {
+    float: none;
+    margin-left: 0;
+    margin-right: 0.75rem; /* Space between checkbox and text */
+    margin-top: 0;
+}
+
+.tags-scroll-container .form-check-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Like Button */
+.liked {
+  color: #e74c3c !important;
+}
+.unliked {
+  color: #ccc !important;
+}

@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db import OperationalError
 from django.utils import timezone
 from django.db.models import Q
-from .models import Resource, Tag, Bookmark, Rating, Comment
+from .models import Resource, Tag, Bookmark, Rating, Comment, Like
 from .forms import ResourceUploadForm, RatingForm, CommentForm
 from .supabase_storage import supabase_storage
 from django.utils.timesince import timesince
@@ -110,9 +110,100 @@ def resource_detail(request, pk):
     if request.user.is_authenticated:
         is_bookmarked = Bookmark.objects.filter(user=request.user, resource=resource).exists()
 
+    # Get user's rating if exists
+    user_rating = None
+    if request.user.is_authenticated and request.user != resource.uploader:
+        user_rating = Rating.objects.filter(user=request.user, resource=resource).first()
+
+    # Get all comments for this resource
+    comments = Comment.objects.filter(resource=resource).select_related('user').order_by('-created_at')
+
+    # Get like status
+    user_has_liked = False
+    if request.user.is_authenticated:
+        user_has_liked = Like.objects.filter(user=request.user, resource=resource).exists()
+
+    # === Component Context Variables ===
+    
+    # 1. Header Card Component
+    status_tags = []
+    if resource.verification_status == 'verified':
+        status_tags.append({'label': 'Verified', 'class': 'badge-verified', 'icon': 'check-circle'})
+    elif resource.verification_status == 'pending':
+        if request.user == resource.uploader or getattr(request.user, 'is_professor', False):
+            status_tags.append({'label': 'Pending', 'class': 'badge-pending', 'icon': 'clock'})
+    
+    if resource.is_public:
+        status_tags.append({'label': 'Public', 'class': 'bg-success', 'icon': 'globe'})
+    else:
+        status_tags.append({'label': 'Private', 'class': 'bg-secondary', 'icon': 'lock'})
+    
+    # Icon mapping for resource types
+    resource_icon_map = {
+        'pdf': 'file-pdf',
+        'image': 'image',
+        'ppt': 'file-powerpoint',
+        'pptx': 'file-powerpoint',
+        'docx': 'file-word',
+        'txt': 'file-lines',
+        'link': 'link',
+    }
+    resource_icon = resource_icon_map.get(resource.resource_type, 'file-alt')
+    
+    # Primary action button
+    primary_action = {}
+    if resource.file_url:
+        primary_action = {
+            'url': f'/resources/{resource.pk}/download/',
+            'text': 'Download',
+            'icon': 'download'
+        }
+    elif resource.external_url:
+        primary_action = {
+            'url': resource.external_url,
+            'text': 'Open Link',
+            'icon': 'external-link-alt',
+            'target': '_blank'
+        }
+    
+    # Edit URL
+    edit_url = f'/resources/{resource.pk}/edit/' if request.user == resource.uploader else None
+    is_owner = request.user == resource.uploader
+    
+    # Bookmark URL
+    bookmark_url = f'/bookmarks/toggle/{resource.pk}/'
+    
+    # 2. Metadata Overview Component
+    # Like status is now handled in the header, so we pass it to context
+    
+    metadata_items = [
+        {'icon': 'fa-user', 'label': 'Uploaded by', 'value': resource.uploader.get_display_name()},
+        {'icon': 'fa-calendar', 'label': 'Date', 'value': resource.created_at.strftime('%b %d, %Y')},
+        {'icon': 'fa-download', 'label': 'Downloads', 'value': str(resource.download_count)},
+        {'icon': 'fa-file', 'label': 'File Size', 'value': f'{resource.file_size // 1024} KB' if resource.file_size else 'N/A'},
+    ]
+    
+    # 3. Feedback Interface Component
+    rate_url = f'/resources/{resource.pk}/rate/'
+    comment_url = f'/resources/{resource.pk}/comment/'
+
     context = {
         'resource': resource,
+        'user_has_liked': user_has_liked,
         'is_bookmarked': is_bookmarked,
+        'user_rating': user_rating,
+        'comments': comments,
+        'user_has_liked': user_has_liked,
+        # Component context
+        'status_tags': status_tags,
+        'resource_icon': resource_icon,
+        'primary_action': primary_action,
+        'edit_url': edit_url,
+        'is_owner': is_owner,
+        'bookmark_url': bookmark_url,
+        'metadata_items': metadata_items,
+        'rate_url': rate_url,
+        'comment_url': comment_url,
     }
     return render(request, 'resources/resource_detail.html', context)
 
@@ -176,7 +267,29 @@ def resource_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Annotate each resource with user_has_liked status
+    if request.user.is_authenticated:
+        from .models import Like
+        liked_ids = set(Like.objects.filter(user=request.user, resource__in=page_obj.object_list).values_list('resource_id', flat=True))
+        for resource in page_obj.object_list:
+            resource.user_has_liked = resource.pk in liked_ids
+    else:
+        for resource in page_obj.object_list:
+            resource.user_has_liked = False
+    
     tags_list = Tag.objects.all().order_by('name')
+    
+    # Resource type filter options for component
+    resource_type_options = [
+        {'value': 'pdf', 'label': 'PDF'},
+        {'value': 'ppt', 'label': 'PPT'},
+        {'value': 'pptx', 'label': 'PPTX'},
+        {'value': 'docx', 'label': 'DOCX'},
+        {'value': 'image', 'label': 'Image'},
+        {'value': 'link', 'label': 'Link'},
+        {'value': 'txt', 'label': 'Text'},
+    ]
+    
     context = {
         'resources': page_obj,
         'search_query': search_query,
@@ -186,6 +299,7 @@ def resource_list(request):
             .values_list('resource_id', flat=True)
         ) if request.user.is_authenticated else set(),
         'tags_list': tags_list,
+        'resource_type_options': resource_type_options,
     }
     return render(request, 'resources/resource_list.html', context)
 
@@ -267,8 +381,8 @@ def resource_list_api(request):
 
 @login_required
 def moderation_list(request):
-    """List pending resources, quizzes, and flashcards for professors to review"""
-    if not getattr(request.user, 'is_professor', False):
+    """List pending resources, quizzes, and flashcards for professors and admins to review"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to access moderation.')
         return redirect('resources:resource_list')
     
@@ -289,8 +403,8 @@ def moderation_list(request):
 
 @login_required
 def verified_resources_list(request):
-    """List recently verified resources for professors"""
-    if not getattr(request.user, 'is_professor', False):
+    """List recently verified resources for professors and admins"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('resources:resource_list')
     verified = Resource.objects.filter(
@@ -302,8 +416,8 @@ def verified_resources_list(request):
 
 @login_required
 def approve_resource(request, pk):
-    """Approve and verify a resource (professors only)"""
-    if not getattr(request.user, 'is_professor', False):
+    """Approve and verify a resource (professors and admins)"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to perform this action.')
         return redirect('resources:resource_list')
     resource = get_object_or_404(Resource, pk=pk)
@@ -324,8 +438,8 @@ def approve_resource(request, pk):
 
 @login_required
 def reject_resource(request, pk):
-    """Reject a resource (professors only)"""
-    if not getattr(request.user, 'is_professor', False):
+    """Reject a resource (professors and admins)"""
+    if not (request.user.is_professor or request.user.is_staff or request.user.is_superuser):
         messages.error(request, 'You do not have permission to perform this action.')
         return redirect('resources:resource_list')
     resource = get_object_or_404(Resource, pk=pk)
@@ -470,38 +584,70 @@ def resource_delete(request, pk):
 
 @login_required
 def resource_download(request, pk):
-    """Track download and redirect to file"""
+    """Track download and serve file securely or redirect to external URL"""
+    from django.http import FileResponse
+    import mimetypes
+    import urllib.parse
+    
     resource = get_object_or_404(Resource, pk=pk)
     
     # Restrict access to private resources to uploader only
     if not resource.is_public and resource.uploader != request.user:
         messages.error(request, 'This resource is private.')
         return redirect('resources:resource_list')
+    
+    # Restrict access to unverified resources
+    if resource.verification_status != 'verified':
+        if not (resource.uploader == request.user or getattr(request.user, 'is_professor', False)):
+            messages.error(request, 'This resource is pending verification.')
+            return redirect('resources:resource_list')
     
     # Increment download count
     resource.increment_download_count()
     
-    # Redirect to file URL
-    if resource.file_url:
-        return redirect(resource.file_url)
-    elif resource.external_url:
+    # For external URLs, redirect directly
+    if resource.external_url:
         return redirect(resource.external_url)
-    else:
-        messages.error(request, 'No file available for download.')
-        return redirect('resources:resource_detail', pk=pk)
+    
+    # For file URLs (Supabase storage), redirect with download parameter
+    if resource.file_url:
+        # Since files are in Supabase storage, we redirect to the URL
+        # The storage should handle the download with proper headers
+        # If the URL doesn't auto-download, we can add download parameter
+        file_url = resource.file_url
+        
+        # Try to add download parameter if not already present
+        if '?' in file_url:
+            file_url += '&download=true'
+        else:
+            file_url += '?download=true'
+        
+        return redirect(file_url)
+    
+    # No file available
+    messages.error(request, 'No file available for download.')
+    return redirect('resources:resource_detail', pk=pk)
 
 
 @login_required
 def rate_resource(request, pk):
-    """Rate a resource"""
+    """Rate a resource (supports AJAX)"""
     resource = get_object_or_404(Resource, pk=pk)
+    
+    # Check if AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     # Restrict access to private resources to uploader only
     if not resource.is_public and resource.uploader != request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'This resource is private.'}, status=403)
         messages.error(request, 'This resource is private.')
         return redirect('resources:resource_list')
+    
     # Prevent owner from rating own resource
     if resource.uploader == request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'You cannot rate your own resource.'}, status=403)
         messages.error(request, 'You cannot rate your own resource.')
         return redirect('resources:resource_detail', pk=pk)
     
@@ -510,42 +656,44 @@ def rate_resource(request, pk):
         
         # Validate that stars value is provided
         if not stars:
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'Please select a star rating.'}, status=400)
             messages.error(request, 'Please select a star rating before submitting.')
             return redirect('resources:resource_detail', pk=pk)
         
         try:
             stars = int(stars)
             if stars < 1 or stars > 5:
+                if is_ajax:
+                    return JsonResponse({'success': False, 'error': 'Rating must be between 1 and 5 stars.'}, status=400)
                 messages.error(request, 'Rating must be between 1 and 5 stars.')
                 return redirect('resources:resource_detail', pk=pk)
         except (ValueError, TypeError):
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'Invalid rating value.'}, status=400)
             messages.error(request, 'Invalid rating value.')
             return redirect('resources:resource_detail', pk=pk)
         
         # Get or create rating
-        rating, created = Rating.objects.get_or_create(
+        rating, created = Rating.objects.update_or_create(
             user=request.user,
             resource=resource,
             defaults={'stars': stars}
         )
-
-        # Update if already exists
-        if not created:
-            rating.stars = stars
-            rating.save()
-
+        
         action = 'rated' if created else 'updated rating for'
         avg_rating = resource.get_average_rating()
         rating_count = resource.get_rating_count()
 
         # AJAX response
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if is_ajax:
             return JsonResponse({
                 'success': True,
-                'message': f'You {action} "{resource.title}" with {stars} star{"s" if stars != 1 else ""}! ',
+                'message': f'You {action} "{resource.title}" with {stars} star{"s" if stars != 1 else ""}!',
                 'avg_rating': avg_rating,
                 'rating_count': rating_count,
                 'user_stars': rating.stars,
+                'created': created,
             })
 
         messages.success(request, f'You {action} "{resource.title}" with {stars} star{"s" if stars != 1 else ""}!')
@@ -554,15 +702,23 @@ def rate_resource(request, pk):
 
 @login_required
 def add_comment(request, pk):
-    """Add a comment to a resource"""
+    """Add a comment to a resource (supports AJAX)"""
     resource = get_object_or_404(Resource, pk=pk)
+    
+    # Check if AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     # Restrict access to private resources to uploader only
     if not resource.is_public and resource.uploader != request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'This resource is private.'}, status=403)
         messages.error(request, 'This resource is private.')
         return redirect('resources:resource_list')
+    
     # Prevent owner from commenting on own resource
     if resource.uploader == request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'You cannot comment on your own resource.'}, status=403)
         messages.error(request, 'You cannot comment on your own resource.')
         return redirect('resources:resource_detail', pk=pk)
     
@@ -572,9 +728,41 @@ def add_comment(request, pk):
             comment = form.save(commit=False)
             comment.user = request.user
             comment.resource = resource
+            
+            # Handle parent comment for threading
+            parent_id = request.POST.get('parent_comment_id')
+            if parent_id:
+                try:
+                    parent_comment = Comment.objects.get(pk=parent_id, resource=resource)
+                    comment.parent_comment = parent_comment
+                except Comment.DoesNotExist:
+                    pass
+            
             comment.save()
+            
+            # AJAX response with comment data
+            if is_ajax:
+                from django.utils.timesince import timesince
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Comment added successfully!',
+                    'comment': {
+                        'id': comment.id,
+                        'text': comment.text,
+                        'user_name': comment.user.get_display_name(),
+                        'user_initial': comment.user.get_display_name()[0].upper() if comment.user.get_display_name() else 'U',
+                        'is_professor': getattr(comment.user, 'is_professor', False),
+                        'created_at': comment.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                        'created_since': timesince(comment.created_at) + ' ago',
+                        'can_delete': comment.user == request.user,
+                        'delete_url': f'/resources/comment/{comment.id}/delete/',
+                    }
+                })
+            
             messages.success(request, 'Comment added successfully!')
         else:
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'Invalid comment data. Please check your input.'}, status=400)
             messages.error(request, 'Error adding comment.')
     
     return redirect('resources:resource_detail', pk=pk)
@@ -594,4 +782,40 @@ def delete_comment(request, pk):
         messages.error(request, 'You can only delete your own comments.')
     
     return redirect('resources:resource_detail', pk=resource_pk)
+
+
+@login_required
+def toggle_like(request, pk):
+    """Toggle like on a resource (AJAX only)"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
+    
+    resource = get_object_or_404(Resource, pk=pk)
+    
+    # Restrict access to private resources
+    if not resource.is_public and resource.uploader != request.user:
+        return JsonResponse({'success': False, 'error': 'This resource is private.'}, status=403)
+    
+    # Toggle like
+    like, created = Like.objects.get_or_create(user=request.user, resource=resource)
+    
+    if not created:
+        # Unlike
+        like.delete()
+        action = 'unliked'
+        user_has_liked = False
+    else:
+        # Like
+        action = 'liked'
+        user_has_liked = True
+    
+    # Get updated like count
+    like_count = resource.likes.count()
+    
+    return JsonResponse({
+        'success': True,
+        'action': action,
+        'like_count': like_count,
+        'user_has_liked': user_has_liked,
+    })
 

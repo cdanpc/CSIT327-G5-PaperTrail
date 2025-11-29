@@ -1,0 +1,14 @@
+{% comment %}
+Back Link Component
+Reusable back button for navigation
+
+Usage:
+  {% include 'components/back_link.html' with back_url=url_here %}
+  
+Parameters:
+- back_url: Destination URL (required)
+{% endcomment %}
+
+<a href="{{ back_url }}" class="back-link" aria-label="Go back">
+  <i class="fas fa-chevron-left"></i>
+</a>

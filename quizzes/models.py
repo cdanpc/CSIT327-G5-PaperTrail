@@ -147,3 +147,75 @@ class QuizBookmark(models.Model):
         unique_together = ['user', 'quiz']
         ordering = ['-created_at']
 
+
+class QuizRating(models.Model):
+    """User ratings for quizzes"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_ratings')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='ratings')
+    stars = models.PositiveSmallIntegerField(
+        choices=[(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), (4, '4 Stars'), (5, '5 Stars')],
+        help_text='Rating from 1 to 5 stars'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'quiz']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.get_display_name()} rated {self.quiz.title} - {self.stars} stars"
+
+
+class QuizComment(models.Model):
+    """User comments on quizzes with threading support"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_comments')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(help_text='Comment text')
+    
+    # Threading support - allows replies to comments
+    parent_comment = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='replies'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['created_at']  # Chronological for threading
+        indexes = [
+            models.Index(fields=['quiz', 'created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.get_display_name()} on {self.quiz.title}"
+    
+    def is_owner_comment(self):
+        """Check if comment author is the quiz creator"""
+        return self.user == self.quiz.creator
+    
+    def get_reply_count(self):
+        """Get number of direct replies"""
+        return self.replies.count()
+
+
+class QuizLike(models.Model):
+    """User likes for quizzes - replaces attempts counter"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_likes')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'quiz']
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['quiz', 'created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.get_display_name()} likes {self.quiz.title}"
+

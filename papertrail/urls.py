@@ -15,11 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.views.static import serve
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.conf.urls.static import static
+from accounts import views as accounts_views
 
 
 def home_view(request):
@@ -39,6 +41,17 @@ urlpatterns = [
     path('quizzes/', include('quizzes.urls')),
     path('flashcards/', include('flashcards.urls')),
     path('bookmarks/', include('bookmarks.urls')),
+    
+    # Global API endpoints
+    path('api/global-search/', accounts_views.global_search_api, name='global_search_api'),
+    path('api/notifications/unread-count/', accounts_views.notifications_unread_count_api, name='notifications_unread_count_api'),
+    path('api/notifications/unread/', accounts_views.notifications_unread_count_api, name='notifications_unread_api'),
+    path('api/notifications/list/', accounts_views.notifications_list_api, name='notifications_list_api'),
+    path('api/notifications/mark-read/', accounts_views.notifications_mark_read_api, name='notifications_mark_read_api'),
+    path('api/notifications/mark-all-read/', accounts_views.notifications_mark_all_read_api, name='notifications_mark_all_read_api'),
+    # Full-page search route
+    path('search/', accounts_views.global_search_page, name='global_search_page'),
+    
     # Prototype draft dashboard (frontend-only)
     path(
         'prototypes/dashboard/',
@@ -46,8 +59,11 @@ urlpatterns = [
         name='prototype-dashboard'
     ),
     path('', home_view, name='home'),  # Custom home view with authentication check
+    
+    # Force serve media files in both debug and production (for Render ephemeral storage)
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 
-# Serve media files in development
+# Serve static files in development
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

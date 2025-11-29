@@ -1,85 +1,196 @@
 {% extends 'base_dashboard.html' %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}Bookmarks{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
-<style>
-    .bookmarks-header-row { justify-content: space-between; gap: 12px; }
-    .bookmarks-header-row .filter-select { min-width: 220px; }
-    .bookmarks-header-row .filter-form { margin-left: auto; }
-    .resources-grid { margin-top: 12px; }
-</style>
+<link rel="stylesheet" href="{% static 'css/components.css' %}">
 {% endblock %}
 
-{% block page_title %}Bookmarks{% endblock %}
+{% block header %}
+{% include 'components/page_header.html' with page_title="Bookmarks" search_placeholder="Search bookmarks..." search_name="q" search_value=query show_moderate_btn=False %}
+{% endblock %}
 
 {% block content %}
-    <div class="d-flex align-items-center bookmarks-header-row flex-wrap">
-        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
-            <a href="{% url 'resources:resource_list' %}" class="btn-upload-pill btn-pill" title="Browse all resources">Browse Resources</a>
-            <a href="{% url 'flashcards:deck_list' %}" class="btn-upload-pill btn-pill" title="Browse all flashcards">Browse Flashcards</a>
-            <a href="{% url 'quizzes:quiz_list' %}" class="btn-upload-pill btn-pill" title="Browse all quizzes">Browse Quizzes</a>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+        <div class="d-flex align-items-center gap-2 flex-wrap" role="tablist" aria-label="Browse content">
+            <a href="{% url 'resources:resource_list' %}" class="btn-tab" role="tab" title="Browse all resources"><i class="fas fa-folder"></i> Browse Resources</a>
+            <a href="{% url 'flashcards:deck_list' %}" class="btn-tab" role="tab" title="Browse all flashcards"><i class="fas fa-layer-group"></i> Browse Flashcards</a>
+            <a href="{% url 'quizzes:quiz_list' %}" class="btn-tab" role="tab" title="Browse all quizzes"><i class="fas fa-question-circle"></i> Browse Quizzes</a>
         </div>
-        <form method="get" class="d-flex align-items-center gap-2 filter-form" aria-label="Filter bookmarks">
-            <select name="btype" class="filter-select" aria-label="Bookmark type" onchange="this.form.submit()">
-                <option value="" {% if not btype %}selected{% endif %}>All</option>
-                <option value="resources" {% if btype == 'resources' %}selected{% endif %}>Resources</option>
-                <option value="quizzes" {% if btype == 'quizzes' %}selected{% endif %}>Quizzes</option>
-                <option value="flashcards" {% if btype == 'flashcards' %}selected{% endif %}>Flashcards</option>
-            </select>
+        <form method="get" action="{% url 'bookmarks:bookmark_list' %}" class="d-inline-block">
+            {% if request.GET.q %}
+                <input type="hidden" name="q" value="{{ request.GET.q }}">
+            {% endif %}
+            {% include 'components/filter_sort.html' with filter_name="btype" filter_label="All Types" filter_options=filter_options selected_value=btype %}
         </form>
     </div>
-    <div class="resources-grid" id="bookmarksGrid">
+    <div class="row g-3 mt-2" id="bookmarksGrid">
         {% for item in items %}
-            <div class="resource-card-v2" data-type="{{ item.type }}" data-id="{{ item.id }}">
-                <div class="rcv2-head">
-                    <span class="rcv2-type">{% if item.type == 'resource' %}{{ item.resource_type|upper }}{% elif item.type == 'quiz' %}QUIZ{% else %}DECK{% endif %}</span>
-                    <form method="post" action="{{ item.remove_url }}">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.path }}">
-                        <button type="submit" class="rcv2-remove-indicator" title="Remove bookmark" aria-label="Remove bookmark"><i class="fas fa-xmark"></i></button>
-                    </form>
-                </div>
-                <a href="{{ item.detail_url }}" class="rcv2-body" aria-label="View {{ item.type }} {{ item.title }}">
-                    <div class="rcv2-icon-wrapper">
-                        {% if item.type == 'resource' %}
-                            <div class="rcv2-icon"><i class="fas fa-{% if item.resource_type == 'pdf' %}file-pdf{% elif item.resource_type == 'image' %}image{% elif item.resource_type == 'ppt' or item.resource_type == 'pptx' %}file-powerpoint{% elif item.resource_type == 'docx' %}file-word{% elif item.resource_type == 'txt' %}file-lines{% elif item.resource_type == 'link' %}link{% else %}file-alt{% endif %}"></i></div>
-                        {% elif item.type == 'quiz' %}
-                            <div class="rcv2-icon"><i class="fas fa-question"></i></div>
-                        {% else %}
-                            <div class="rcv2-icon"><i class="fas fa-clone"></i></div>
-                        {% endif %}
-                        {% if item.verification_status == 'verified' %}
-                            <span class="rcv2-verify-badge" title="Verified"><i class="fas fa-check"></i></span>
-                        {% elif item.verification_status == 'pending' %}
-                            <span class="rcv2-pending-badge" title="Pending"><i class="fas fa-clock"></i></span>
-                        {% endif %}
+            <div class="col-md-6 col-lg-4" data-type="{{ item.type }}" data-id="{{ item.id }}">
+                <div class="study-card">
+                    <div class="study-card__header">
+                        <span class="study-card__type">{% if item.type == 'resource' %}{{ item.resource_type|upper }}{% elif item.type == 'quiz' %}QUIZ{% else %}FLASHCARD{% endif %}</span>
+                        <form method="post" action="{{ item.remove_url }}" class="study-card__bookmark-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button type="submit" class="study-card__bookmark-btn" title="Remove bookmark" aria-label="Remove bookmark">
+                                <i class="fas fa-bookmark-slash"></i>
+                            </button>
+                        </form>
                     </div>
-                    <h3 class="rcv2-title" title="{{ item.title }}">{{ item.title }}</h3>
-                    <div class="rcv2-metrics">
-                        {% if item.type == 'resource' %}
-                            <span><i class="fas fa-eye"></i> {{ item.views }}</span>
-                            <span><i class="fas fa-download"></i> {{ item.downloads }}</span>
-                            {% if item.rating %}<span><i class="fas fa-star"></i> {{ item.rating|floatformat:1 }}</span>{% endif %}
-                        {% elif item.type == 'quiz' %}
-                            <span><i class="fas fa-question-circle"></i> {{ item.questions }} Q</span>
-                            <span><i class="fas fa-chart-line"></i> {{ item.attempts }} attempts</span>
-                        {% else %}
-                            <span><i class="fas fa-layer-group"></i> {{ item.cards }} cards</span>
-                        {% endif %}
+
+                    <div class="study-card__body">
+                        <h3 class="study-card__title">{{ item.title }}</h3>
+                        
+                        <div class="study-card__tags">
+                            {% if item.is_private %}
+                                <span class="study-card__tag study-card__tag--private"><i class="fas fa-lock"></i> Private</span>
+                            {% else %}
+                                {% if item.verification_status == 'verified' %}
+                                    <span class="study-card__tag study-card__tag--verified"><i class="fas fa-check-circle"></i> Verified</span>
+                                {% elif item.verification_status == 'pending' %}
+                                    <span class="study-card__tag study-card__tag--pending"><i class="fas fa-clock"></i> Pending</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <p class="study-card__author">By: {{ item.author }}</p>
+
+                        <div class="study-card__metrics">
+                            {% if item.type == 'resource' %}
+                                <span class="like-metric" data-resource-id="{{ item.id }}" style="cursor: pointer;">
+                                  <i class="fas fa-heart {% if item.user_has_liked %}liked{% else %}unliked{% endif %}"></i> 
+                                  <span class="like-count">{{ item.likes_count|intword }}</span>
+                                </span>
+                                <span class="metric-dot">•</span>
+                                <span><i class="fas fa-eye"></i> {{ item.views }}</span>
+                                <span class="metric-dot">•</span>
+                                <span><i class="fas fa-download"></i> {{ item.downloads }}</span>
+                                {% if item.rating %}
+                                    <span class="metric-dot">•</span>
+                                    <span><i class="fas fa-star"></i> {{ item.rating|floatformat:1 }}</span>
+                                {% endif %}
+                            {% elif item.type == 'quiz' %}
+                                <span class="like-metric" data-quiz-id="{{ item.id }}" style="cursor: pointer;">
+                                  <i class="fas fa-heart {% if item.user_has_liked %}liked{% else %}unliked{% endif %}"></i> 
+                                  <span class="like-count">{{ item.likes_count|intword }}</span>
+                                </span>
+                                <span class="metric-dot">•</span>
+                                <span><i class="fas fa-question-circle"></i> {{ item.questions }} Q</span>
+                                <span class="metric-dot">•</span>
+                                <span><i class="fas fa-chart-line"></i> {{ item.attempts }} attempt{{ item.attempts|pluralize }}</span>
+                            {% else %}
+                                <span class="like-metric" data-deck-id="{{ item.id }}" style="cursor: pointer;">
+                                  <i class="fas fa-heart {% if item.user_has_liked %}liked{% else %}unliked{% endif %}"></i> 
+                                  <span class="like-count">{{ item.likes_count|intword }}</span>
+                                </span>
+                                <span class="metric-dot">•</span>
+                                <span><i class="fas fa-layer-group"></i> {{ item.cards }} card{{ item.cards|pluralize }}</span>
+                            {% endif %}
+                        </div>
                     </div>
-                </a>
-                <div class="rcv2-footer">
-                    <span class="rcv2-author">By: {{ item.author }}</span>
-                    <span class="rcv2-age">{{ item.created_at|timesince }} ago</span>
+
+                    <div class="study-card__footer">
+                        <a href="{{ item.detail_url }}" class="btn btn--primary btn--block">
+                            <i class="fas fa-eye"></i> View {% if item.type == 'resource' %}Resource{% elif item.type == 'quiz' %}Quiz{% else %}Deck{% endif %}
+                        </a>
+                    </div>
                 </div>
             </div>
         {% empty %}
-            <div class="resources-empty">No bookmarks yet.</div>
+            <div class="col-12">
+                <div class="study-card" style="min-height: 500px;">
+                    <div class="study-card__body">
+                        {% include 'components/empty_state.html' with icon='fas fa-bookmark' main_message='No bookmarks yet' sub_message='Start bookmarking resources, quizzes, or flashcards to see them here.' show_action_buttons=True %}
+                        <div class="empty-state__actions">
+                            <div class="empty-state__secondary-actions">
+                                <a href="{% url 'resources:resource_list' %}" class="btn btn--secondary btn--sm">
+                                    <i class="fas fa-folder"></i> Browse Resources
+                                </a>
+                                <a href="{% url 'quizzes:quiz_list' %}" class="btn btn--secondary btn--sm">
+                                    <i class="fas fa-question-circle"></i> Browse Quizzes
+                                </a>
+                                <a href="{% url 'flashcards:deck_list' %}" class="btn btn--secondary btn--sm">
+                                    <i class="fas fa-layer-group"></i> Browse Flashcards
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
     </div>
 {% endblock %}
 
-{% block extra_js %}{% endblock %}
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+    // Handle like clicks on bookmarks list
+    document.querySelectorAll('.like-metric').forEach(metric => {
+      metric.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const resourceId = this.getAttribute('data-resource-id');
+        const quizId = this.getAttribute('data-quiz-id');
+        const deckId = this.getAttribute('data-deck-id');
+
+        let endpoint = '';
+        if (resourceId) {
+          endpoint = `/resources/${resourceId}/like/`;
+        } else if (quizId) {
+          endpoint = `/quizzes/${quizId}/like/`;
+        } else if (deckId) {
+          endpoint = `/flashcards/${deckId}/like/`;
+        }
+
+        if (!endpoint) return;
+
+        const icon = this.querySelector('.fa-heart');
+        const countSpan = this.querySelector('.like-count');
+
+        // Disable during request
+        this.style.pointerEvents = 'none';
+        this.style.opacity = '0.7';
+
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Update like count
+            countSpan.textContent = data.like_count;
+
+            // Update icon appearance
+            if (data.action === 'liked') {
+              icon.classList.remove('unliked');
+              icon.classList.add('liked');
+            } else {
+              icon.classList.remove('liked');
+              icon.classList.add('unliked');
+            }
+          }
+        } catch (error) {
+          console.error('Error toggling like:', error);
+        } finally {
+          // Re-enable
+          this.style.pointerEvents = 'auto';
+          this.style.opacity = '1';
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

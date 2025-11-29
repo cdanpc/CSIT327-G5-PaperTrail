@@ -2,19 +2,17 @@
 {% load static crispy_forms_tags %}
 
 {% block title %}Edit Resource{% endblock %}
-{% block page_title %}Edit Resource{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
 {% endblock %}
 
-{% block content %}
-<!-- Back Button -->
-<div class="mb-3">
-    <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-outline-primary-soft btn-pill">
-        <i class="fas fa-arrow-left"></i> Back
-    </a>
-</div>
+{% block header %}
+{% url 'resources:resource_detail' resource.pk as detail_url %}
+{% include 'components/page_header.html' with page_title='Edit Resource' back_url=detail_url show_moderate_btn=False %}
+{% endblock %}
 
+{% block content %}
 <div class="row g-3">
     <!-- Left: Edit Form -->
     <div class="col-lg-8">
@@ -42,16 +40,12 @@
                         <div class="form-text">Use commas to separate tags</div>
                     </div>
                     
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            {{ form.is_public }}
-                            <label class="form-check-label" for="{{ form.is_public.id_for_label }}" style="margin-left: 0.5rem;">
-                                {{ form.is_public.label }}
-                            </label>
-                        </div>
-                        <div class="form-text">
-                            <i class="fas fa-info-circle"></i>
-                            Public resources are visible in "All Resources" after verification. Private resources are only visible to you in "My Resources".
+                    <div class="mb-4">
+                        <h6 class="form-section-header">
+                            <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
+                        </h6>
+                        <div class="soft-panel">
+                            {% include 'components/visibility_toggle.html' with toggle_id='resourceEditVisibilityToggle' hidden_id='id_is_public' field_name='is_public' is_public=resource.is_public label='Make this resource public' public_description='Visible in "All Resources" after verification.' private_description='Only visible to you in "My Resources".' %}
                         </div>
                     </div>
 
@@ -89,34 +83,12 @@
             <div class="card-body">
                 <p class="text-muted mb-3">Deleting your resource is permanent and cannot be undone.</p>
                 <div class="d-grid">
-                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <button type="button" class="btn btn-danger" onclick="showDeleteModal('{{ resource.pk }}', '{{ resource.title|escapejs }}', '{% url 'resources:resource_delete' resource.pk %}')">
                         <i class="fas fa-trash"></i> Delete this Resource
                     </button>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="deleteModalLabel">Delete Resource</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        Are you sure you want to delete this resource? This action cannot be undone.
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <form method="post" action="{% url 'resources:resource_delete' resource.pk %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">Delete</button>
-        </form>
-      </div>
-    </div>
-  </div>
 </div>
 {% endblock %}

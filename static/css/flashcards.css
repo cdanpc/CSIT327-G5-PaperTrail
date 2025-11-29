@@ -60,20 +60,11 @@
 /* Flashcards Listing (Deck Index)                    */
 /* -------------------------------------------------- */
 
-.fc-container {
-  /* Remove max-width constraint to let content use available width */
-  max-width: none;
-  margin: 0 auto;
-  /* Minimal horizontal padding—just enough edge breathing room */
-  padding: 0.65rem 1.25rem 1.1rem; 
-  background: transparent;
-}
-/* Deck list: minimal side padding */
-.fc-container.fc-list { padding: 0.55rem 1.25rem 0.9rem; }
+
+
 .fc-container.fc-list .fc-actions { margin: 0; }
 /* Compact top spacing variant for detail/study/create pages */
-.fc-container.fc-tight-top { padding-top: .35rem; }
-.fc-container.fc-tight-top .bookmarks-header-row { margin-top: .6rem; }
+.fc-container.fc-tight-top { padding-top: .35rem; padding: 0 100px; margin: 0 70px; }
 
 .fc-header {
   display: flex;
@@ -194,7 +185,7 @@
   box-shadow:0 8px 16px rgba(102,126,234,.25);
   font-weight:700;
 }
-.fc-btn-primary:hover { filter:brightness(1.05); box-shadow:0 10px 20px rgba(102,126,234,.30); }
+.fc-btn-primary:hover { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%) !important; filter:brightness(0.95); box-shadow:0 10px 20px rgba(102,126,234,.30); }
 .fc-btn-primary:active { filter:brightness(.92); }
 
 .fc-icon-btn {
@@ -261,7 +252,6 @@
 .fc-empty {
   text-align: center;
   padding: 4.5rem 1.5rem 4rem;
-  border: 2px dashed #d1d5db;
   border-radius: 1.25rem;
   background: #f9fafb;
   color: #6b7280;
@@ -330,7 +320,17 @@
 
 /* Card list items */
 .fc-manage-cards { display:flex; flex-direction:column; gap:.55rem; margin:0; padding:0; list-style:none; }
-.fc-manage-item { position:relative; background:#f9fafb; border:1px solid #e5e7eb; border-radius:.85rem; padding:.6rem .7rem .55rem; display:flex; justify-content:space-between; align-items:flex-start; gap:.7rem; transition:.25s; }
+.fc-manage-item { position:relative; 
+  background:#f9fafb; 
+  border:1px solid #e5e7eb;
+  border-radius:.85rem; 
+  padding:.6rem .7rem .55rem; 
+  display:flex; 
+  justify-content:space-between; 
+  align-items:flex-start; 
+  gap:.5rem; 
+  transition:.25s; 
+}
 .fc-manage-item:hover { background:#ffffff; border-color:#d1d5db; box-shadow:0 4px 14px -4px rgba(0,0,0,.08); }
 .fc-manage-text { font-size:.63rem; line-height:1.4; flex:1; }
 .fc-manage-text strong { color:#374151; font-weight:600; }
@@ -387,10 +387,365 @@
 .fc-list .fc-card-footer { margin-top:.25rem; }
 @media (min-width: 768px){ .fc-list .fc-card { min-height:auto; } }
 
-/* Flashcards header buttons: match dashboard corner radius (6px) */
-.flashcards-tabs .rtab,
-.flashcards-tabs .btn-upload-pill { border-radius:6px !important; }
-.flashcards-tabs .rtab { padding:.45rem .85rem; display:inline-flex; align-items:center; justify-content:center; min-height:var(--btn-h); line-height:1; }
-.flashcards-tabs .btn-upload-pill { padding:.5rem .95rem; box-shadow:0 6px 14px rgba(102,126,234,.22); }
-.flashcards-tabs .rtab.active { box-shadow:0 6px 14px rgba(102,126,234,.22); }
+/* Legacy .rtab and pill overrides removed - all tabs now use .btn-tab from components.css */
+
+/* ============================================ */
+/* Deck Detail Page Styles (deck_detail.html)  */
+/* ============================================ */
+
+/* Deck Header Card */
+.deck-detail-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.deck-detail-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.deck-detail-card__title {
+  flex: 1;
+}
+
+.deck-detail-card__title h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.deck-detail-card__badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.deck-detail-card__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.deck-detail-card__actions .fc-btn,
+.deck-detail-card__actions button {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.deck-detail-card__actions .fc-btn-primary {
+  padding: 0.625rem 1rem;
+  min-width: 100px;
+  font-size: 0.9rem;
+  background: #6c5ce7;
+  color: white;
+}
+
+.deck-detail-card__actions .fc-btn-primary:hover {
+  background: #5a47d9;
+}
+
+.deck-detail-card__actions .fc-icon-btn-round {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #6c757d;
+  font-size: 1rem;
+  border-radius: 8px;
+}
+
+.deck-detail-card__actions .fc-icon-btn-round:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.deck-detail-card__actions .fc-icon-btn-round:active {
+  transform: translateY(1px);
+}
+
+.deck-detail-card__meta {
+  color: #6c757d;
+  font-size: 0.9rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.meta-separator {
+  margin: 0 0.5rem;
+}
+
+.bookmark-form {
+  display: inline-block;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.rating-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.rating-form__input-group {
+  flex: 1;
+}
+
+/* Deck Content Grid Layout */
+.deck-detail-content {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .deck-detail-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card Form Styling */
+.fc-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fc-card-form .form-group,
+.fc-card-form .mb-2 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fc-card-form label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.fc-card-form .form-control {
+  min-height: 100px;
+  border-radius: 0.85rem;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.875rem;
+  resize: vertical;
+}
+
+.fc-card-form .form-control:focus {
+  background: #fff;
+  border-color: #764ba2;
+  box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.25);
+  outline: none;
+}
+
+.fc-card-form button[type=submit] {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fc-card-form button[type=submit]:hover {
+  filter: brightness(0.95);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Rating Section */
+.deck-rating-section {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.deck-rating-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: #111827;
+}
+
+.deck-detail-sidebar .fc-section {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+/* Cards Section */
+.deck-cards-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 400px;
+}
+
+.deck-cards-section h2 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.deck-cards-section > p {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  margin: 0;
+}
+
+/* Card List Management - 2-column Grid Layout */
+.fc-manage-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fc-manage-item {
+  position: relative;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.85rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+}
+
+.fc-manage-item:hover {
+  background: #ffffff;
+  border-color: #667eea;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.15);
+}
+
+.fc-manage-item-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.fc-manage-item-header strong {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  align-self: flex-start;
+  flex-shrink: 0;
+  margin-top: 10px;
+}
+
+.fc-manage-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.fc-manage-text div {
+  background: white;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  word-break: break-word;
+  color: #374151;
+}
+
+.fc-manage-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.fc-manage-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-decoration: none;
+  min-width: 40px;
+}
+
+.fc-manage-action-btn:hover {
+  background: #eef2ff;
+  color: #4f46e5;
+  border-color: #c7d2fe;
+}
+
+.fc-manage-action-btn:active {
+  transform: translateY(1px);
+}
+
+.fc-manage-back {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.fc-manage-back strong {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fc-manage-back div {
+  background: white;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  word-break: break-word;
+  color: #374151;
+}
 

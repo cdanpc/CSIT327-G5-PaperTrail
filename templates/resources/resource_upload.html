@@ -5,27 +5,17 @@
 {% block title %}Upload Resource{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.1">
 {% endblock %}
 
 {% block header %}
-<div class="dashboard-header">
-    <div class="dashboard-title-section">
-        <h1 class="dashboard-title">Upload Resource</h1>
-        <p class="dashboard-date">Share your knowledge with the community</p>
-    </div>
-    </div>
+{% url 'resources:resource_list' as resources_url %}
+{% include 'components/page_header.html' with page_title='Upload Resource' back_url=resources_url show_moderate_btn=False %}
 {% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <!-- Back Button -->
-        <div class="mb-3">
-            <a href="{% url 'resources:resource_list' %}" class="btn btn-outline-primary-soft btn-pill">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
-        </div>
         
         <!-- Upload Form Card -->
         <div class="card dashboard-card">
@@ -40,7 +30,7 @@
                     
                     <!-- Basic Details -->
                     <div class="mb-4">
-                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                        <h6 class="form-section-header">
                             <i class="fas fa-info-circle" style="color: #667eea;"></i> Basic Details
                         </h6>
                         {{ form.title|as_crispy_field }}
@@ -49,7 +39,7 @@
 
                     <!-- Resource Type -->
                     <div class="mb-4">
-                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                        <h6 class="form-section-header">
                             <i class="fas fa-tag" style="color: #667eea;"></i> Resource Type
                         </h6>
                         {{ form.resource_type|as_crispy_field }}
@@ -57,7 +47,7 @@
                     
                     <!-- File Upload Field -->
                     <div class="mb-4">
-                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                        <h6 class="form-section-header">
                             <i class="fas fa-file-alt" style="color: #667eea;"></i> File Upload
                         </h6>
                         <div class="soft-panel">
@@ -71,7 +61,7 @@
 
                     <!-- External URL Field -->
                     <div class="mb-4">
-                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                        <h6 class="form-section-header">
                             <i class="fas fa-globe" style="color: #667eea;"></i> External Link (Alternative)
                         </h6>
                         <div class="soft-panel">
@@ -85,29 +75,37 @@
                     
                     <!-- Tags -->
                     <div class="mb-4">
-                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                        <h6 class="form-section-header">
                             <i class="fas fa-tags" style="color: #667eea;"></i> Tags (Optional)
                         </h6>
-                        {{ form.tags|as_crispy_field }}
+                        <div class="tags-scroll-container">
+                            <div class="row g-2">
+                                {% for checkbox in form.tags %}
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        {{ checkbox.tag }}
+                                        <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                            {{ checkbox.choice_label }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% if form.tags.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.tags.errors }}
+                            </div>
+                        {% endif %}
                     </div>
                     
                     <!-- Privacy Settings -->
                     <div class="mb-4">
-                        <h6 style="font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(102, 126, 234, 0.1);">
+                        <h6 class="form-section-header">
                             <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
                         </h6>
                         <div class="soft-panel">
-                            <div class="form-check form-switch">
-                                {{ form.is_public }}
-                                <label class="form-check-label" for="{{ form.is_public.id_for_label }}" style="margin-left: 0.5rem;">
-                                    {{ form.is_public.label }}
-                                </label>
-                            </div>
-                            <div class="alert alert-info alert-soft-primary mt-3 mb-0">
-                                <i class="fas fa-info-circle"></i>
-                                <strong>Public:</strong> Visible in "All Resources" after verification. 
-                                <strong>Private:</strong> Only visible to you in "My Resources".
-                            </div>
+                            {% include 'components/visibility_toggle.html' with toggle_id='resourceVisibilityToggle' hidden_id='id_is_public' field_name='is_public' is_public=True label='Make this resource public' public_description='Visible in "All Resources" after verification.' private_description='Only visible to you in "My Resources".' %}
                         </div>
                     </div>
                     

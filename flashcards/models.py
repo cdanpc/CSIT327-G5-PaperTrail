@@ -34,7 +34,6 @@ class Deck(models.Model):
 		help_text="Professor/staff user who verified this deck"
 	)
 	verified_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when deck was verified")
-	is_bookmarked = models.BooleanField(default=False)
 	last_studied_at = models.DateTimeField(null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -96,16 +95,72 @@ class DeckRating(models.Model):
 
 
 class DeckComment(models.Model):
-	"""User comments on public decks"""
+	"""User comments on public decks with threading support"""
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="deck_comments")
 	deck = models.ForeignKey(Deck, on_delete=models.CASCADE, related_name="comments")
 	text = models.TextField()
+	
+	# Threading support - allows replies to comments
+	parent_comment = models.ForeignKey(
+		'self',
+		null=True,
+		blank=True,
+		on_delete=models.CASCADE,
+		related_name='replies'
+	)
+	
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
 	class Meta:
-		ordering = ["-created_at"]
+		ordering = ["created_at"]  # Chronological for threading
+		indexes = [
+			models.Index(fields=['deck', 'created_at']),
+		]
 
 	def __str__(self):
 		return f"{self.user} on {self.deck}: {self.text[:30]}"
+	
+	def is_owner_comment(self):
+		"""Check if comment author is the deck owner"""
+		return self.user == self.deck.owner
+	
+	def get_reply_count(self):
+		"""Get number of direct replies"""
+		return self.replies.count()
+
+
+class DeckLike(models.Model):
+	"""User likes for decks - replaces views counter"""
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='deck_likes')
+	deck = models.ForeignKey(Deck, on_delete=models.CASCADE, related_name='likes')
+	created_at = models.DateTimeField(auto_now_add=True)
+	
+	class Meta:
+		unique_together = ['user', 'deck']
+		ordering = ['-created_at']
+		indexes = [
+			models.Index(fields=['deck', 'created_at']),
+		]
+	
+	def __str__(self):
+		return f"{self.user} likes {self.deck.title}"
+
+
+class DeckBookmark(models.Model):
+	"""User bookmarks for flashcard decks - tracks per-user bookmarks"""
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='deck_bookmarks')
+	deck = models.ForeignKey(Deck, on_delete=models.CASCADE, related_name='bookmarks')
+	created_at = models.DateTimeField(auto_now_add=True)
+	
+	class Meta:
+		unique_together = ['user', 'deck']
+		ordering = ['-created_at']
+		indexes = [
+			models.Index(fields=['deck', 'created_at']),
+		]
+	
+	def __str__(self):
+		return f"{self.user} bookmarked {self.deck.title}"
+
 

@@ -1,0 +1,82 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Promote Student to Professor{% endblock %}
+
+{% block header %}
+<div class="dashboard-header">
+    <div class="dashboard-title-section">
+        <h1 class="dashboard-title">Add Professor</h1>
+        <p class="dashboard-date">Promote a student to professor role</p>
+    </div>
+    <div class="dashboard-actions">
+        <a href="{% url 'accounts:admin_dashboard' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Select Student to Promote</h5>
+                <p class="text-muted small mt-2 mb-0">Choose a student account to promote to professor role. This will give them access to content verification and moderation features.</p>
+            </div>
+            <div class="card-body">
+                {% if students %}
+                    <form method="POST" action="{% url 'accounts:promote_to_professor' %}" class="row g-3">
+                        {% csrf_token %}
+                        
+                        <div class="col-12">
+                            <label for="studentSelect" class="form-label" style="font-weight: 600;">Select Student</label>
+                            <select id="studentSelect" name="user_id" class="form-select" required style="border-color: #e5e7eb;">
+                                <option value="">-- Choose a student --</option>
+                                {% for student in students %}
+                                    <option value="{{ student.id }}">
+                                        {{ student.get_display_name }} ({{ student.email|default:student.univ_email|default:"No email" }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12 p-3 rounded" style="background: rgba(59, 130, 246, 0.05); border-left: 4px solid #3b82f6;">
+                            <h6 class="mb-2" style="color: #1e40af;">
+                                <i class="fas fa-info-circle"></i> Professor Privileges
+                            </h6>
+                            <ul class="list-unstyled small mb-0" style="color: #4b5563;">
+                                <li><i class="fas fa-check" style="color: #10b981;"></i> Access to content moderation panel</li>
+                                <li><i class="fas fa-check" style="color: #10b981;"></i> Ability to review and approve/reject resources</li>
+                                <li><i class="fas fa-check" style="color: #10b981;"></i> View pending submissions</li>
+                                <li><i class="fas fa-check" style="color: #10b981;"></i> Create and manage course materials</li>
+                            </ul>
+                        </div>
+
+                        <div class="col-12 d-flex gap-2">
+                            <button type="submit" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600;">
+                                <i class="fas fa-check"></i> Promote to Professor
+                            </button>
+                            <a href="{% url 'accounts:admin_dashboard' %}" class="btn" style="background: rgba(107, 114, 128, 0.1); color: #6b7280; border: 1px solid rgba(107, 114, 128, 0.2); padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h6 style="color: #6b7280; font-weight: 600;">No Students Available</h6>
+                        <p class="text-muted small">All users are either already professors or have administrative roles.</p>
+                        <a href="{% url 'accounts:admin_dashboard' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.375rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 1rem;">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

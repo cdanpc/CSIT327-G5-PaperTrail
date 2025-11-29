@@ -1,81 +1,48 @@
 {% extends 'base_dashboard.html' %}
 {% load static %}
 
-{% block title %}Quizzes{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/quizzes.css' %}">{% endblock %}
+{% block title %}Edit Quiz{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/components/quizzes.css' %}">{% endblock %}
 
 {% block header %}
-<div class="dashboard-header">
-  <div class="dashboard-title-section">
-    <h1 class="dashboard-title">Quizzes</h1>
-    <p class="dashboard-date">Modify quiz details & privacy</p>
-  </div>
-  <div class="dashboard-actions d-flex align-items-center gap-2">
-    <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-outline-primary-soft"><i class="fas fa-arrow-left"></i> Back</a>
-  </div>
-</div>
+{% url 'quizzes:quiz_detail' quiz.pk as detail_url %}
+{% include 'components/page_header.html' with page_title='Edit Quiz' back_url=detail_url show_moderate_btn=False %}
 {% endblock %}
 
 {% block content %}
-{# Removed toasts/messages per request #}
-
-<form method="post" id="quizEditForm" class="mb-5">
-  {% csrf_token %}
-  <div class="card dashboard-card mb-4">
-    <div class="card-header"><h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Quiz Information</h5></div>
-    <div class="card-body">
-      <div class="mb-3">
-        <label for="{{ form.title.id_for_label }}" class="form-label">Title <span class="text-danger">*</span></label>
-        {{ form.title }}
-        {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
-      </div>
-      <div class="mb-3">
-        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-        {{ form.description }}
-        {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
-      </div>
-      <div class="privacy-panel mt-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="mb-0">Privacy Settings</h6>
-          <span id="privacyLabel" class="badge">Loading...</span>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <form method="post" id="quizEditForm" class="mb-5">
+      {% csrf_token %}
+      <div class="card dashboard-card mb-4" style="background-color: #f9fafb;">
+        <div class="card-header"><h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Quiz Information</h5></div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label for="{{ form.title.id_for_label }}" class="form-label">Title <span class="text-danger">*</span></label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
+          </div>
+          <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+          </div>
+          
+          <!-- Privacy Settings -->
+          <div class="mb-4">
+            <h6 class="form-section-header">
+              <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
+            </h6>
+            {% include 'components/visibility_toggle.html' with toggle_id='quizEditPrivacyToggle' hidden_id='id_is_public' field_name='is_public' is_public=quiz.is_public label='Make this quiz public' public_description='Public quizzes require verification if you are a student.' private_description='Private quizzes are only visible to you and auto-verified.' %}
+          </div>
+          <div class="edit-actions">
+            <button type="submit" class="btn btn-lg btn-gradient-primary"><i class="fas fa-save"></i> Save Changes</button>
+            <a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="btn btn-lg btn-outline-primary-soft ms-2">Cancel</a>
+          </div>
         </div>
-        <p class="small text-muted mb-2" id="privacyHelp"><i class="fas fa-info-circle"></i> Loading...</p>
-        <div class="form-check form-switch">
-          <input type="checkbox" class="form-check-input" id="privacyToggle">
-          <label for="privacyToggle" class="form-check-label">Public</label>
-        </div>
-        <input type="hidden" name="is_public" id="id_is_public" value="{{ form.instance.is_public|yesno:'True,False' }}">
       </div>
-      <script>
-        (function(){
-          const initialPublic = '{{ form.instance.is_public|yesno:"True,False" }}' === 'True';
-          const toggle = document.getElementById('privacyToggle');
-          const hidden = document.getElementById('id_is_public');
-          const label = document.getElementById('privacyLabel');
-          const help = document.getElementById('privacyHelp');
-          toggle.checked = initialPublic;
-          function sync(){
-            if(toggle.checked){
-              hidden.value='True';
-              label.className='badge bg-success';
-              label.innerHTML='<i class="fas fa-globe"></i> Public';
-              help.innerHTML='<i class="fas fa-info-circle"></i> Public quizzes require verification if you are a student.';
-              toggle.nextElementSibling.textContent='Public';
-            } else {
-              hidden.value='False';
-              label.className='badge bg-secondary';
-              label.innerHTML='<i class="fas fa-lock"></i> Private';
-              help.innerHTML='<i class="fas fa-info-circle"></i> Private quizzes are only visible to you and auto-verified.';
-              toggle.nextElementSibling.textContent='Private';
-            }
-          }
-          toggle.addEventListener('change', sync); sync();
-        })();
-      </script>
-    </div>
+    </form>
   </div>
-  <div class="text-end">
-    <button type="submit" class="btn btn-lg btn-gradient-primary"><i class="fas fa-save"></i> Save Changes</button>
-  </div>
-</form>
+</div>
 {% endblock %}

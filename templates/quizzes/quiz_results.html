@@ -4,7 +4,7 @@
 {% block title %}Quizzes{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/quizzes.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/quizzes.css' %}">
 {% endblock %}
 
 {% block extra_js %}
@@ -12,15 +12,8 @@
 {% endblock %}
 
 {% block header %}
-<div class="dashboard-title-section">
-    <h1 class="dashboard-title">Quizzes</h1>
-    <p class="dashboard-date">Results for {{ quiz.title }}</p>
-</div>
-<div class="dashboard-actions">
-    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary-soft">
-        <i class="fas fa-arrow-left"></i> Back to Quizzes
-    </a>
-</div>
+{% url 'quizzes:quiz_list' as quizzes_url %}
+{% include 'components/page_header.html' with page_title='Quiz Results' back_url=quizzes_url show_moderate_btn=False %}
 {% endblock %}
 
 {% block content %}

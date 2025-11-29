@@ -2,16 +2,23 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView
 from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+import json
 from .forms import (
     CustomUserCreationForm, 
     CustomAuthenticationForm, 
     ProfileUpdateForm,
     CustomPasswordChangeForm
 )
-from .models import User, UserStats, UserPreferences
+from .models import User, UserStats, UserPreferences, UserSession, Notification, PasswordResetToken, PasswordResetRequest
 from resources.models import Resource, Bookmark, Tag, Rating, Comment
 from flashcards.models import Deck, Card
 from flashcards import services as flashcard_services
@@ -222,54 +229,94 @@ def student_dashboard(request):
         weekly_labels.append(label)
         weekly_upload_counts.append(count)
 
-    # Extended multi-metric Learning Insights (uploads, quizzes, flashcards, activity count)
-    # Reuse weekly_labels for all metrics to avoid recalculating.
-    weekly_quiz_counts = []
-    weekly_views_counts = []
-    weekly_flashcard_counts = []
+    # Action-Oriented Learning Insights: Track Engagement vs Creation
+    # New metrics: Quizzes (Attempts vs Created), Decks (Cards Reviewed vs Created), Bookmarks (Added vs Removed)
     date_sequence = []
+    weekly_quiz_created = []
+    weekly_quiz_attempted = []
+    weekly_cards_created = []
+    weekly_cards_reviewed = []
+    weekly_bookmarks_added = []
+    weekly_bookmarks_removed = []
+    
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
         date_sequence.append(day)
-        # Quizzes: count both quizzes created AND quiz attempts completed that day
+        
+        # QUIZZES: Separate creation from attempts
         quiz_created = Quiz.objects.filter(creator=request.user, created_at__date=day).count()
-        quiz_completed = QuizAttempt.objects.filter(student=request.user, completed_at__date=day).count()
-        weekly_quiz_counts.append(quiz_created + quiz_completed)
-        # Activity count: ratings, comments, bookmarks created that day (user engagement)
-        activity_count = (
-            Rating.objects.filter(user=request.user, created_at__date=day).count() +
-            Comment.objects.filter(user=request.user, created_at__date=day).count() +
-            Bookmark.objects.filter(user=request.user, created_at__date=day).count()
+        # Count unique quiz attempts completed that day (engagement metric)
+        quiz_attempted = QuizAttempt.objects.filter(
+            student=request.user, 
+            completed_at__date=day
+        ).values('quiz').distinct().count()
+        weekly_quiz_created.append(quiz_created)
+        weekly_quiz_attempted.append(quiz_attempted)
+        
+        # DECKS: Count cards created vs cards reviewed (via deck study sessions)
+        # Cards created: new cards added to user's decks
+        cards_created = Card.objects.filter(
+            deck__owner=request.user,
+            created_at__date=day
+        ).count()
+        # Cards reviewed: count decks studied that day and sum their card counts
+        studied_decks = Deck.objects.filter(
+            owner=request.user,
+            last_studied_at__date=day
         )
-        weekly_views_counts.append(activity_count)
-    # Flashcards weekly counts via service
-    weekly_flashcard_counts = flashcard_services.get_weekly_flashcard_counts(request.user, date_sequence)
-
-    # Compute per-metric and overall maxima for the period
+        cards_reviewed = sum(deck.cards.count() for deck in studied_decks)
+        weekly_cards_created.append(cards_created)
+        weekly_cards_reviewed.append(cards_reviewed)
+        
+        # BOOKMARKS: Count added (created) vs removed (deleted)
+        # Note: Bookmark model only tracks creation; no deletion timestamp exists
+        # Workaround: Track bookmarks added that day
+        bookmarks_added = Bookmark.objects.filter(user=request.user, created_at__date=day).count()
+        # For "removed" metric: We can't track deletions without a SoftDelete model
+        # Alternative: Show bookmarks added as engagement metric
+        weekly_bookmarks_added.append(bookmarks_added)
+        # Set removed to 0 for now (future enhancement: track unbookmarks)
+        weekly_bookmarks_removed.append(0)
+    
+    # Compute per-metric maxima for dynamic y-axis scaling
     max_uploads = max(weekly_upload_counts) if weekly_upload_counts else 0
-    max_quizzes = max(weekly_quiz_counts) if weekly_quiz_counts else 0
-    max_flashcards = max(weekly_flashcard_counts) if weekly_flashcard_counts else 0
-    max_activity = max(weekly_views_counts) if weekly_views_counts else 0
-    max_overall = max(max_uploads, max_quizzes, max_flashcards, max_activity)
+    max_quiz_created = max(weekly_quiz_created) if weekly_quiz_created else 0
+    max_quiz_attempted = max(weekly_quiz_attempted) if weekly_quiz_attempted else 0
+    max_cards_created = max(weekly_cards_created) if weekly_cards_created else 0
+    max_cards_reviewed = max(weekly_cards_reviewed) if weekly_cards_reviewed else 0
+    max_bookmarks = max(weekly_bookmarks_added) if weekly_bookmarks_added else 0
+    
+    # Overall max for 'all' view
+    max_overall = max(max_uploads, max_quiz_created, max_quiz_attempted, 
+                      max_cards_created, max_cards_reviewed, max_bookmarks)
 
     weekly_metrics = {
         'labels': weekly_labels,
         'uploads': weekly_upload_counts,
-        'quizzes': weekly_quiz_counts,
-        'flashcards': weekly_flashcard_counts,
-        'activity': weekly_views_counts,  # Renamed from 'views' to 'activity' for clarity
+        # QUIZZES: Dual metrics (created vs attempted)
+        'quizzes_created': weekly_quiz_created,
+        'quizzes_attempted': weekly_quiz_attempted,
+        # DECKS: Dual metrics (cards created vs reviewed)
+        'decks_created': weekly_cards_created,
+        'decks_reviewed': weekly_cards_reviewed,
+        # BOOKMARKS: Activity metric
+        'bookmarks': weekly_bookmarks_added,
         'max_values': {
             'uploads': max_uploads,
-            'quizzes': max_quizzes,
-            'flashcards': max_flashcards,
-            'activity': max_activity,
+            'quizzes_created': max_quiz_created,
+            'quizzes_attempted': max_quiz_attempted,
+            'decks_created': max_cards_created,
+            'decks_reviewed': max_cards_reviewed,
+            'bookmarks': max_bookmarks,
             'overall': max_overall,
         },
         'palette': {
             'uploads': '#0d6efd',
-            'quizzes': '#ffc107',
-            'flashcards': '#0dcaf0',
-            'activity': '#198754'  # Green for activity (ratings, comments, bookmarks)
+            'quizzes_created': '#ffc107',
+            'quizzes_attempted': '#fd7e14',  # Orange for attempts
+            'decks_created': '#0dcaf0',
+            'decks_reviewed': '#20c997',  # Teal for reviews
+            'bookmarks': '#198754'  # Green for bookmarks
         }
     }
 
@@ -619,8 +666,11 @@ def admin_dashboard(request):
     # Get pending resources for approval
     pending_resources = Resource.objects.filter(approved=False).order_by('-created_at')[:10]
     
-    # Get recent users
-    recent_users = User.objects.order_by('-date_joined')[:10]
+    # Get pending password reset requests
+    pending_reset_requests = PasswordResetRequest.objects.filter(status='pending').order_by('-requested_at')[:10]
+    
+    # Get all users (limited to 10 for dashboard display)
+    all_users = User.objects.order_by('-date_joined')[:10]
     
     context = {
         'user': request.user,
@@ -629,29 +679,188 @@ def admin_dashboard(request):
         'total_professors': total_professors,
         'banned_users': banned_users,
         'pending_resources': pending_resources,
-        'recent_users': recent_users,
+        'pending_reset_requests': pending_reset_requests,
+        'all_users': all_users,
     }
     return render(request, 'accounts/admin_dashboard.html', context)
+
+
+@login_required
+def promote_to_professor(request):
+    """Promote a student to professor role"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect(request.user.get_dashboard_url())
+    
+    # Check for user_id in GET parameter (from manage_users page)
+    user_id = request.GET.get('promote')
+    
+    if user_id:
+        try:
+            user = User.objects.get(id=user_id)
+            
+            # Check if user is already a professor
+            if user.is_professor:
+                messages.warning(request, f'{user.get_display_name()} is already a professor.')
+            else:
+                user.is_professor = True
+                user.save()
+                messages.success(request, f'{user.get_display_name()} has been promoted to professor!')
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+        
+        return redirect('accounts:manage_users')
+    
+    # If no user_id in GET, return list of students who can be promoted (for legacy form if needed)
+    students = User.objects.filter(
+        is_professor=False,
+        is_staff=False,
+        is_superuser=False,
+        is_banned=False
+    ).order_by('first_name', 'last_name')
+    
+    context = {
+        'students': students,
+    }
+    return render(request, 'accounts/promote_professor.html', context)
+
+
+@login_required
+def demote_professor(request, user_id):
+    """Demote a professor to student role"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect(request.user.get_dashboard_url())
+    
+    try:
+        user = User.objects.get(id=user_id)
+        
+        # Check if user is a professor
+        if not user.is_professor:
+            messages.warning(request, f'{user.get_display_name()} is not a professor.')
+        else:
+            user.is_professor = False
+            user.save()
+            messages.success(request, f'{user.get_display_name()} has been demoted to student!')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+    
+    # Redirect back to manage users page if referrer is there
+    return redirect('accounts:manage_users')
+
+
+@login_required
+def manage_users(request):
+    """Manage all users - view, promote, and demote"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect(request.user.get_dashboard_url())
+    
+    # Get all non-admin users
+    all_users = User.objects.filter(is_staff=False, is_superuser=False).order_by('-date_joined')
+    
+    # Optional: Add search/filter functionality
+    search_query = request.GET.get('search', '')
+    role_filter = request.GET.get('role', '')  # 'professor', 'student', 'banned', or empty for all
+    
+    if search_query:
+        all_users = all_users.filter(
+            models.Q(first_name__icontains=search_query) |
+            models.Q(last_name__icontains=search_query) |
+            models.Q(email__icontains=search_query) |
+            models.Q(univ_email__icontains=search_query)
+        )
+    
+    if role_filter == 'professor':
+        all_users = all_users.filter(is_professor=True, is_banned=False)
+    elif role_filter == 'student':
+        all_users = all_users.filter(is_professor=False, is_banned=False)
+    elif role_filter == 'banned':
+        all_users = all_users.filter(is_banned=True)
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(all_users, 20)  # Show 20 users per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'role_filter': role_filter,
+        'total_users': User.objects.filter(is_staff=False, is_superuser=False).count(),
+        'total_professors': User.objects.filter(is_professor=True, is_staff=False, is_superuser=False).count(),
+        'total_students': User.objects.filter(is_professor=False, is_staff=False, is_superuser=False).count(),
+        'total_banned': User.objects.filter(is_banned=True, is_staff=False, is_superuser=False).count(),
+    }
+    return render(request, 'accounts/manage_users.html', context)
+
+
+@login_required
+def online_users(request):
+    """View online users - only for admin/superuser"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect(request.user.get_dashboard_url())
+    
+    from datetime import timedelta
+    from django.utils import timezone
+    
+    # Get users who have been active in the last 5 minutes using UserSession for real-time tracking
+    time_threshold = timezone.now() - timedelta(minutes=5)
+    
+    # Get active sessions from the last 5 minutes
+    active_sessions = UserSession.objects.filter(
+        last_activity__gte=time_threshold,
+        user__is_staff=False,
+        user__is_superuser=False
+    ).values_list('user_id', flat=True).distinct()
+    
+    # Get the users from active sessions, ordered by their most recent activity
+    online_users_list = User.objects.filter(
+        id__in=active_sessions
+    ).annotate(
+        last_activity_time=models.Max('sessions__last_activity')
+    ).order_by('-last_activity_time')
+    
+    # Get total counts
+    total_online = online_users_list.count()
+    total_students_online = online_users_list.filter(is_professor=False).count()
+    total_professors_online = online_users_list.filter(is_professor=True).count()
+    
+    context = {
+        'online_users': online_users_list,
+        'total_online': total_online,
+        'total_students_online': total_students_online,
+        'total_professors_online': total_professors_online,
+    }
+    return render(request, 'accounts/online_users.html', context)
 
 
 # Profile View
 @login_required
 def profile(request):
-    """User profile view and edit"""
+    """User profile view and edit - Clean version focused on core functionality"""
     if request.method == 'POST':
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user)
+        # Create a mutable copy of POST data
+        post_data = request.POST.copy()
+        
+        form = ProfileUpdateForm(post_data, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Your profile has been updated successfully!')
-            
-            # Check if profile is now 100% complete and unlock badge (Phase 7)
-            if request.user.check_profile_completion():
-                achievement = request.user.unlock_verified_student_badge()
-                if achievement and achievement.unlocked_date.date() == timezone.now().date():
-                    # Only show message if badge was just unlocked today
-                    messages.success(request, '🎉 Congratulations! You unlocked the Verified Student badge!')
-            
             return redirect('accounts:profile')
+        else:
+            # If form is invalid, display validation errors via toast
+            print(f"Profile update errors: {form.errors}")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.replace('_', ' ').title()}: {error}")
+            # Form with errors will be passed to template for inline display
     else:
         form = ProfileUpdateForm(instance=request.user)
     
@@ -671,19 +880,80 @@ def profile(request):
     preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
 
     # Impact Card Data
+    # Get actual quiz count from Quiz model instead of using stats
+    from quizzes.models import Quiz
+    from resources.models import Rating
+    actual_quizzes_count = Quiz.objects.filter(creator=request.user).count()
+    
+    # Count helpful votes (4-5 star ratings on user's resources)
+    helpful_votes = Rating.objects.filter(
+        resource__uploader=request.user,
+        stars__gte=4
+    ).count()
+    
     impact_data = {
         'resources_uploaded': stats.resources_uploaded,
-        'quizzes_created': stats.quizzes_created,
+        'quizzes_created': actual_quizzes_count,
         'flashcards_created': stats.flashcards_created,
-        'students_helped': stats.students_helped,
+        'students_helped': helpful_votes,
     }
 
     # Learning Summary Data
+    # Calculate study progress based on quiz attempts
+    from quizzes.models import QuizAttempt, Quiz
+    from flashcards.models import Deck
+    
+    quiz_attempts_count = QuizAttempt.objects.filter(student=request.user).count()
+    # Estimate progress: 0-50 attempts = 0-100% progress
+    study_progress_percent = min((quiz_attempts_count / 50) * 100, 100)
+    
+    # Build combined activity feed from resources, quizzes, and flashcards
+    activities = []
+    
+    # Add resources (uploaded by user)
+    for resource in user_resources:
+        activities.append({
+            'type': 'resource',
+            'title': resource.title,
+            'created_at': resource.created_at,
+            'icon': 'fa-file-alt',
+            'color': 'text-secondary',
+            'action': 'Uploaded'
+        })
+    
+    # Add quizzes (created by user)
+    user_quizzes = Quiz.objects.filter(creator=request.user).order_by('-created_at')[:10]
+    for quiz in user_quizzes:
+        activities.append({
+            'type': 'quiz',
+            'title': quiz.title,
+            'created_at': quiz.created_at,
+            'icon': 'fa-clipboard-check',
+            'color': 'text-info',
+            'action': 'Created Quiz'
+        })
+    
+    # Add flashcard decks (created by user)
+    user_decks = Deck.objects.filter(owner=request.user).order_by('-created_at')[:10]
+    for deck in user_decks:
+        activities.append({
+            'type': 'deck',
+            'title': deck.title,
+            'created_at': deck.created_at,
+            'icon': 'fa-clone',
+            'color': 'text-warning',
+            'action': 'Created Deck'
+        })
+    
+    # Sort all activities by date and take top 10
+    activities.sort(key=lambda x: x['created_at'], reverse=True)
+    activities = activities[:10]
+    
     learning_summary = {
-        'study_progress': stats.total_study_time,
+        'study_progress': round(study_progress_percent, 1),
         'active_streak': stats.active_streak,
-        'recent_activities': [],  # To be filled with recent actions
-        'quizzes_completed': stats.quizzes_completed,
+        'recent_activities': activities,
+        'quizzes_completed': quiz_attempts_count,
     }
 
     # Achievements & Badges
@@ -700,16 +970,148 @@ def profile(request):
     context = {
         'form': form,
         'user': request.user,
-        'user_resources': user_resources,
-        'user_bookmarks': user_bookmarks,
-        'user_achievements': achievements,
-        'profile_complete': profile_complete,
-        'completion_percentage': completion_percentage,
-        'impact_data': impact_data,
-        'learning_summary': learning_summary,
-        'customization': customization,
     }
     return render(request, 'accounts/profile.html', context)
+
+
+@login_required
+def update_profile_picture(request):
+    """Handle profile picture upload separately"""
+    if request.method == 'POST' and request.FILES.get('profile_picture'):
+        try:
+            # Update only the profile picture
+            request.user.profile_picture = request.FILES['profile_picture']
+            request.user.save(update_fields=['profile_picture'])
+            messages.success(request, 'Profile picture updated successfully!')
+        except Exception as e:
+            messages.error(request, f'Error uploading profile picture: {str(e)}')
+    else:
+        messages.error(request, 'No image file was provided.')
+    
+    return redirect('accounts:profile')
+
+
+@login_required
+def public_profile(request, username):
+    """View another user's public profile (enforcing profile_visibility)"""
+    try:
+        profile_user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('resources:resource_list')
+    
+    # Check profile visibility
+    if profile_user.profile_visibility == 'private':
+        # Only the user themselves can see their own private profile
+        if request.user != profile_user:
+            messages.error(request, 'This profile is private and cannot be accessed.')
+            return redirect('resources:resource_list')
+    elif profile_user.profile_visibility == 'students_only':
+        # Only students (not staff/superuser) can view student-only profiles
+        if request.user.is_staff or request.user.is_superuser:
+            # Professors and admins are exempt from this restriction
+            pass
+        elif profile_user.is_staff or profile_user.is_superuser:
+            # Staff profiles are always public
+            pass
+    # 'public' visibility allows everyone to see
+    
+    # Get public profile data
+    profile_resources = Resource.objects.filter(uploader=profile_user, is_public=True).order_by('-created_at')[:10]
+    profile_bookmarks = Bookmark.objects.filter(user=profile_user).order_by('-created_at')[:10]
+    profile_achievements = profile_user.achievements.filter(is_displayed=True).select_related('badge')
+    
+    # Get stats
+    stats, _ = UserStats.objects.get_or_create(user=profile_user)
+    preferences, _ = UserPreferences.objects.get_or_create(user=profile_user)
+    
+    # Impact Card Data
+    from quizzes.models import Quiz, QuizAttempt
+    from resources.models import Rating
+    actual_quizzes_count = Quiz.objects.filter(creator=profile_user, is_public=True).count()
+    helpful_votes = Rating.objects.filter(
+        resource__uploader=profile_user,
+        resource__is_public=True,
+        stars__gte=4
+    ).count()
+    
+    impact_data = {
+        'resources_uploaded': Resource.objects.filter(uploader=profile_user, is_public=True).count(),
+        'quizzes_created': actual_quizzes_count,
+        'flashcards_created': Deck.objects.filter(owner=profile_user, visibility='public').count(),
+        'students_helped': helpful_votes,
+    }
+    
+    # Learning Summary Data
+    quiz_attempts_count = QuizAttempt.objects.filter(student=profile_user).count()
+    study_progress_percent = min((quiz_attempts_count / 50) * 100, 100)
+    
+    # Build combined activity feed from public resources, quizzes, and flashcards
+    activities = []
+    
+    # Add public resources
+    for resource in profile_resources:
+        activities.append({
+            'type': 'resource',
+            'title': resource.title,
+            'created_at': resource.created_at,
+            'icon': 'fa-file-alt',
+            'color': 'text-secondary',
+            'action': 'Uploaded'
+        })
+    
+    # Add public quizzes
+    user_quizzes = Quiz.objects.filter(creator=profile_user, is_public=True).order_by('-created_at')[:10]
+    for quiz in user_quizzes:
+        activities.append({
+            'type': 'quiz',
+            'title': quiz.title,
+            'created_at': quiz.created_at,
+            'icon': 'fa-clipboard-check',
+            'color': 'text-info',
+            'action': 'Created Quiz'
+        })
+    
+    # Add public flashcard decks
+    user_decks = Deck.objects.filter(owner=profile_user, visibility='public').order_by('-created_at')[:10]
+    for deck in user_decks:
+        activities.append({
+            'type': 'deck',
+            'title': deck.title,
+            'created_at': deck.created_at,
+            'icon': 'fa-clone',
+            'color': 'text-warning',
+            'action': 'Created Deck'
+        })
+    
+    # Sort all activities by date and take top 10
+    activities.sort(key=lambda x: x['created_at'], reverse=True)
+    activities = activities[:10]
+    
+    learning_summary = {
+        'study_progress': round(study_progress_percent, 1),
+        'active_streak': stats.active_streak,
+        'recent_activities': activities,
+        'quizzes_completed': quiz_attempts_count,
+    }
+    
+    context = {
+        'profile_user': profile_user,
+        'user': request.user,
+        'user_resources': profile_resources,
+        'user_bookmarks': profile_bookmarks,
+        'user_achievements': profile_achievements,
+        'is_own_profile': request.user == profile_user,
+        'impact_data': impact_data,
+        'learning_summary': learning_summary,
+        'customization': {
+            'theme': preferences.theme,
+            'font_style': preferences.font_style,
+            'layout': preferences.layout,
+            'dark_mode': preferences.dark_mode,
+        }
+    }
+    return render(request, 'accounts/public_profile.html', context)
 
 
 # Password Change View
@@ -1248,3 +1650,669 @@ def cancel_deletion(request):
         })
     
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
+
+# ========================================
+# API Views for Global Search and Notifications
+# ========================================
+
+@login_required
+@require_http_methods(["GET"])
+def global_search_api(request):
+    """Expanded global search across Resources, Quizzes, and Flashcard Decks.
+    Matches against title, description, and creator username.
+    Returns grouped JSON or 500 with error message on failure."""
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse({'resources': [], 'quizzes': [], 'flashcards': []})
+
+    limit = 5  # per category
+
+    try:
+        # Resources: title / description / uploader username
+        resources = (
+            Resource.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(uploader__username__icontains=query)
+            )
+            .filter(is_public=True)
+            .select_related('uploader')
+            .order_by('-created_at')[:limit]
+        )
+        resources_data = [
+            {
+                'id': r.pk,
+                'title': r.title,
+                'description': r.description or '',
+                'url': reverse('resources:resource_detail', args=[r.pk]),
+                'resource_type': r.resource_type,
+                'is_verified': r.verification_status == 'verified',
+                'author': r.uploader.username,
+            }
+            for r in resources
+        ]
+
+        # Quizzes: title / description / creator username
+        quizzes = (
+            Quiz.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(creator__username__icontains=query)
+            )
+            .filter(is_public=True)
+            .select_related('creator')
+            .order_by('-created_at')[:limit]
+        )
+        quizzes_data = [
+            {
+                'id': q.pk,
+                'title': q.title,
+                'description': q.description or '',
+                'url': reverse('quizzes:quiz_detail', args=[q.pk]),
+                'is_verified': q.verification_status == 'verified',
+                'author': q.creator.username,
+            }
+            for q in quizzes
+        ]
+
+        # Flashcard Decks: title / description / owner username
+        decks = (
+            Deck.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(owner__username__icontains=query)
+            )
+            .filter(visibility='public')
+            .select_related('owner')
+            .order_by('-created_at')[:limit]
+        )
+        flashcards_data = [
+            {
+                'id': d.pk,
+                'title': d.title,
+                'description': d.description or '',
+                'url': reverse('flashcards:deck_detail', args=[d.pk]),
+                'is_verified': d.verification_status == 'verified',
+                'author': d.owner.username,
+            }
+            for d in decks
+        ]
+
+        return JsonResponse(
+            {
+                'resources': resources_data,
+                'quizzes': quizzes_data,
+                'flashcards': flashcards_data,
+            }
+        )
+    except Exception as e:
+        return JsonResponse({'error': 'Server error', 'detail': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def notifications_unread_count_api(request):
+    """
+    API endpoint to get unread notification count (role-aware).
+    Filters notifications based on user role:
+    - Students: new_upload, verification_approved, verification_rejected, new_rating, new_comment
+    - Professors: content_review, student_question, new_enrollment + personal notifications
+    - Admins: new_user_registration, reported_content, system_alert + personal notifications
+    """
+    notifications = request.user.notifications.filter(is_read=False)
+    
+    # Role-based filtering
+    if request.user.is_staff:
+        # Admins see admin notifications + personal notifications
+        admin_types = ['new_user_registration', 'reported_content', 'system_alert']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=admin_types + personal_types)
+    elif request.user.is_professor:
+        # Professors see professor notifications + personal notifications
+        prof_types = ['content_review', 'student_question', 'new_enrollment']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=prof_types + personal_types)
+    else:
+        # Students see student notifications
+        student_types = ['new_upload', 'verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=student_types)
+    
+    count = notifications.count()
+    return JsonResponse({'count': count})
+
+
+@login_required
+@require_http_methods(["GET"])
+def notifications_list_api(request):
+    """
+    API endpoint to get user's notifications (latest 20, role-aware).
+    Filters notifications based on user role:
+    - Students: new_upload, verification_approved, verification_rejected, new_rating, new_comment
+    - Professors: content_review, student_question, new_enrollment + personal notifications
+    - Admins: new_user_registration, reported_content, system_alert + personal notifications
+    """
+    notifications = request.user.notifications.all()
+    
+    # Role-based filtering
+    if request.user.is_staff:
+        # Admins see admin notifications + personal notifications
+        admin_types = ['new_user_registration', 'reported_content', 'system_alert']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=admin_types + personal_types)
+    elif request.user.is_professor:
+        # Professors see professor notifications + personal notifications
+        prof_types = ['content_review', 'student_question', 'new_enrollment']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=prof_types + personal_types)
+    else:
+        # Students see student notifications
+        student_types = ['new_upload', 'verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=student_types)
+    
+    notifications = notifications[:20]
+    
+    notifications_data = [{
+        'id': n.pk,
+        'type': n.type,
+        'message': n.message,
+        'url': n.url or '',
+        'is_read': n.is_read,
+        'created_at': n.created_at.isoformat()
+    } for n in notifications]
+    
+    return JsonResponse({'notifications': notifications_data})
+
+
+@login_required
+@require_http_methods(["POST"])
+def notifications_mark_read_api(request):
+    """
+    API endpoint to mark a notification as read.
+    """
+    try:
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        
+        if not notification_id:
+            return JsonResponse({'success': False, 'message': 'No notification ID provided'}, status=400)
+        
+        notification = request.user.notifications.filter(pk=notification_id).first()
+        
+        if not notification:
+            return JsonResponse({'success': False, 'message': 'Notification not found'}, status=404)
+        
+        notification.mark_as_read()
+        
+        return JsonResponse({'success': True})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def notifications_mark_all_read_api(request):
+    """
+    API endpoint to mark all user notifications as read.
+    """
+    try:
+        request.user.notifications.filter(is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+@login_required
+def notifications_page(request):
+    """
+    View all notifications page (role-aware).
+    Filters notifications based on user role:
+    - Students: new_upload, verification_approved, verification_rejected, new_rating, new_comment
+    - Professors: content_review, student_question, new_enrollment + personal notifications
+    - Admins: new_user_registration, reported_content, system_alert + personal notifications
+    """
+    notifications = request.user.notifications.all()
+    
+    # Role-based filtering
+    if request.user.is_staff:
+        # Admins see admin notifications + personal notifications
+        admin_types = ['new_user_registration', 'reported_content', 'system_alert']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=admin_types + personal_types)
+    elif request.user.is_professor:
+        # Professors see professor notifications + personal notifications
+        prof_types = ['content_review', 'student_question', 'new_enrollment']
+        personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=prof_types + personal_types)
+    else:
+        # Students see student notifications
+        student_types = ['new_upload', 'verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
+        notifications = notifications.filter(type__in=student_types)
+    
+    context = {
+        'notifications': notifications
+    }
+    
+    return render(request, 'accounts/notifications.html', context)
+
+
+@login_required
+def global_search_page(request):
+    """Full-page global search results view.
+    Provides expanded result lists beyond dropdown preview.
+    """
+    query = request.GET.get('q', '').strip()
+    resources_data = quizzes_data = flashcards_data = []
+    total_counts = {'resources': 0, 'quizzes': 0, 'flashcards': 0}
+
+    if query:
+        # Larger limit for full page
+        limit = 50
+        # Resources
+        resources = (
+            Resource.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(uploader__username__icontains=query)
+            )
+            .filter(is_public=True)
+            .select_related('uploader')
+            .order_by('-created_at')[:limit]
+        )
+        resources_data = resources
+        total_counts['resources'] = resources.count()
+
+        # Quizzes
+        quizzes = (
+            Quiz.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(creator__username__icontains=query)
+            )
+            .filter(is_public=True)
+            .select_related('creator')
+            .order_by('-created_at')[:limit]
+        )
+        quizzes_data = quizzes
+        total_counts['quizzes'] = quizzes.count()
+
+        # Flashcards (Decks)
+        decks = (
+            Deck.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(owner__username__icontains=query)
+            )
+            .filter(visibility='public')
+            .select_related('owner')
+            .order_by('-created_at')[:limit]
+        )
+        flashcards_data = decks
+        total_counts['flashcards'] = decks.count()
+
+    context = {
+        'query': query,
+        'resources': resources_data,
+        'quizzes': quizzes_data,
+        'flashcards': flashcards_data,
+        'total_counts': total_counts,
+    }
+    return render(request, 'search/global_search_results.html', context)
+
+
+@login_required
+def ban_user(request, user_id):
+    """Ban a user - admin only"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:manage_users')
+    
+    try:
+        user_to_ban = User.objects.get(id=user_id)
+        if user_to_ban == request.user:
+            messages.error(request, 'You cannot ban yourself.')
+            return redirect('accounts:manage_users')
+        
+        user_to_ban.is_banned = True
+        user_to_ban.save(update_fields=['is_banned'])
+        messages.success(request, f'{user_to_ban.get_display_name()} has been banned.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    
+    return redirect('accounts:manage_users')
+
+
+@login_required
+def unban_requests(request):
+    """View and manage unban requests - admin only"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:admin_dashboard')
+    
+    # Get all banned users
+    banned_users = User.objects.filter(is_banned=True, is_staff=False, is_superuser=False).order_by('-date_joined')
+    
+    context = {
+        'banned_users': banned_users,
+        'total_banned': banned_users.count(),
+    }
+    
+    return render(request, 'accounts/unban_requests.html', context)
+
+
+@login_required
+def unban_user(request, user_id):
+    """Unban a user - admin only"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:unban_requests')
+    
+    try:
+        user_to_unban = User.objects.get(id=user_id)
+        user_to_unban.is_banned = False
+        user_to_unban.save(update_fields=['is_banned'])
+        messages.success(request, f'{user_to_unban.get_display_name()} has been unbanned.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    
+    return redirect('accounts:unban_requests')
+
+
+# ========================================
+# Password Reset Views
+# ========================================
+
+def forgot_password_step1(request):
+    """Step 1: User enters their Student ID and chooses reset method"""
+    if request.user.is_authenticated:
+        return redirect(request.user.get_dashboard_url())
+    
+    if request.method == 'POST':
+        stud_id = request.POST.get('stud_id', '').strip()
+        method = request.POST.get('method', 'email')
+        
+        try:
+            user = User.objects.get(stud_id=stud_id)
+            
+            if method == 'email':
+                # Email method - create reset token and send via email
+                reset_token = PasswordResetToken.create_for_user(user)
+                
+                # Send verification code via email
+                try:
+                    recipient_email = user.personal_email or user.univ_email
+                    if recipient_email:
+                        subject = 'Your Password Reset Code - PaperTrail'
+                        message = f'''Hello {user.get_display_name()},
+
+Your password reset verification code is: {reset_token.token}
+
+This code will expire in 15 minutes. Do not share this code with anyone.
+
+If you did not request this password reset, please ignore this email.
+
+Best regards,
+PaperTrail Team'''
+                        
+                        send_mail(
+                            subject,
+                            message,
+                            'noreply@papertrail.cit.edu',
+                            [recipient_email],
+                            fail_silently=False,
+                        )
+                        
+                        messages.success(request, f'A verification code has been sent to {recipient_email}.')
+                    else:
+                        messages.error(request, 'No email address found in your account.')
+                        return redirect('accounts:forgot_password_step1')
+                
+                except Exception as e:
+                    messages.error(request, f'Failed to send email. Please try again later.')
+                    return redirect('accounts:forgot_password_step1')
+                
+                request.session['reset_user_id'] = user.id
+                request.session['reset_method'] = 'email'
+                request.session['reset_code_sent'] = True
+                
+                return redirect('accounts:forgot_password_step2')
+            
+            elif method == 'admin':
+                # Admin method - create request and notify admin
+                reset_token = PasswordResetToken.create_for_user(user)
+                
+                # Create a password reset request for admin to review
+                reset_request = PasswordResetRequest.objects.create(
+                    user=user,
+                    contact_info=user.personal_email or user.univ_email or 'No email provided',
+                    status='pending'
+                )
+                
+                # Create notification for all admins
+                admin_users = User.objects.filter(is_staff=True, is_superuser=True)
+                for admin in admin_users:
+                    Notification.objects.create(
+                        user=admin,
+                        type='password_reset_request',
+                        message=f'{user.get_display_name()} ({user.stud_id}) has requested a password reset.',
+                        url=reverse('accounts:admin_dashboard'),
+                        related_object_type='PasswordResetRequest',
+                        related_object_id=reset_request.id
+                    )
+                
+                request.session['reset_user_id'] = user.id
+                request.session['reset_method'] = 'admin'
+                request.session['reset_request_id'] = reset_request.id
+                
+                messages.success(
+                    request, 
+                    f'Admin has been notified. Please wait for their approval.'
+                )
+                return redirect('accounts:forgot_password_step2')
+        
+        except User.DoesNotExist:
+            messages.error(request, 'Student ID not found. Please check and try again.')
+    
+    return render(request, 'accounts/forgot_password_step1.html')
+
+
+def forgot_password_step2(request):
+    """Step 2: Email code verification OR wait for admin approval"""
+    if request.user.is_authenticated:
+        return redirect(request.user.get_dashboard_url())
+    
+    # Check if user came from step 1
+    reset_user_id = request.session.get('reset_user_id')
+    reset_method = request.session.get('reset_method')
+    reset_request_id = request.session.get('reset_request_id')
+    
+    if not reset_user_id:
+        messages.error(request, 'Please start from the beginning.')
+        return redirect('accounts:forgot_password_step1')
+    
+    try:
+        user = User.objects.get(id=reset_user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+        return redirect('accounts:forgot_password_step1')
+    
+    # Handle admin method - check if admin has approved
+    if reset_method == 'admin':
+        # Check if admin approved the request
+        if reset_request_id:
+            try:
+                reset_request = PasswordResetRequest.objects.get(id=reset_request_id)
+                if reset_request.status == 'approved':
+                    # Admin approved, mark as verified and proceed to step 3
+                    request.session['reset_verified'] = True
+                    messages.success(request, 'Admin has approved! Now set your new password.')
+                    return redirect('accounts:forgot_password_step3')
+            except PasswordResetRequest.DoesNotExist:
+                pass
+        
+        # Still waiting for admin approval
+        context = {
+            'user_display': user.get_display_name(),
+            'reset_method': reset_method,
+            'is_waiting_for_admin': True,
+        }
+        return render(request, 'accounts/forgot_password_step2.html', context)
+    
+    # Handle email method - verify code
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip()
+        
+        try:
+            reset_token = PasswordResetToken.objects.get(user=user, token=code)
+            
+            # Check if token is valid
+            if not reset_token.is_valid():
+                messages.error(request, 'Code has expired. Please try again.')
+                return redirect('accounts:forgot_password_step1')
+            
+            # Mark token as used
+            reset_token.is_used = True
+            reset_token.save()
+            
+            # Store verification status in session
+            request.session['reset_verified'] = True
+            
+            messages.success(request, 'Code verified! Now set your new password.')
+            return redirect('accounts:forgot_password_step3')
+        except PasswordResetToken.DoesNotExist:
+            messages.error(request, 'Invalid code. Please try again.')
+    
+    context = {
+        'user_display': user.get_display_name(),
+        'reset_method': reset_method,
+        'is_waiting_for_admin': False,
+    }
+    return render(request, 'accounts/forgot_password_step2.html', context)
+
+
+def forgot_password_step3(request):
+    """Step 3: User sets new password"""
+    if request.user.is_authenticated:
+        return redirect(request.user.get_dashboard_url())
+    
+    # Check if user verified the code
+    reset_user_id = request.session.get('reset_user_id')
+    reset_verified = request.session.get('reset_verified')
+    reset_method = request.session.get('reset_method')
+    reset_request_id = request.session.get('reset_request_id')
+    
+    if not reset_user_id or not reset_verified:
+        messages.error(request, 'Please complete the verification steps first.')
+        return redirect('accounts:forgot_password_step1')
+    
+    try:
+        user = User.objects.get(id=reset_user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+        return redirect('accounts:forgot_password_step1')
+    
+    if request.method == 'POST':
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        
+        # Validate passwords
+        if not password1 or not password2:
+            messages.error(request, 'Both password fields are required.')
+        elif password1 != password2:
+            messages.error(request, 'Passwords do not match.')
+        elif len(password1) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+        else:
+            # Update password
+            user.set_password(password1)
+            user.save()
+            
+            # If admin method, mark the request as completed
+            if reset_method == 'admin' and reset_request_id:
+                try:
+                    reset_request = PasswordResetRequest.objects.get(id=reset_request_id)
+                    reset_request.status = 'completed'
+                    reset_request.save()
+                except PasswordResetRequest.DoesNotExist:
+                    pass
+            
+            # Clear session
+            for key in ['reset_user_id', 'reset_verified', 'reset_code_sent', 'reset_method', 'reset_request_id']:
+                if key in request.session:
+                    del request.session[key]
+            
+            messages.success(request, 'Password reset successful! You can now log in.')
+            return redirect('accounts:login')
+    
+    context = {
+        'user_display': user.get_display_name(),
+        'reset_method': reset_method,
+    }
+    return render(request, 'accounts/forgot_password_step3.html', context)
+
+
+@login_required
+def admin_send_password_reset(request):
+    """Admin sends password reset code to a user"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:admin_dashboard')
+    
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        
+        try:
+            user = User.objects.get(id=user_id)
+            
+            # Create password reset token
+            reset_token = PasswordResetToken.create_for_user(user)
+            
+            # TODO: Send code via email
+            messages.success(request, f'Password reset code sent to {user.get_display_name()}.')
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+    
+    return redirect('accounts:manage_users')
+
+
+@login_required
+def approve_password_reset(request, pk):
+    """Admin approves a password reset request"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:admin_dashboard')
+    
+    try:
+        reset_request = PasswordResetRequest.objects.get(id=pk)
+        reset_request.status = 'approved'
+        reset_request.approved_by = request.user
+        reset_request.save()
+        
+        messages.success(request, f'Password reset request for {reset_request.user.get_display_name()} has been approved.')
+    except PasswordResetRequest.DoesNotExist:
+        messages.error(request, 'Password reset request not found.')
+    
+    return redirect('accounts:admin_dashboard')
+
+
+@login_required
+def deny_password_reset(request, pk):
+    """Admin denies a password reset request"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:admin_dashboard')
+    
+    try:
+        reset_request = PasswordResetRequest.objects.get(id=pk)
+        reset_request.status = 'denied'
+        reset_request.approved_by = request.user
+        reset_request.save()
+        
+        messages.success(request, f'Password reset request for {reset_request.user.get_display_name()} has been denied.')
+    except PasswordResetRequest.DoesNotExist:
+        messages.error(request, 'Password reset request not found.')
+    
+    return redirect('accounts:admin_dashboard')

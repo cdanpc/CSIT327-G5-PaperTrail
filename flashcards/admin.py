@@ -4,7 +4,7 @@ from .models import Deck, Card
 
 @admin.register(Deck)
 class DeckAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "owner", "cards_count", "is_bookmarked", "last_studied_at", "updated_at")
+    list_display = ("id", "title", "owner", "cards_count", "last_studied_at", "updated_at")
     list_select_related = ("owner",)
     search_fields = ("title", "owner__username", "owner__first_name", "owner__last_name")
 
