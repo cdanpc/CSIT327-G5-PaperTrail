@@ -2033,13 +2033,19 @@ def forgot_password_step1(request):
                 # Email method - create reset token and send via email
                 reset_token = PasswordResetToken.create_for_user(user)
                 
-                # Send verification code via email (with timeout)
+                # Send verification code via email
                 try:
                     from django.conf import settings
-                    from django.core.mail import EmailMessage
-                    import threading
+                    from django.core.mail import send_mail
+                    import logging
+                    
+                    logger = logging.getLogger(__name__)
                     
                     recipient_email = user.personal_email or user.univ_email
+                    logger.info(f'Attempting to send reset code to: {recipient_email}')
+                    logger.info(f'Email backend: {settings.EMAIL_BACKEND}')
+                    logger.info(f'Email host user: {settings.EMAIL_HOST_USER}')
+                    
                     if recipient_email:
                         subject = 'Your Password Reset Code - PaperTrail'
                         message = f'''Hello {user.get_display_name()},
@@ -2053,35 +2059,24 @@ If you did not request this password reset, please ignore this email.
 Best regards,
 PaperTrail Team'''
                         
-                        # Send email in background thread to prevent timeout
-                        def send_email_async():
-                            try:
-                                email = EmailMessage(
-                                    subject,
-                                    message,
-                                    settings.DEFAULT_FROM_EMAIL,
-                                    [recipient_email],
-                                    connection=None,  # Use default connection
-                                )
-                                email.send(fail_silently=False)
-                            except Exception as e:
-                                import logging
-                                logger = logging.getLogger(__name__)
-                                logger.error(f'Async email sending failed: {str(e)}')
+                        # Send email synchronously so we can see the error
+                        result = send_mail(
+                            subject,
+                            message,
+                            settings.DEFAULT_FROM_EMAIL,
+                            [recipient_email],
+                            fail_silently=False,
+                        )
                         
-                        # Send in background thread
-                        thread = threading.Thread(target=send_email_async, daemon=True)
-                        thread.start()
-                        
+                        logger.info(f'Email sent successfully. Result: {result}')
                         messages.success(request, f'A verification code has been sent to {recipient_email}.')
                     else:
+                        logger.error(f'No email found for user {user.stud_id}. Personal: {user.personal_email}, Univ: {user.univ_email}')
                         messages.error(request, 'No email address found in your account.')
                         return redirect('accounts:forgot_password_step1')
                 
                 except Exception as e:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f'Email sending failed: {str(e)}')
+                    logger.error(f'Email sending failed: {str(e)}', exc_info=True)
                     messages.error(request, f'Failed to send email: {str(e)}')
                     return redirect('accounts:forgot_password_step1')
                 
