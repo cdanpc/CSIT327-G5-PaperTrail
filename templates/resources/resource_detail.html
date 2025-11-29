@@ -68,9 +68,15 @@
 
       <!-- Download Button -->
       {% if primary_action %}
+      {% if 'download' in primary_action.text|lower %}
+      <button type="button" class="btn {{ primary_action.class|default:'btn--primary' }} btn-pill" onclick="window.location.href='{{ primary_action.url }}';">
+        <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
+      </button>
+      {% else %}
       <a href="{{ primary_action.url }}" class="btn {{ primary_action.class|default:'btn--primary' }} btn-pill" {% if primary_action.target %}target="{{ primary_action.target }}"{% endif %}>
         <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
       </a>
+      {% endif %}
       {% endif %}
 
       <!-- Preview Button -->
@@ -173,8 +179,18 @@
         <h5 class="modal-title">{{ resource.title }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-0">
-        <iframe src="{{ resource.file_url }}" width="100%" height="100%" style="border: none;"></iframe>
+      <div class="modal-body p-0 d-flex align-items-center justify-content-center" style="min-height: 400px;">
+        <div class="text-center">
+          <p class="text-muted mb-3">This file cannot be previewed in the browser.</p>
+          <button type="button" class="btn btn--primary btn-pill" onclick="window.location.href='{{ primary_action.url }}';">
+            <i class="fas fa-download"></i> Download to view
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
       </div>
     </div>
   </div>

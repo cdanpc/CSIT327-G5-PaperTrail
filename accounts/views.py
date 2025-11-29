@@ -2035,6 +2035,7 @@ def forgot_password_step1(request):
                 
                 # Send verification code via email
                 try:
+                    from django.conf import settings
                     recipient_email = user.personal_email or user.univ_email
                     if recipient_email:
                         subject = 'Your Password Reset Code - PaperTrail'
@@ -2052,7 +2053,7 @@ PaperTrail Team'''
                         send_mail(
                             subject,
                             message,
-                            'noreply@papertrail.cit.edu',
+                            settings.DEFAULT_FROM_EMAIL,
                             [recipient_email],
                             fail_silently=False,
                         )
@@ -2063,7 +2064,10 @@ PaperTrail Team'''
                         return redirect('accounts:forgot_password_step1')
                 
                 except Exception as e:
-                    messages.error(request, f'Failed to send email. Please try again later.')
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f'Email sending failed: {str(e)}')
+                    messages.error(request, f'Failed to send email: {str(e)}')
                     return redirect('accounts:forgot_password_step1')
                 
                 request.session['reset_user_id'] = user.id
