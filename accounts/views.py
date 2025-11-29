@@ -2033,9 +2033,12 @@ def forgot_password_step1(request):
                 # Email method - create reset token and send via email
                 reset_token = PasswordResetToken.create_for_user(user)
                 
-                # Send verification code via email
+                # Send verification code via email (with timeout)
                 try:
                     from django.conf import settings
+                    from django.core.mail import EmailMessage
+                    import threading
+                    
                     recipient_email = user.personal_email or user.univ_email
                     if recipient_email:
                         subject = 'Your Password Reset Code - PaperTrail'
@@ -2050,13 +2053,25 @@ If you did not request this password reset, please ignore this email.
 Best regards,
 PaperTrail Team'''
                         
-                        send_mail(
-                            subject,
-                            message,
-                            settings.DEFAULT_FROM_EMAIL,
-                            [recipient_email],
-                            fail_silently=False,
-                        )
+                        # Send email in background thread to prevent timeout
+                        def send_email_async():
+                            try:
+                                email = EmailMessage(
+                                    subject,
+                                    message,
+                                    settings.DEFAULT_FROM_EMAIL,
+                                    [recipient_email],
+                                    connection=None,  # Use default connection
+                                )
+                                email.send(fail_silently=False)
+                            except Exception as e:
+                                import logging
+                                logger = logging.getLogger(__name__)
+                                logger.error(f'Async email sending failed: {str(e)}')
+                        
+                        # Send in background thread
+                        thread = threading.Thread(target=send_email_async, daemon=True)
+                        thread.start()
                         
                         messages.success(request, f'A verification code has been sent to {recipient_email}.')
                     else:
