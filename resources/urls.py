@@ -16,6 +16,7 @@ urlpatterns = [
     path('<int:pk>/edit/', views.resource_edit, name='resource_edit'),
     path('<int:pk>/delete/', views.resource_delete, name='resource_delete'),
     path('<int:pk>/download/', views.resource_download, name='resource_download'),
+    path('<int:pk>/preview/', views.resource_preview, name='resource_preview'),
     
     # Rating and Comments
     path('<int:pk>/rate/', views.rate_resource, name='rate_resource'),

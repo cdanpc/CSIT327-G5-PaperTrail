@@ -2,13 +2,31 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import OperationalError
+from django.db import OperationalError, transaction
 from django.utils import timezone
 from django.db.models import Q
 from .models import Resource, Tag, Bookmark, Rating, Comment, Like
 from .forms import ResourceUploadForm, RatingForm, CommentForm
 from .supabase_storage import supabase_storage
 from django.utils.timesince import timesince
+
+
+# Helper function to format file sizes
+def format_file_size(bytes_size):
+    """Convert bytes to human-readable format."""
+    if bytes_size is None:
+        return "N/A"
+    
+    bytes_size = int(bytes_size)
+    
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if bytes_size < 1024.0:
+            if unit == 'B':
+                return f"{bytes_size} {unit}"
+            return f"{bytes_size:.2f} {unit}"
+        bytes_size /= 1024.0
+    
+    return f"{bytes_size:.2f} PB"
 
 
 # --- General Views ---
@@ -27,59 +45,72 @@ def resource_upload(request):
     if request.method == 'POST':
         form = ResourceUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            resource = form.save(commit=False)
-            resource.uploader = request.user
-            
-            # Handle file upload to Supabase
-            if 'file' in request.FILES:
-                uploaded_file = request.FILES['file']
+            try:
+                # Wrap database operations in transaction
+                with transaction.atomic():
+                    resource = form.save(commit=False)
+                    resource.uploader = request.user
+                    
+                    # Handle file upload to Supabase
+                    if 'file' in request.FILES:
+                        uploaded_file = request.FILES['file']
+                        
+                        # Upload to Supabase
+                        success, file_url, error = supabase_storage.upload_file(
+                            uploaded_file, 
+                            folder="resources"
+                        )
+                        
+                        if success:
+                            resource.file_url = file_url
+                            resource.original_filename = uploaded_file.name
+                            resource.file_size = uploaded_file.size
+                        else:
+                            messages.error(request, f'File upload failed: {error}')
+                            return render(request, 'resources/resource_upload.html', {'form': form})
+                    
+                    # Approval / verification logic:
+                    # Professors: auto-verify regardless of visibility.
+                    # Non-professors:
+                    #   - If uploaded as private (is_public=False): treat as verified immediately (no approval needed).
+                    #   - If uploaded as public (is_public=True): mark as pending until professor approval.
+                    if getattr(request.user, 'is_professor', False):
+                        resource.verification_status = 'verified'
+                        resource.approved = True
+                        resource.verification_by = request.user
+                        resource.verified_at = timezone.now()
+                    else:
+                        if resource.is_public:
+                            resource.verification_status = 'pending'
+                            resource.approved = False
+                            resource.verification_by = None
+                            resource.verified_at = None
+                        else:  # private upload -> auto verified
+                            resource.verification_status = 'verified'
+                            resource.approved = True
+                            resource.verification_by = request.user  # owner acts as implicit verifier
+                            resource.verified_at = timezone.now()
+                    
+                    resource.save()
+                    form.save_m2m()  # Save tags
+                    
+                    # Get resource ID for redirect
+                    resource_id = resource.pk
                 
-                # Upload to Supabase
-                success, file_url, error = supabase_storage.upload_file(
-                    uploaded_file, 
-                    folder="resources"
-                )
-                
-                if success:
-                    resource.file_url = file_url
-                    resource.original_filename = uploaded_file.name
-                    resource.file_size = uploaded_file.size
+                # Different success messages based on role
+                if getattr(request.user, 'is_professor', False):
+                    messages.success(request, 'Resource uploaded and published successfully!')
                 else:
-                    messages.error(request, f'File upload failed: {error}')
-                    return render(request, 'resources/resource_upload.html', {'form': form})
+                    messages.success(request, 'Resource uploaded successfully! It is pending verification.')
+                
+                return redirect('resources:resource_detail', pk=resource_id)
             
-            # Approval / verification logic:
-            # Professors: auto-verify regardless of visibility.
-            # Non-professors:
-            #   - If uploaded as private (is_public=False): treat as verified immediately (no approval needed).
-            #   - If uploaded as public (is_public=True): mark as pending until professor approval.
-            if getattr(request.user, 'is_professor', False):
-                resource.verification_status = 'verified'
-                resource.approved = True
-                resource.verification_by = request.user
-                resource.verified_at = timezone.now()
-            else:
-                if resource.is_public:
-                    resource.verification_status = 'pending'
-                    resource.approved = False
-                    resource.verification_by = None
-                    resource.verified_at = None
-                else:  # private upload -> auto verified
-                    resource.verification_status = 'verified'
-                    resource.approved = True
-                    resource.verification_by = request.user  # owner acts as implicit verifier
-                    resource.verified_at = timezone.now()
-            
-            resource.save()
-            form.save_m2m()  # Save tags
-            
-            # Different success messages based on role
-            if getattr(request.user, 'is_professor', False):
-                messages.success(request, 'Resource uploaded and published successfully!')
-            else:
-                messages.success(request, 'Resource uploaded successfully! It is pending verification.')
-            
-            return redirect('resources:resource_detail', pk=resource.pk)
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f'Error uploading resource: {str(e)}', exc_info=True)
+                messages.error(request, f'An error occurred while uploading: {str(e)}')
+                return render(request, 'resources/resource_upload.html', {'form': form})
     else:
         form = ResourceUploadForm()
     
@@ -186,6 +217,9 @@ def resource_detail(request, pk):
     # 3. Feedback Interface Component
     rate_url = f'/resources/{resource.pk}/rate/'
     comment_url = f'/resources/{resource.pk}/comment/'
+    
+    # Format file size for display
+    formatted_file_size = format_file_size(resource.file_size)
 
     context = {
         'resource': resource,
@@ -204,6 +238,7 @@ def resource_detail(request, pk):
         'metadata_items': metadata_items,
         'rate_url': rate_url,
         'comment_url': comment_url,
+        'formatted_file_size': formatted_file_size,
     }
     return render(request, 'resources/resource_detail.html', context)
 
@@ -666,6 +701,141 @@ def resource_download(request, pk):
     # No file available
     messages.error(request, 'No file available for download.')
     return redirect('resources:resource_detail', pk=pk)
+
+
+def resource_preview(request, pk):
+    """Preview file content without downloading"""
+    from django.http import JsonResponse
+    import requests
+    
+    resource = get_object_or_404(Resource, pk=pk)
+    
+    # Restrict access to private resources to uploader only
+    if not resource.is_public and resource.uploader != request.user:
+        return JsonResponse({'error': 'This resource is private.'}, status=403)
+    
+    # Restrict access to unverified resources
+    if resource.verification_status != 'verified':
+        if not (resource.uploader == request.user or getattr(request.user, 'is_professor', False)):
+            return JsonResponse({'error': 'This resource is pending verification.'}, status=403)
+    
+    if not resource.file_url:
+        return JsonResponse({'error': 'No file available.'}, status=404)
+    
+    try:
+        # Download the file from Supabase
+        response = requests.get(resource.file_url, timeout=30)
+        
+        if response.status_code != 200:
+            return JsonResponse({'error': 'File not found on storage server.'}, status=404)
+        
+        file_content = response.content
+        
+        # Process based on file type
+        if resource.resource_type == 'txt':
+            # Return text content
+            try:
+                text_content = file_content.decode('utf-8', errors='ignore')
+                # Limit to first 10000 characters for preview
+                preview_text = text_content[:10000]
+                if len(text_content) > 10000:
+                    preview_text += '\n\n... (truncated, download to see full content)'
+                return JsonResponse({'content': preview_text, 'type': 'text'})
+            except Exception as e:
+                return JsonResponse({'error': f'Could not read text file: {str(e)}'}, status=400)
+        
+        elif resource.resource_type == 'image':
+            # Return image as base64
+            import base64
+            base64_content = base64.b64encode(file_content).decode('utf-8')
+            return JsonResponse({
+                'content': base64_content, 
+                'type': 'image',
+                'mime_type': response.headers.get('content-type', 'image/jpeg')
+            })
+        
+        elif resource.resource_type == 'pdf':
+            # Return PDF as base64
+            import base64
+            base64_content = base64.b64encode(file_content).decode('utf-8')
+            return JsonResponse({
+                'content': base64_content,
+                'type': 'pdf',
+                'mime_type': 'application/pdf'
+            })
+        
+        elif resource.resource_type == 'docx':
+            # Extract text from DOCX file
+            try:
+                from docx import Document
+                import io
+                
+                # Load document from binary content
+                doc = Document(io.BytesIO(file_content))
+                
+                # Extract all paragraphs
+                text_content = []
+                for para in doc.paragraphs:
+                    if para.text.strip():
+                        text_content.append(para.text)
+                
+                # Extract tables
+                for table in doc.tables:
+                    table_text = []
+                    for row in table.rows:
+                        row_text = []
+                        for cell in row.cells:
+                            row_text.append(cell.text.strip())
+                        table_text.append(' | '.join(row_text))
+                    text_content.extend(table_text)
+                
+                # Join all content
+                preview_text = '\n'.join(text_content)
+                
+                # Limit to first 10000 characters
+                if len(preview_text) > 10000:
+                    preview_text = preview_text[:10000] + '\n\n... (truncated, download to see full content)'
+                
+                return JsonResponse({'content': preview_text, 'type': 'text'})
+            except Exception as e:
+                return JsonResponse({'error': f'Could not read DOCX file: {str(e)}'}, status=400)
+        
+        elif resource.resource_type == 'pptx':
+            # Extract text from PPTX file
+            try:
+                from pptx import Presentation
+                import io
+                
+                # Load presentation from binary content
+                prs = Presentation(io.BytesIO(file_content))
+                
+                # Extract all text
+                slide_texts = []
+                for slide_num, slide in enumerate(prs.slides, 1):
+                    slide_text = []
+                    for shape in slide.shapes:
+                        if hasattr(shape, 'text') and shape.text.strip():
+                            slide_text.append(shape.text)
+                    if slide_text:
+                        slide_texts.append(f"--- Slide {slide_num} ---\n" + '\n'.join(slide_text))
+                
+                # Join all slides
+                preview_text = '\n\n'.join(slide_texts)
+                
+                # Limit to first 10000 characters
+                if len(preview_text) > 10000:
+                    preview_text = preview_text[:10000] + '\n\n... (truncated, download to see full content)'
+                
+                return JsonResponse({'content': preview_text, 'type': 'text'})
+            except Exception as e:
+                return JsonResponse({'error': f'Could not read PPTX file: {str(e)}'}, status=400)
+        
+        else:
+            return JsonResponse({'error': f'Preview not available for {resource.resource_type} files.'}, status=400)
+    
+    except requests.RequestException as e:
+        return JsonResponse({'error': f'Error loading file: {str(e)}'}, status=500)
+
 
 
 @login_required
