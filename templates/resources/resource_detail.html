@@ -10,7 +10,11 @@
 {% endblock %}
 
 {% block header %}
-{% url 'resources:resource_list' as resources_url %}
+{% if request.user.is_professor %}
+  {% url 'resources:verified_resources_list' as resources_url %}
+{% else %}
+  {% url 'resources:resource_list' as resources_url %}
+{% endif %}
 {% include 'components/page_header.html' with page_title='Resource Detail' back_url=resources_url show_moderate_btn=False %}
 {% endblock %}
 
