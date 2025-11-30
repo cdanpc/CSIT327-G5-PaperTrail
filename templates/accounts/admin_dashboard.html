@@ -95,6 +95,7 @@
 
 <!-- Quick Actions -->
 <div class="row g-3 mb-4">
+    {% if not request.user.is_staff and not request.user.is_superuser %}
     <div class="col-lg-4 col-md-6">
         <div class="card dashboard-card">
             <div class="card-header">
@@ -111,7 +112,8 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6">
+    {% endif %}
+    <div class="col-lg-6 col-md-6">
         <div class="card dashboard-card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Manage Users</h5>
@@ -127,7 +129,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-6 col-md-6">
         <div class="card dashboard-card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Online Users</h5>

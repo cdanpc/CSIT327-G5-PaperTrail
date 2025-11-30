@@ -44,6 +44,7 @@
                             </a>
                         </li>
                         {% endif %}
+            {% if not request.user.is_staff and not request.user.is_superuser %}
             <li class="nav-item">
                 <a href="{% url 'resources:resource_list' %}" class="nav-link {% if request.resolver_match.url_name == 'resource_list' %}active{% endif %}" title="Resources">
                     <i class="fas fa-book"></i>
@@ -69,6 +70,7 @@
                     <span class="nav-text">Bookmarks</span>
                 </a>
             </li>
+            {% endif %}
         </ul>
 
         <div class="sidebar-divider"></div>
