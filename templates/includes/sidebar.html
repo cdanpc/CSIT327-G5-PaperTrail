@@ -1,5 +1,10 @@
 ﻿{% load static %}
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar" id="sidebar"
+    {% if request.user.is_staff or request.user.is_superuser %}data-role="admin"
+    {% elif request.user.is_professor %}data-role="professor"
+    {% else %}data-role="student"
+    {% endif %}>
+
     <div class="sidebar-header">
         <div class="sidebar-logo" id="sidebarLogo">
             <i class="fas fa-scroll logo-icon"></i>
