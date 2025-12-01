@@ -424,14 +424,18 @@ def moderation_list(request):
     # Get all pending items for moderation
     from quizzes.models import Quiz
     from flashcards.models import Deck
+    from accounts.models import EmailChangeRequest
+    
     pending_resources = Resource.objects.filter(verification_status='pending').order_by('-created_at')
     pending_quizzes = Quiz.objects.filter(verification_status='pending').order_by('-created_at')
     pending_decks = Deck.objects.filter(verification_status='pending', visibility='public').order_by('-created_at')
+    pending_email_requests = EmailChangeRequest.objects.filter(status='pending').order_by('-created_at')
     
     context = {
         'pending_resources': pending_resources,
         'pending_quizzes': pending_quizzes,
         'pending_decks': pending_decks,
+        'pending_email_requests': pending_email_requests,
     }
     return render(request, 'resources/moderation_list.html', context)
 

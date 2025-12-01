@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -1162,23 +1162,16 @@ def settings_view(request):
             from django.http import JsonResponse
             
             default_dashboard = request.POST.get('default_dashboard')
-            language = request.POST.get('language')
-            current_language = request.user.language
             
             if default_dashboard:
                 request.user.default_dashboard = default_dashboard
-            if language:
-                request.user.language = language
             
             request.user.save()
-            
-            # Check if language changed (to determine if reload needed)
-            language_changed = language and language != current_language
             
             return JsonResponse({
                 'success': True,
                 'message': 'Preferences saved successfully',
-                'language_changed': language_changed
+                'language_changed': False
             })
         
         # Handle notification preference updates (AJAX)
@@ -1195,7 +1188,6 @@ def settings_view(request):
                 'quizSubmissions': 'notify_quiz_submissions',
                 'systemUpdates': 'notify_system_updates',
                 'weeklySummary': 'notify_weekly_summary',
-                'inAppSound': 'in_app_sound',
             }
             
             if notification_type in notification_map:
@@ -1221,11 +1213,19 @@ def settings_view(request):
             
             return JsonResponse({'success': False, 'message': 'Invalid privacy setting'}, status=400)
     
+    # Check for pending email change request
+    from .models import EmailChangeRequest
+    pending_email_change = EmailChangeRequest.objects.filter(
+        user=request.user, 
+        status='pending'
+    ).exists()
+
     context = {
         'user': request.user,
         'dashboard_choices': User.DASHBOARD_CHOICES,
         'language_choices': User.LANGUAGE_CHOICES,
         'visibility_choices': User.VISIBILITY_CHOICES,
+        'pending_email_change': pending_email_change,
     }
     return render(request, 'accounts/settings.html', context)
 
@@ -1241,9 +1241,14 @@ def change_personal_email(request):
         if form.is_valid():
             # Update the email
             request.user.personal_email = form.cleaned_data['new_email']
+            
+            # Update backup email
+            if 'backup_email' in form.cleaned_data:
+                request.user.backup_email = form.cleaned_data['backup_email']
+                
             request.user.save()
             
-            messages.success(request, 'Your personal email has been updated successfully!')
+            messages.success(request, 'Your email settings have been updated successfully!')
             return redirect('accounts:settings')
         else:
             # Add error messages
@@ -1265,19 +1270,29 @@ def change_personal_email(request):
 def change_university_email(request):
     """Change university email address (requires verification)"""
     from .forms import ChangeUniversityEmailForm
+    from .models import EmailChangeRequest
+    
+    # Check for pending requests
+    pending_request = EmailChangeRequest.objects.filter(
+        user=request.user, 
+        status='pending'
+    ).first()
+    
+    if pending_request:
+        messages.warning(request, f'You already have a pending request to change your email to {pending_request.new_email}. Please wait for admin approval.')
+        return redirect('accounts:settings')
     
     if request.method == 'POST':
         form = ChangeUniversityEmailForm(request.user, request.POST)
         if form.is_valid():
-            # Update the university email
-            request.user.univ_email = form.cleaned_data['new_univ_email']
-            request.user.save()
+            # Create change request
+            EmailChangeRequest.objects.create(
+                user=request.user,
+                new_email=form.cleaned_data['new_univ_email'],
+                reason=form.cleaned_data['reason']
+            )
             
-            # TODO: Send verification email and admin notification
-            # For now, just update directly
-            
-            messages.success(request, 'Your university email has been updated successfully! You may need to verify the new email.')
-            messages.info(request, 'An administrator has been notified of this change.')
+            messages.success(request, 'Your request to change university email has been submitted for verification.')
             return redirect('accounts:settings')
         else:
             # Add error messages
@@ -1292,6 +1307,40 @@ def change_university_email(request):
         'email_type': 'university',
     }
     return render(request, 'accounts/change_email.html', context)
+
+
+@login_required
+def approve_email_request(request, pk):
+    """Approve a university email change request"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'You do not have permission to perform this action.')
+        return redirect('resources:moderation_list')
+        
+    from .models import EmailChangeRequest
+    email_request = get_object_or_404(EmailChangeRequest, pk=pk)
+    
+    if request.method == 'POST':
+        email_request.approve(request.user)
+        messages.success(request, f'Email change request for {email_request.user.username} approved.')
+        
+    return redirect('resources:moderation_list')
+
+
+@login_required
+def reject_email_request(request, pk):
+    """Reject a university email change request"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'You do not have permission to perform this action.')
+        return redirect('resources:moderation_list')
+        
+    from .models import EmailChangeRequest
+    email_request = get_object_or_404(EmailChangeRequest, pk=pk)
+    
+    if request.method == 'POST':
+        email_request.reject(request.user)
+        messages.success(request, f'Email change request for {email_request.user.username} rejected.')
+        
+    return redirect('resources:moderation_list')
 
 
 # Phase 7: Advanced Analytics View

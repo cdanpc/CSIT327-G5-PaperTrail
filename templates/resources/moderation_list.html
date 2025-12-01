@@ -34,6 +34,27 @@
             </tr>
         </thead>
         <tbody>
+            {% for req in pending_email_requests %}
+            <tr>
+                <td><span class="badge bg-info text-dark">Email Change</span></td>
+                <td>
+                    <strong>New:</strong> {{ req.new_email }}<br>
+                    <small class="text-muted">Reason: {{ req.reason|truncatechars:50 }}</small>
+                </td>
+                <td>{{ req.user.get_display_name }}</td>
+                <td>{{ req.created_at|date:"M d, Y" }}</td>
+                <td class="text-end">
+                    <form method="post" action="{% url 'accounts:approve_email_request' req.pk %}" style="display:inline-block;">
+                        {% csrf_token %}
+                        <button class="btn btn-success btn-sm" type="submit">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'accounts:reject_email_request' req.pk %}" style="display:inline-block;">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm" type="submit">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
             {% for r in pending_resources %}
             <tr>
                 <td><span class="badge bg-primary" style="color: #000;">Resource</span></td>
@@ -88,7 +109,7 @@
                 </td>
             </tr>
             {% endfor %}
-            {% if not pending_resources and not pending_quizzes and not pending_decks %}
+            {% if not pending_resources and not pending_quizzes and not pending_decks and not pending_email_requests %}
             <tr>
                 <td colspan="5" class="text-center py-5">
                     <h5 class="text-muted">No content pending verification</h5>

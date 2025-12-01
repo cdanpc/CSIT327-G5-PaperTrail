@@ -34,6 +34,8 @@ urlpatterns = [
     path('password-change/', views.password_change, name='password_change'),
     path('change-personal-email/', views.change_personal_email, name='change_personal_email'),
     path('change-university-email/', views.change_university_email, name='change_university_email'),
+    path('email-request/<int:pk>/approve/', views.approve_email_request, name='approve_email_request'),
+    path('email-request/<int:pk>/reject/', views.reject_email_request, name='reject_email_request'),
     
     # Notifications
     path('notifications/', views.notifications_page, name='notifications'),
