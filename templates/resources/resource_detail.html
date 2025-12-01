@@ -10,7 +10,11 @@
 {% endblock %}
 
 {% block header %}
-{% url 'resources:resource_list' as resources_url %}
+{% if request.user.is_professor %}
+  {% url 'resources:verified_resources_list' as resources_url %}
+{% else %}
+  {% url 'resources:resource_list' as resources_url %}
+{% endif %}
 {% include 'components/page_header.html' with page_title='Resource Detail' back_url=resources_url show_moderate_btn=False %}
 {% endblock %}
 
@@ -68,16 +72,21 @@
 
       <!-- Download Button -->
       {% if primary_action %}
+      {% if 'download' in primary_action.text|lower %}
+      <button type="button" class="btn {{ primary_action.class|default:'btn--primary' }} btn-pill" onclick="window.location.href='{{ primary_action.url }}';">
+        <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
+      </button>
+      <!-- Preview Button for Files -->
+      {% if resource.file_url %}
+      <button type="button" class="btn btn--secondary btn-pill" data-bs-toggle="modal" data-bs-target="#previewModal" title="Preview file information">
+        <i class="fas fa-eye"></i> Preview
+      </button>
+      {% endif %}
+      {% else %}
       <a href="{{ primary_action.url }}" class="btn {{ primary_action.class|default:'btn--primary' }} btn-pill" {% if primary_action.target %}target="{{ primary_action.target }}"{% endif %}>
         <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
       </a>
       {% endif %}
-
-      <!-- Preview Button -->
-      {% if resource.file_url %}
-      <button type="button" class="btn btn-outline-primary btn-pill" data-bs-toggle="modal" data-bs-target="#previewModal">
-        <i class="fas fa-eye"></i> Preview
-      </button>
       {% endif %}
     </div>
   </div>
@@ -167,17 +176,167 @@
 <!-- Preview Modal -->
 {% if resource.file_url %}
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content" style="height: 80vh;">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">{{ resource.title }}</h5>
+        <h5 class="modal-title">
+          <i class="fas fa-file-alt me-2"></i>{{ resource.title }}
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-0">
-        <iframe src="{{ resource.file_url }}" width="100%" height="100%" style="border: none;"></iframe>
+      <div class="modal-body" style="min-height: 500px; overflow-y: auto;">
+        
+        <!-- Loading Spinner -->
+        <div id="previewLoading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-3 text-muted">Loading file preview...</p>
+        </div>
+
+        <!-- Preview Content Container (hidden until loaded) -->
+        <div id="previewContent" style="display: none;">
+          
+          <!-- Image Preview -->
+          <div id="imagePreview" style="display: none;">
+            <div class="text-center mb-4">
+              <img id="previewImage" alt="{{ resource.title }}" class="img-fluid rounded" style="max-height: 600px; max-width: 100%;">
+            </div>
+          </div>
+
+          <!-- PDF Preview -->
+          <div id="pdfPreview" style="display: none;">
+            <div style="height: 600px; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+              <iframe id="pdfFrame" type="application/pdf" width="100%" height="600" style="border: none;"></iframe>
+            </div>
+            <small class="text-muted d-block mt-2">
+              <i class="fas fa-info-circle me-1"></i>If PDF doesn't display correctly, download it to view the full content.
+            </small>
+          </div>
+
+          <!-- Text Preview -->
+          <div id="textPreview" style="display: none;">
+            <div class="alert alert-info mb-2">
+              <i class="fas fa-file-lines me-2"></i>Text File Content
+            </div>
+            <div style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-break: break-word; max-height: 500px; overflow-y: auto;">
+              <span id="textContent" class="text-muted"></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Error Message -->
+        <div id="previewError" style="display: none;">
+          <div class="alert alert-warning mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="errorMessage"></span>
+          </div>
+        </div>
+
+
+        <!-- File Information -->
+        <hr class="my-4">
+        <div class="card border-0 bg-light">
+          <div class="card-body">
+            <h6 class="card-title mb-3">
+              <i class="fas fa-info-circle text-info me-2"></i>File Information
+            </h6>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block mb-1">Filename</small>
+                <strong class="d-block text-break">{{ resource.original_filename|default:resource.title }}</strong>
+              </div>
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block mb-1">File Type</small>
+                <strong class="d-block">{{ resource.resource_type|upper }}</strong>
+              </div>
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block mb-1">File Size</small>
+                <strong class="d-block">{{ formatted_file_size }}</strong>
+              </div>
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block mb-1">Downloads</small>
+                <strong class="d-block">{{ resource.download_count }}</strong>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn--primary btn-pill" onclick="window.location.href='{{ primary_action.url }}';">
+          <i class="fas fa-download me-2"></i>Download File
+        </button>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+// Handle preview modal loading
+const previewModal = document.getElementById('previewModal');
+if (previewModal) {
+  previewModal.addEventListener('show.bs.modal', function() {
+    loadPreview({{ resource.pk }}, '{{ resource.resource_type }}');
+  });
+}
+
+function loadPreview(resourceId, fileType) {
+  const previewLoading = document.getElementById('previewLoading');
+  const previewContent = document.getElementById('previewContent');
+  const previewError = document.getElementById('previewError');
+  const errorMessage = document.getElementById('errorMessage');
+  
+  // Reset display states
+  previewLoading.style.display = 'block';
+  previewContent.style.display = 'none';
+  previewError.style.display = 'none';
+  
+  // Fetch preview from backend
+  fetch(`/resources/${resourceId}/preview/`)
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error(data.error || 'Failed to load preview');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      previewLoading.style.display = 'none';
+      
+      if (data.type === 'image') {
+        // Display image
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        previewImage.src = `data:${data.mime_type};base64,${data.content}`;
+        imagePreview.style.display = 'block';
+        previewContent.style.display = 'block';
+      } 
+      else if (data.type === 'pdf') {
+        // Display PDF
+        const pdfPreview = document.getElementById('pdfPreview');
+        const pdfFrame = document.getElementById('pdfFrame');
+        pdfFrame.src = `data:application/pdf;base64,${data.content}`;
+        pdfPreview.style.display = 'block';
+        previewContent.style.display = 'block';
+      }
+      else if (data.type === 'text') {
+        // Display text
+        const textPreview = document.getElementById('textPreview');
+        const textContent = document.getElementById('textContent');
+        textContent.textContent = data.content;
+        textPreview.style.display = 'block';
+        previewContent.style.display = 'block';
+      }
+    })
+    .catch(error => {
+      previewLoading.style.display = 'none';
+      previewError.style.display = 'block';
+      errorMessage.textContent = error.message || 'Could not load file preview. Please try downloading the file instead.';
+    });
+}
+</script>
+
 {% endif %}
 {% endblock %}

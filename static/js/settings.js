@@ -175,6 +175,35 @@ function saveSelectPreference(settingId, value) {
         return;
     }
     
+    // Handle default dashboard (Auto-save)
+    if (settingId === 'default_dashboard' || settingId === 'defaultDashboard') {
+        const formData = new FormData();
+        formData.append('save_preferences', '1');
+        formData.append('default_dashboard', value);
+        formData.append('csrfmiddlewaretoken', getCSRFToken());
+
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Preferences saved successfully!', 'success');
+            } else {
+                showToast(data.message || 'Failed to save preferences', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Connection error. Please check your internet.', 'error');
+        });
+        return;
+    }
+    
     // For other preferences, we'll let the form handle it
     // Individual selects will just show visual feedback
     console.log(`Preference marked for save: ${settingId} = ${value}`);
