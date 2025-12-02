@@ -12,8 +12,12 @@
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=3.9">
     <link rel="stylesheet" href="{% static 'css/coming-soon-notification.css' %}?v=1.0">
     <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=2.2">
+    <link rel="stylesheet" href="{% static 'css/toast.css' %}?v=1.0">
 </head>
 <body>
+    <!-- Toast Messages Component -->
+    {% include 'components/toast_messages.html' %}
+
     <!-- Include Sidebar -->
     {% include 'includes/sidebar.html' %}
     
@@ -90,14 +94,23 @@
                         <div class="setting-item">
                             <div class="setting-info">
                                 <h4 class="setting-title">University Email</h4>
-                                            <p class="setting-description">Update your university email (requires verification)</p>
-                                            <small class="text-muted">Current: {{ user.univ_email }}</small>
-                                        </div>
-                                        <a href="{% url 'accounts:change_university_email' %}" class="btn btn-outline-primary">
-                                            <i class="fas fa-university"></i>
-                                            Change Email
-                                        </a>
-                                    </div>
+                                <p class="setting-description">Update your university email (requires verification)</p>
+                                <small class="text-muted">Current: {{ user.univ_email }}</small>
+                            </div>
+                            <div class="setting-action">
+                                {% if pending_email_change %}
+                                    <a href="#" class="btn btn-outline-primary" onclick="alert('You have an ongoing request to change your university email. Cannot change university email'); return false;" style="opacity: 0.5; cursor: not-allowed;">
+                                        <i class="fas fa-university me-2"></i>
+                                        Change Email
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'accounts:change_university_email' %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-university me-2"></i>
+                                        Change Email
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
                                     
                                     <!--
                                     <div class="setting-item">
@@ -143,19 +156,7 @@
                                             </select>
                                         </div>
                                         
-                                        <div class="setting-item">
-                                            <div class="setting-info">
-                                                <h4 class="setting-title">Language</h4>
-                                                <p class="setting-description">Choose your preferred language</p>
-                                            </div>
-                                            <select class="form-select settings-select" name="language" id="language">
-                                                {% for value, label in language_choices %}
-                                                    <option value="{{ value }}" {% if user.language == value %}selected{% endif %}>
-                                                        {{ label }}
-                                                    </option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
+
                                         
                                         <!--
                                         <div class="setting-item">
@@ -174,10 +175,6 @@
                                         
                                         <div class="setting-item">
                                             <div class="setting-info"></div>
-                                            <button type="submit" class="btn btn-outline-primary">
-                                                <i class="fas fa-save me-2"></i>
-                                                Save Preferences
-                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -258,18 +255,7 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="setting-item">
-                                        <div class="setting-info">
-                                            <h4 class="setting-title">In-App Sound</h4>
-                                            <p class="setting-description">Play sound for in-app notifications</p>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input notification-toggle" type="checkbox" 
-                                                   id="inAppSound" 
-                                                   {% if user.in_app_sound %}checked{% endif %}>
-                                            <label class="form-check-label" for="inAppSound"></label>
-                                        </div>
-                                    </div>
+
                                 </div>
                             </div>
 
@@ -365,6 +351,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/sidebar.js' %}?v=3.1"></script>
     <script src="{% static 'js/coming-soon-notification.js' %}?v=1.0"></script>
-    <script src="{% static 'js/settings.js' %}?v=2.0"></script>
+    <script src="{% static 'js/settings.js' %}?v=2.1"></script>
 </body>
 </html>
