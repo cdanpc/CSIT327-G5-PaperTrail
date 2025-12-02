@@ -58,6 +58,8 @@ forgot_password_step3 = parent_views.forgot_password_step3
 admin_send_password_reset = parent_views.admin_send_password_reset
 approve_password_reset = parent_views.approve_password_reset
 deny_password_reset = parent_views.deny_password_reset
+approve_email_request = parent_views.approve_email_request
+reject_email_request = parent_views.reject_email_request
 
 __all__ = [
     # Auth
@@ -81,6 +83,8 @@ __all__ = [
     # Password Reset
     'forgot_password_step1', 'forgot_password_step2', 'forgot_password_step3',
     'admin_send_password_reset', 'approve_password_reset', 'deny_password_reset',
+    # Email Requests
+    'approve_email_request', 'reject_email_request',
     # Study Reminders
     'add_study_reminder', 'toggle_study_reminder', 'delete_study_reminder',
 ]
