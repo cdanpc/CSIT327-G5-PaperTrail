@@ -34,13 +34,26 @@
         {% if resources %}
             {% for resource in resources %}
             <div class="col-md-6 col-lg-4">
-                <div class="study-card">
+                <a href="{% url 'resources:resource_detail' resource.pk %}" class="study-card study-card--clickable">
                     <div class="study-card__header">
-                        <span class="study-card__type">{{ resource.resource_type|upper }}</span>
-                        <form method="post" action="{% url 'bookmarks:toggle' resource.pk %}" class="study-card__bookmark-form">
+                        <div class="study-card__header-left">
+                            <span class="study-card__type">{{ resource.resource_type|upper }}</span>
+                            {% if not resource.is_public %}
+                                <span class="study-card__tag study-card__tag--private"><i class="fas fa-lock"></i> Private</span>
+                            {% else %}
+                                {% if resource.verification_status == 'verified' %}
+                                    <span class="study-card__tag study-card__tag--verified"><i class="fas fa-check-circle"></i> Verified</span>
+                                {% elif resource.verification_status == 'pending' %}
+                                    <span class="study-card__tag study-card__tag--pending"><i class="fas fa-clock"></i> Pending</span>
+                                {% elif resource.verification_status == 'not_verified' %}
+                                    <span class="study-card__tag study-card__tag--rejected"><i class="fas fa-times-circle"></i> Rejected</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <form method="post" action="{% url 'bookmarks:toggle' resource.pk %}" class="study-card__bookmark-form" onclick="event.stopPropagation(); event.preventDefault();">
                             {% csrf_token %}
                             <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                            <button type="submit" class="study-card__bookmark-btn" aria-label="{% if resource.id in bookmarked_ids %}Remove Bookmark{% else %}Add Bookmark{% endif %}">
+                            <button type="submit" class="study-card__bookmark-btn" aria-label="{% if resource.id in bookmarked_ids %}Remove Bookmark{% else %}Add Bookmark{% endif %}" onclick="event.stopPropagation(); this.form.submit();">
                                 <i class="{% if resource.id in bookmarked_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
                             </button>
                         </form>
@@ -49,22 +62,17 @@
                     <div class="study-card__body">
                         <h3 class="study-card__title">{{ resource.title }}</h3>
                         
+                        {% if resource.description %}
+                            <p class="study-card__description">{{ resource.description|truncatewords:20 }}</p>
+                        {% endif %}
+                        
                         <div class="study-card__tags">
-                            {% if not resource.is_public %}
-                                <span class="study-card__tag study-card__tag--private"><i class="fas fa-lock"></i> Private</span>
-                            {% else %}
-                                {% if resource.verification_status == 'verified' %}
-                                    <span class="study-card__tag study-card__tag--verified"><i class="fas fa-check-circle"></i> Verified</span>
-                                {% elif resource.verification_status == 'pending' %}
-                                    <span class="study-card__tag study-card__tag--pending"><i class="fas fa-clock"></i> Pending</span>
-                                {% endif %}
-                            {% endif %}
                         </div>
 
                         <p class="study-card__author">By: {{ resource.uploader.get_full_name|default:resource.uploader.username }}</p>
 
                         <div class="study-card__metrics">
-                            <span class="like-metric" data-resource-id="{{ resource.pk }}" style="cursor: pointer;">
+                            <span class="like-metric" data-resource-id="{{ resource.pk }}" style="cursor: pointer;" onclick="event.stopPropagation(); event.preventDefault();">
                                 <i class="fas fa-heart {% if resource.user_has_liked %}liked{% else %}unliked{% endif %}"></i> 
                                 <span class="like-count">{{ resource.likes.count|intword }}</span>
                             </span>
@@ -76,13 +84,7 @@
                             {% endif %}
                         </div>
                     </div>
-
-                    <div class="study-card__footer">
-                        <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn--primary btn--block">
-                            <i class="fas fa-eye"></i> View Resource
-                        </a>
-                    </div>
-                </div>
+                </a>
             </div>
             {% endfor %}
         {% else %}

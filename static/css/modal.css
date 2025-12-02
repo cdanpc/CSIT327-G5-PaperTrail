@@ -2,7 +2,7 @@
    Delete Confirmation Modal Styles
    ============================================ */
 
-.modal-overlay {
+.delete-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -26,7 +26,7 @@
     }
 }
 
-.modal-content {
+.delete-modal-content {
     background: var(--color-bg-primary, #ffffff);
     border-radius: var(--radius-lg, 12px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -48,7 +48,7 @@
     }
 }
 
-.modal-header {
+.delete-modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -56,14 +56,14 @@
     border-bottom: 1px solid var(--color-border, #e5e7eb);
 }
 
-.modal-title {
+.delete-modal-title {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--color-text-primary, #1f2937);
     margin: 0;
 }
 
-.modal-close {
+.delete-modal-close {
     background: none;
     border: none;
     width: 32px;
@@ -77,32 +77,32 @@
     transition: all 0.2s ease;
 }
 
-.modal-close:hover {
+.delete-modal-close:hover {
     background-color: var(--color-bg-secondary, #f3f4f6);
     color: var(--color-text-primary, #1f2937);
 }
 
-.modal-close:active {
+.delete-modal-close:active {
     transform: scale(0.95);
 }
 
-.modal-body {
+.delete-modal-body {
     padding: 1.5rem;
 }
 
-.modal-message {
+.delete-modal-message {
     font-size: 0.9375rem;
     line-height: 1.6;
     color: var(--color-text-secondary, #4b5563);
     margin: 0;
 }
 
-.modal-message strong {
+.delete-modal-message strong {
     color: var(--color-text-primary, #1f2937);
     font-weight: 600;
 }
 
-.modal-footer {
+.delete-modal-footer {
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -167,24 +167,24 @@
 
 /* Responsive Design */
 @media (max-width: 640px) {
-    .modal-content {
+    .delete-modal-content {
         width: 95%;
         margin: 1rem;
     }
     
-    .modal-header,
-    .modal-body,
-    .modal-footer {
+    .delete-modal-header,
+    .delete-modal-body,
+    .delete-modal-footer {
         padding: 1rem;
     }
     
-    .modal-footer {
+    .delete-modal-footer {
         flex-direction: column-reverse;
         gap: 0.5rem;
     }
     
-    .modal-footer .btn-danger,
-    .modal-footer .btn-outline-secondary {
+    .delete-modal-footer .btn-danger,
+    .delete-modal-footer .btn-outline-secondary {
         width: 100%;
         justify-content: center;
     }

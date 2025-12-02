@@ -29,22 +29,10 @@
     <div class="row g-3 mt-2" id="bookmarksGrid">
         {% for item in items %}
             <div class="col-md-6 col-lg-4" data-type="{{ item.type }}" data-id="{{ item.id }}">
-                <div class="study-card">
+                <a href="{{ item.detail_url }}" class="study-card study-card--clickable">
                     <div class="study-card__header">
-                        <span class="study-card__type">{% if item.type == 'resource' %}{{ item.resource_type|upper }}{% elif item.type == 'quiz' %}QUIZ{% else %}FLASHCARD{% endif %}</span>
-                        <form method="post" action="{{ item.remove_url }}" class="study-card__bookmark-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.path }}">
-                            <button type="submit" class="study-card__bookmark-btn" title="Remove bookmark" aria-label="Remove bookmark">
-                                <i class="fas fa-bookmark-slash"></i>
-                            </button>
-                        </form>
-                    </div>
-
-                    <div class="study-card__body">
-                        <h3 class="study-card__title">{{ item.title }}</h3>
-                        
-                        <div class="study-card__tags">
+                        <div class="study-card__header-left">
+                            <span class="study-card__type">{% if item.type == 'resource' %}{{ item.resource_type|upper }}{% elif item.type == 'quiz' %}QUIZ{% else %}FLASHCARD{% endif %}</span>
                             {% if item.is_private %}
                                 <span class="study-card__tag study-card__tag--private"><i class="fas fa-lock"></i> Private</span>
                             {% else %}
@@ -52,20 +40,38 @@
                                     <span class="study-card__tag study-card__tag--verified"><i class="fas fa-check-circle"></i> Verified</span>
                                 {% elif item.verification_status == 'pending' %}
                                     <span class="study-card__tag study-card__tag--pending"><i class="fas fa-clock"></i> Pending</span>
+                                {% elif item.verification_status == 'not_verified' %}
+                                    <span class="study-card__tag study-card__tag--rejected"><i class="fas fa-times-circle"></i> Rejected</span>
                                 {% endif %}
                             {% endif %}
+                        </div>
+                        <form method="post" action="{{ item.remove_url }}" class="study-card__bookmark-form" onclick="event.stopPropagation(); event.preventDefault();">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button type="submit" class="study-card__bookmark-btn" title="Remove bookmark" aria-label="Remove bookmark" onclick="event.stopPropagation(); this.form.submit();">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="study-card__body">
+                        <h3 class="study-card__title">{{ item.title }}</h3>
+                        
+                        {% if item.description %}
+                            <p class="study-card__description">{{ item.description|truncatewords:20 }}</p>
+                        {% endif %}
+                        
+                        <div class="study-card__tags">
                         </div>
 
                         <p class="study-card__author">By: {{ item.author }}</p>
 
                         <div class="study-card__metrics">
                             {% if item.type == 'resource' %}
-                                <span class="like-metric" data-resource-id="{{ item.id }}" style="cursor: pointer;">
+                                <span class="like-metric" data-resource-id="{{ item.id }}" style="cursor: pointer;" onclick="event.stopPropagation(); event.preventDefault();">
                                   <i class="fas fa-heart {% if item.user_has_liked %}liked{% else %}unliked{% endif %}"></i> 
                                   <span class="like-count">{{ item.likes_count|intword }}</span>
                                 </span>
-                                <span class="metric-dot">•</span>
-                                <span><i class="fas fa-eye"></i> {{ item.views }}</span>
                                 <span class="metric-dot">•</span>
                                 <span><i class="fas fa-download"></i> {{ item.downloads }}</span>
                                 {% if item.rating %}
@@ -73,7 +79,7 @@
                                     <span><i class="fas fa-star"></i> {{ item.rating|floatformat:1 }}</span>
                                 {% endif %}
                             {% elif item.type == 'quiz' %}
-                                <span class="like-metric" data-quiz-id="{{ item.id }}" style="cursor: pointer;">
+                                <span class="like-metric" data-quiz-id="{{ item.id }}" style="cursor: pointer;" onclick="event.stopPropagation(); event.preventDefault();">
                                   <i class="fas fa-heart {% if item.user_has_liked %}liked{% else %}unliked{% endif %}"></i> 
                                   <span class="like-count">{{ item.likes_count|intword }}</span>
                                 </span>
@@ -82,7 +88,7 @@
                                 <span class="metric-dot">•</span>
                                 <span><i class="fas fa-chart-line"></i> {{ item.attempts }} attempt{{ item.attempts|pluralize }}</span>
                             {% else %}
-                                <span class="like-metric" data-deck-id="{{ item.id }}" style="cursor: pointer;">
+                                <span class="like-metric" data-deck-id="{{ item.id }}" style="cursor: pointer;" onclick="event.stopPropagation(); event.preventDefault();">
                                   <i class="fas fa-heart {% if item.user_has_liked %}liked{% else %}unliked{% endif %}"></i> 
                                   <span class="like-count">{{ item.likes_count|intword }}</span>
                                 </span>
@@ -91,13 +97,7 @@
                             {% endif %}
                         </div>
                     </div>
-
-                    <div class="study-card__footer">
-                        <a href="{{ item.detail_url }}" class="btn btn--primary btn--block">
-                            <i class="fas fa-eye"></i> View {% if item.type == 'resource' %}Resource{% elif item.type == 'quiz' %}Quiz{% else %}Deck{% endif %}
-                        </a>
-                    </div>
-                </div>
+                </a>
             </div>
         {% empty %}
             <div class="col-12">

@@ -22,11 +22,6 @@ class CustomUserCreationForm(UserCreationForm):
         label='Last Name',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Doe'})
     )
-    personal_email = forms.EmailField(
-        required=True,
-        label='Email Address',
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'you@example.com'})
-    )
     univ_email = forms.EmailField(
         required=True,
         label='University Email',
@@ -38,10 +33,30 @@ class CustomUserCreationForm(UserCreationForm):
         label='Student ID',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '20-1234-567'})
     )
+    course = forms.ChoiceField(
+        required=True,
+        label='Course',
+        choices=[('', 'Select your course')] + [
+            ('BSCS', 'Bachelor of Science in Computer Science'),
+            ('BSIT', 'Bachelor of Science in Information Technology'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    year_level = forms.ChoiceField(
+        required=True,
+        label='Year Level',
+        choices=[('', 'Select year level')] + [
+            ('1', '1st Year'),
+            ('2', '2nd Year'),
+            ('3', '3rd Year'),
+            ('4', '4th Year'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'personal_email', 'univ_email', 'stud_id', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'univ_email', 'stud_id', 'course', 'year_level', 'password1', 'password2')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -84,7 +99,8 @@ class CustomUserCreationForm(UserCreationForm):
         # Store other required fields
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
-        user.personal_email = self.cleaned_data['personal_email']
+        user.course = self.cleaned_data['course']
+        user.year_level = self.cleaned_data['year_level']
         
         if commit:
             user.save()
@@ -167,7 +183,7 @@ class ProfileUpdateForm(forms.ModelForm):
         model = User
         fields = [
             'first_name', 'last_name', 'personal_email', 'univ_email', 
-            'stud_id', 'profile_picture', 'tagline', 'bio', 
+            'stud_id', 'course', 'profile_picture', 'tagline', 'bio', 
             'department', 'year_level', 'phone', 'profile_visibility'
         ]
         widgets = {
@@ -176,6 +192,14 @@ class ProfileUpdateForm(forms.ModelForm):
             'personal_email': forms.EmailInput(attrs={'class': 'form-control'}),
             'univ_email': forms.EmailInput(attrs={'class': 'form-control'}),
             'stud_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'course': forms.Select(attrs={'class': 'form-control'}, choices=[
+                ('', 'Select course'),
+                ('BSCS', 'Bachelor of Science in Computer Science'),
+                ('BSIT', 'Bachelor of Science in Information Technology'),
+                ('BSCE', 'Bachelor of Science in Computer Engineering'),
+                ('BSIS', 'Bachelor of Science in Information Systems'),
+                ('ACT', 'Associate in Computer Technology'),
+            ]),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
             'tagline': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -369,14 +393,15 @@ class ChangePersonalEmailForm(forms.Form):
         }),
         help_text='Enter your new personal email address'
     )
-    confirm_email = forms.EmailField(
-        label='Confirm Email',
+    backup_email = forms.EmailField(
+        label='Backup Email (Optional)',
         max_length=254,
-        required=True,
+        required=False,
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Confirm your new email'
-        })
+            'placeholder': 'backup@example.com'
+        }),
+        help_text='Optional backup email for account recovery'
     )
     password = forms.CharField(
         label='Current Password',
@@ -390,6 +415,9 @@ class ChangePersonalEmailForm(forms.Form):
     def __init__(self, user, *args, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
+        # Set initial value for backup email if it exists
+        if hasattr(self.user, 'backup_email') and self.user.backup_email:
+            self.fields['backup_email'].initial = self.user.backup_email
     
     def clean_new_email(self):
         new_email = self.cleaned_data.get('new_email')
@@ -411,16 +439,6 @@ class ChangePersonalEmailForm(forms.Form):
         if password and not self.user.check_password(password):
             raise ValidationError('Incorrect password. Please try again.')
         return password
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        new_email = cleaned_data.get('new_email')
-        confirm_email = cleaned_data.get('confirm_email')
-        
-        if new_email and confirm_email and new_email != confirm_email:
-            raise ValidationError('Email addresses do not match.')
-        
-        return cleaned_data
 
 
 class CITPasswordResetForm(PasswordResetForm):
@@ -491,6 +509,69 @@ class CITPasswordResetForm(PasswordResetForm):
         return (u for u in active_users)
 
 
+class ChangeUniversityEmailForm(forms.Form):
+    """Form for requesting university email change"""
+    
+    new_univ_email = forms.EmailField(
+        label='New University Email',
+        max_length=254,
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'student.id@cit.edu',
+            'autofocus': True
+        }),
+        help_text='Must end with @cit.edu'
+    )
+    reason = forms.CharField(
+        label='Reason for Change',
+        required=True,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Please explain why you need to change your university email...'
+        }),
+        help_text='Briefly explain why you are requesting this change'
+    )
+    password = forms.CharField(
+        label='Current Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your password to confirm'
+        }),
+        help_text='For security, please enter your current password'
+    )
+    
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+    
+    def clean_new_univ_email(self):
+        email = self.cleaned_data.get('new_univ_email')
+        if email:
+            email = email.lower().strip()
+            
+            # Check domain
+            if not email.endswith('@cit.edu'):
+                raise ValidationError('University email must end with @cit.edu')
+            
+            # Check if already in use
+            if User.objects.filter(univ_email=email).exclude(id=self.user.id).exists():
+                raise ValidationError('This email is already in use by another account.')
+                
+            # Check if same as current
+            if email == self.user.univ_email:
+                raise ValidationError('This is already your current university email.')
+                
+        return email
+    
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        if password and not self.user.check_password(password):
+            raise ValidationError('Incorrect password. Please try again.')
+        return password
+
+
 class CITSetPasswordForm(SetPasswordForm):
     """
     Custom set password form with enhanced styling and validation
@@ -538,15 +619,7 @@ class ChangeUniversityEmailForm(forms.Form):
         }),
         help_text='Enter your new CIT university email address'
     )
-    confirm_univ_email = forms.EmailField(
-        label='Confirm University Email',
-        max_length=254,
-        required=True,
-        widget=forms.EmailInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Confirm your new university email'
-        })
-    )
+
     password = forms.CharField(
         label='Current Password',
         widget=forms.PasswordInput(attrs={
@@ -595,12 +668,3 @@ class ChangeUniversityEmailForm(forms.Form):
             raise ValidationError('Incorrect password. Please try again.')
         return password
     
-    def clean(self):
-        cleaned_data = super().clean()
-        new_univ_email = cleaned_data.get('new_univ_email')
-        confirm_univ_email = cleaned_data.get('confirm_univ_email')
-        
-        if new_univ_email and confirm_univ_email and new_univ_email != confirm_univ_email:
-            raise ValidationError('University email addresses do not match.')
-        
-        return cleaned_data

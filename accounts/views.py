@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -485,6 +485,22 @@ def student_dashboard(request):
     # Newly added counts (Tasks 1 & 2)
     total_quizzes_posted = Quiz.objects.filter(creator=request.user).count()
     
+    # Calculate study streak (consecutive days with activity)
+    study_streak = 0
+    check_date = manila_now.date()
+    while True:
+        # Check if user had any activity on check_date
+        has_activity = (
+            Resource.objects.filter(uploader=request.user, created_at__date=check_date).exists() or
+            QuizAttempt.objects.filter(student=request.user, started_at__date=check_date).exists() or
+            Bookmark.objects.filter(user=request.user, created_at__date=check_date).exists()
+        )
+        if has_activity:
+            study_streak += 1
+            check_date -= timedelta(days=1)
+        else:
+            break
+    
     context = {
         'user': request.user,
         'recent_resources': recent_resources,
@@ -517,6 +533,8 @@ def student_dashboard(request):
         'total_flashcard_cards': total_flashcard_cards,
         'recent_decks': recent_decks,
         'last_studied_deck': last_studied_deck,
+        # New dashboard features
+        'study_streak': study_streak,
     }
     return render(request, 'accounts/student_dashboard.html', context)
 
@@ -1170,23 +1188,16 @@ def settings_view(request):
             from django.http import JsonResponse
             
             default_dashboard = request.POST.get('default_dashboard')
-            language = request.POST.get('language')
-            current_language = request.user.language
             
             if default_dashboard:
                 request.user.default_dashboard = default_dashboard
-            if language:
-                request.user.language = language
             
             request.user.save()
-            
-            # Check if language changed (to determine if reload needed)
-            language_changed = language and language != current_language
             
             return JsonResponse({
                 'success': True,
                 'message': 'Preferences saved successfully',
-                'language_changed': language_changed
+                'language_changed': False
             })
         
         # Handle notification preference updates (AJAX)
@@ -1203,7 +1214,6 @@ def settings_view(request):
                 'quizSubmissions': 'notify_quiz_submissions',
                 'systemUpdates': 'notify_system_updates',
                 'weeklySummary': 'notify_weekly_summary',
-                'inAppSound': 'in_app_sound',
             }
             
             if notification_type in notification_map:
@@ -1229,11 +1239,19 @@ def settings_view(request):
             
             return JsonResponse({'success': False, 'message': 'Invalid privacy setting'}, status=400)
     
+    # Check for pending email change request
+    from .models import EmailChangeRequest
+    pending_email_change = EmailChangeRequest.objects.filter(
+        user=request.user, 
+        status='pending'
+    ).exists()
+
     context = {
         'user': request.user,
         'dashboard_choices': User.DASHBOARD_CHOICES,
         'language_choices': User.LANGUAGE_CHOICES,
         'visibility_choices': User.VISIBILITY_CHOICES,
+        'pending_email_change': pending_email_change,
     }
     return render(request, 'accounts/settings.html', context)
 
@@ -1249,9 +1267,14 @@ def change_personal_email(request):
         if form.is_valid():
             # Update the email
             request.user.personal_email = form.cleaned_data['new_email']
+            
+            # Update backup email
+            if 'backup_email' in form.cleaned_data:
+                request.user.backup_email = form.cleaned_data['backup_email']
+                
             request.user.save()
             
-            messages.success(request, 'Your personal email has been updated successfully!')
+            messages.success(request, 'Your email settings have been updated successfully!')
             return redirect('accounts:settings')
         else:
             # Add error messages
@@ -1273,19 +1296,29 @@ def change_personal_email(request):
 def change_university_email(request):
     """Change university email address (requires verification)"""
     from .forms import ChangeUniversityEmailForm
+    from .models import EmailChangeRequest
+    
+    # Check for pending requests
+    pending_request = EmailChangeRequest.objects.filter(
+        user=request.user, 
+        status='pending'
+    ).first()
+    
+    if pending_request:
+        messages.warning(request, f'You already have a pending request to change your email to {pending_request.new_email}. Please wait for admin approval.')
+        return redirect('accounts:settings')
     
     if request.method == 'POST':
         form = ChangeUniversityEmailForm(request.user, request.POST)
         if form.is_valid():
-            # Update the university email
-            request.user.univ_email = form.cleaned_data['new_univ_email']
-            request.user.save()
+            # Create change request
+            EmailChangeRequest.objects.create(
+                user=request.user,
+                new_email=form.cleaned_data['new_univ_email'],
+                reason=form.cleaned_data['reason']
+            )
             
-            # TODO: Send verification email and admin notification
-            # For now, just update directly
-            
-            messages.success(request, 'Your university email has been updated successfully! You may need to verify the new email.')
-            messages.info(request, 'An administrator has been notified of this change.')
+            messages.success(request, 'Your request to change university email has been submitted for verification.')
             return redirect('accounts:settings')
         else:
             # Add error messages
@@ -1300,6 +1333,40 @@ def change_university_email(request):
         'email_type': 'university',
     }
     return render(request, 'accounts/change_email.html', context)
+
+
+@login_required
+def approve_email_request(request, pk):
+    """Approve a university email change request"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'You do not have permission to perform this action.')
+        return redirect('resources:moderation_list')
+        
+    from .models import EmailChangeRequest
+    email_request = get_object_or_404(EmailChangeRequest, pk=pk)
+    
+    if request.method == 'POST':
+        email_request.approve(request.user)
+        messages.success(request, f'Email change request for {email_request.user.username} approved.')
+        
+    return redirect('resources:moderation_list')
+
+
+@login_required
+def reject_email_request(request, pk):
+    """Reject a university email change request"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'You do not have permission to perform this action.')
+        return redirect('resources:moderation_list')
+        
+    from .models import EmailChangeRequest
+    email_request = get_object_or_404(EmailChangeRequest, pk=pk)
+    
+    if request.method == 'POST':
+        email_request.reject(request.user)
+        messages.success(request, f'Email change request for {email_request.user.username} rejected.')
+        
+    return redirect('resources:moderation_list')
 
 
 # Phase 7: Advanced Analytics View
@@ -2043,7 +2110,17 @@ def forgot_password_step1(request):
                 
                 # Send verification code via email
                 try:
+                    from django.conf import settings
+                    from django.core.mail import send_mail
+                    import logging
+                    
+                    logger = logging.getLogger(__name__)
+                    
                     recipient_email = user.personal_email or user.univ_email
+                    logger.info(f'Attempting to send reset code to: {recipient_email}')
+                    logger.info(f'Email backend: {settings.EMAIL_BACKEND}')
+                    logger.info(f'Email host user: {settings.EMAIL_HOST_USER}')
+                    
                     if recipient_email:
                         subject = 'Your Password Reset Code - PaperTrail'
                         message = f'''Hello {user.get_display_name()},
@@ -2057,21 +2134,25 @@ If you did not request this password reset, please ignore this email.
 Best regards,
 PaperTrail Team'''
                         
-                        send_mail(
+                        # Send email synchronously so we can see the error
+                        result = send_mail(
                             subject,
                             message,
-                            'noreply@papertrail.cit.edu',
+                            settings.DEFAULT_FROM_EMAIL,
                             [recipient_email],
                             fail_silently=False,
                         )
                         
+                        logger.info(f'Email sent successfully. Result: {result}')
                         messages.success(request, f'A verification code has been sent to {recipient_email}.')
                     else:
+                        logger.error(f'No email found for user {user.stud_id}. Personal: {user.personal_email}, Univ: {user.univ_email}')
                         messages.error(request, 'No email address found in your account.')
                         return redirect('accounts:forgot_password_step1')
                 
                 except Exception as e:
-                    messages.error(request, f'Failed to send email. Please try again later.')
+                    logger.error(f'Email sending failed: {str(e)}', exc_info=True)
+                    messages.error(request, f'Failed to send email: {str(e)}')
                     return redirect('accounts:forgot_password_step1')
                 
                 request.session['reset_user_id'] = user.id

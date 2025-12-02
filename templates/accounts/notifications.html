@@ -71,30 +71,85 @@
 .notification-list-full {
     display: flex;
     flex-direction: column;
-    gap: 1px;
-    background: #f3f4f6;
+    gap: 0;
+    background: #f9fafb;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .notification-item-full {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 20px;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
     background: white;
-    transition: background-color 0.15s ease;
+    transition: all 0.2s ease;
     position: relative;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.notification-item-full:last-child {
+    border-bottom: none;
 }
 
 .notification-item-full:hover {
     background-color: #f9fafb;
+    transform: translateX(4px);
 }
 
 .notification-item-full--unread {
-    background-color: #fef3f2;
+    background-color: #f0f9ff;
+    border-left: 4px solid #3b82f6;
 }
 
 .notification-item-full--unread:hover {
-    background-color: #fde8e7;
+    background-color: #e0f2fe;
+}
+
+.notification-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.25rem;
+}
+
+.notification-icon--new_upload {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1d4ed8;
+}
+
+.notification-icon--new_comment {
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    color: #4338ca;
+}
+
+.notification-icon--new_rating {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #d97706;
+}
+
+.notification-icon--verification_approved {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #047857;
+}
+
+.notification-icon--verification_rejected {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #b91c1c;
+}
+
+.notification-icon--new_bookmark {
+    background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+    color: #be185d;
+}
+
+.notification-icon--quiz_attempt {
+    background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+    color: #6d28d9;
 }
 
 .notification-content-full {
@@ -103,37 +158,51 @@
 }
 
 .notification-message-full {
-    font-size: 15px;
+    font-size: 0.9375rem;
     color: #1f2937;
     line-height: 1.5;
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
 }
 
 .notification-time-full {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 13px;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
     color: #6b7280;
 }
 
 .notification-link-full {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
     color: white;
     text-decoration: none;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    transition: transform 0.15s ease;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(31, 41, 55, 0.15);
 }
 
 .notification-link-full:hover {
-    transform: translateX(2px);
+    transform: translateX(4px);
     color: white;
+    box-shadow: 0 4px 12px rgba(31, 41, 55, 0.25);
+}
+
+.notification-unread-dot {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 12px;
+    height: 12px;
+    background: #3b82f6;
+    border-radius: 50%;
+    border: 2px solid white;
 }
 </style>
 {% endblock %}

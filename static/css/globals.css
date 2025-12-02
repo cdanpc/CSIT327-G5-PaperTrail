@@ -12,28 +12,39 @@ body {
 
 :root {
   /* Color Palette */
-  --color-primary: #667eea;
-  --color-primary-dark: #764ba2;
-  --color-primary-light: rgba(102, 126, 234, 0.1);
-  --color-primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color-primary: #1f2937;
+  --color-primary-dark: #111827;
+  --color-primary-light: rgba(31, 41, 55, 0.1);
+  --color-primary-gradient: linear-gradient(135deg, #1f2937 0%, #111827 100%);
   
-  --color-success: #48bb78;
-  --color-success-dark: #38a169;
-  --color-warning: #f6ad55;
-  --color-warning-dark: #ed8936;
-  --color-danger: #f56565;
-  --color-info: #4299e1;
+  --color-secondary: #22d3ee;
+  --color-secondary-dark: #06b6d4;
+  --color-secondary-light: rgba(34, 211, 238, 0.1);
+  
+  --color-success: #10b981;
+  --color-success-dark: #059669;
+  --color-warning: #fbbf24;
+  --color-warning-dark: #f59e0b;
+  --color-danger: #ef4444;
+  --color-danger-dark: #dc2626;
+  --color-info: #22d3ee;
   
   --color-text-dark: #1a1a1a;
-  --color-text-medium: #4b5563;
-  --color-text-muted: #6c757d;
-  --color-text-light: #9ca3af;
+  --color-text-medium: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-light: #d1d5db;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-white: #1f2937;
   
   --color-bg-white: #ffffff;
   --color-bg-light: #f9fafb;
+  --color-bg-dark: #111827;
   --color-bg-gray: #f0f0f0;
+  --color-background-secondary: #f9fafb;
   --color-border: #e5e7eb;
-  --color-border-light: #f0f0f0;
+  --color-border-light: #f3f4f6;
+  --color-white: #ffffff;
   
   /* Spacing */
   --spacing-xs: 4px;

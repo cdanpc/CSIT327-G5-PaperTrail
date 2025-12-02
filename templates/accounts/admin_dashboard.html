@@ -95,6 +95,7 @@
 
 <!-- Quick Actions -->
 <div class="row g-3 mb-4">
+    {% if not request.user.is_staff and not request.user.is_superuser %}
     <div class="col-lg-4 col-md-6">
         <div class="card dashboard-card">
             <div class="card-header">
@@ -111,7 +112,8 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6">
+    {% endif %}
+    <div class="col-lg-6 col-md-6">
         <div class="card dashboard-card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Manage Users</h5>
@@ -127,7 +129,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-6 col-md-6">
         <div class="card dashboard-card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Online Users</h5>
@@ -170,14 +172,6 @@
                                 <i class="fas fa-user"></i> by {{ resource.uploader.get_display_name }}
                                 <span class="ms-2"><i class="fas fa-calendar"></i> {{ resource.created_at|date:"M d, Y" }}</span>
                             </small>
-                        </div>
-                        <div class="btn-group ms-2">
-                            <a href="{% url 'resources:approve_resource' resource.pk %}?next={{ request.path }}" class="btn btn-sm" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none;" title="Approve">
-                                <i class="fas fa-check"></i>
-                            </a>
-                            <a href="{% url 'resources:reject_resource' resource.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-danger" title="Reject">
-                                <i class="fas fa-times"></i>
-                            </a>
                         </div>
                     </div>
                     {% endfor %}

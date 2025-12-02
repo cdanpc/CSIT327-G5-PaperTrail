@@ -1,11 +1,10 @@
 {% extends 'base_dashboard.html' %}
 {% load static %}
-{% load crispy_forms_tags %}
 
 {% block title %}Upload Resource{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.1">
+<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.2">
 {% endblock %}
 
 {% block header %}
@@ -18,41 +17,69 @@
     <div class="col-lg-8">
         
         <!-- Upload Form Card -->
-        <div class="card dashboard-card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
+        <div class="upload-form-card">
+            <div class="upload-form-header">
+                <h2 class="upload-form-title">
                     <i class="fas fa-upload"></i> Submit New Resource
-                </h5>
+                </h2>
             </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data" novalidate>
+            <div class="upload-form-body">
+                <form method="post" enctype="multipart/form-data" id="uploadForm" novalidate>
                     {% csrf_token %}
                     
                     <!-- Basic Details -->
-                    <div class="mb-4">
-                        <h6 class="form-section-header">
-                            <i class="fas fa-info-circle" style="color: #667eea;"></i> Basic Details
-                        </h6>
-                        {{ form.title|as_crispy_field }}
-                        {{ form.description|as_crispy_field }}
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-info-circle"></i> Basic Details
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="id_title" class="form-label">Title <span class="required">*</span></label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="form-error">{{ form.title.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_description" class="form-label">Description <span class="required">*</span></label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="form-error">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <!-- Resource Type -->
-                    <div class="mb-4">
-                        <h6 class="form-section-header">
-                            <i class="fas fa-tag" style="color: #667eea;"></i> Resource Type
-                        </h6>
-                        {{ form.resource_type|as_crispy_field }}
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-tag"></i> Resource Type
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="id_resource_type" class="form-label">Type <span class="required">*</span></label>
+                            {{ form.resource_type }}
+                            {% if form.resource_type.errors %}
+                                <div class="form-error">{{ form.resource_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
                     </div>
                     
                     <!-- File Upload Field -->
-                    <div class="mb-4">
-                        <h6 class="form-section-header">
-                            <i class="fas fa-file-alt" style="color: #667eea;"></i> File Upload
-                        </h6>
-                        <div class="soft-panel">
-                            {{ form.file|as_crispy_field }}
-                            <div class="alert alert-info alert-soft-primary mt-3 mb-0">
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-file-alt"></i> File Upload
+                        </h3>
+                        
+                        <div class="upload-area">
+                            <div class="form-group">
+                                <label for="id_file" class="form-label">Choose File</label>
+                                {{ form.file }}
+                                {% if form.file.errors %}
+                                    <div class="form-error">{{ form.file.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-help-text">
                                 <i class="fas fa-info-circle"></i>
                                 <strong>Supported formats:</strong> PDF, PPT, PPTX, DOCX, TXT, JPG, PNG. <strong>Max size:</strong> 5MB.
                             </div>
@@ -60,13 +87,20 @@
                     </div>
 
                     <!-- External URL Field -->
-                    <div class="mb-4">
-                        <h6 class="form-section-header">
-                            <i class="fas fa-globe" style="color: #667eea;"></i> External Link (Alternative)
-                        </h6>
-                        <div class="soft-panel">
-                            {{ form.external_url|as_crispy_field }}
-                            <div class="alert alert-info alert-soft-primary mt-3 mb-0">
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-globe"></i> External Link (Alternative)
+                        </h3>
+                        
+                        <div class="upload-area">
+                            <div class="form-group">
+                                <label for="id_external_url" class="form-label">URL</label>
+                                {{ form.external_url }}
+                                {% if form.external_url.errors %}
+                                    <div class="form-error">{{ form.external_url.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-help-text">
                                 <i class="fas fa-info-circle"></i>
                                 <strong>Note:</strong> Provide either a file OR an external URL (not both). If uploading a file, leave this blank.
                             </div>
@@ -74,51 +108,47 @@
                     </div>
                     
                     <!-- Tags -->
-                    <div class="mb-4">
-                        <h6 class="form-section-header">
-                            <i class="fas fa-tags" style="color: #667eea;"></i> Tags (Optional)
-                        </h6>
-                        <div class="tags-scroll-container">
-                            <div class="row g-2">
-                                {% for checkbox in form.tags %}
-                                <div class="col-6">
-                                    <div class="form-check">
-                                        {{ checkbox.tag }}
-                                        <label class="form-check-label" for="{{ checkbox.id_for_label }}">
-                                            {{ checkbox.choice_label }}
-                                        </label>
-                                    </div>
-                                </div>
-                                {% endfor %}
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-tags"></i> Tags (Optional)
+                        </h3>
+                        
+                        <div class="tags-grid">
+                            {% for checkbox in form.tags %}
+                            <div class="tag-checkbox">
+                                {{ checkbox.tag }}
+                                <label for="{{ checkbox.id_for_label }}" class="tag-checkbox-label">
+                                    {{ checkbox.choice_label }}
+                                </label>
                             </div>
+                            {% endfor %}
                         </div>
                         {% if form.tags.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.tags.errors }}
-                            </div>
+                            <div class="form-error">{{ form.tags.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <!-- Privacy Settings -->
-                    <div class="mb-4">
-                        <h6 class="form-section-header">
-                            <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
-                        </h6>
-                        <div class="soft-panel">
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-lock"></i> Privacy Settings
+                        </h3>
+                        
+                        <div class="privacy-toggle">
                             {% include 'components/visibility_toggle.html' with toggle_id='resourceVisibilityToggle' hidden_id='id_is_public' field_name='is_public' is_public=True label='Make this resource public' public_description='Visible in "All Resources" after verification.' private_description='Only visible to you in "My Resources".' %}
                         </div>
                     </div>
                     
                     <!-- Errors -->
                     {% if form.non_field_errors %}
-                    <div class="alert alert-danger mb-4">
+                    <div class="form-error-banner">
                         <i class="fas fa-exclamation-circle"></i> {{ form.non_field_errors.0 }}
                     </div>
                     {% endif %}
                     
                     <!-- Submit Button -->
-                    <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-lg btn-gradient-primary" style="padding: 1rem; border-radius: 12px; font-weight: 700;">
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">
                             <i class="fas fa-upload"></i> {% if user.is_professor %}Submit & Publish{% else %}Submit for Review{% endif %}
                         </button>
                     </div>
@@ -127,15 +157,15 @@
         </div>
 
         <!-- Guidelines Card -->
-        <div class="card dashboard-card mt-3">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-info-circle"></i> Upload Guidelines
-                </h5>
+        <div class="guidelines-card">
+            <div class="guidelines-header">
+                <h3 class="guidelines-title">
+                    <i class="fas fa-lightbulb"></i> Upload Guidelines
+                </h3>
             </div>
-            <div class="card-body">
-                <div class="alert" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 1px solid rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 8px; margin: 0;">
-                    <i class="fas fa-lightbulb"></i>
+            <div class="guidelines-body">
+                <div class="guidelines-note">
+                    <i class="fas fa-info-circle"></i>
                     <strong>Note:</strong> 
                     {% if user.is_professor %}
                     Your uploads will be published immediately as verified content.
@@ -144,9 +174,9 @@
                     {% endif %}
                 </div>
                 
-                <div class="mt-3">
-                    <h6 style="font-weight: 600; color: #1a1a1a; margin-bottom: 0.75rem;">Tips for better resources:</h6>
-                    <ul style="color: #4b5563; line-height: 1.8; margin: 0; padding-left: 1.5rem;">
+                <div class="guidelines-tips">
+                    <h4 class="tips-title">Tips for better resources:</h4>
+                    <ul class="tips-list">
                         <li>Provide clear, descriptive titles</li>
                         <li>Add detailed descriptions to help others find your resource</li>
                         <li>Use relevant tags for better discoverability</li>
@@ -157,4 +187,92 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('id_file');
+    const urlInput = document.getElementById('id_external_url');
+    
+    // File input change handler
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const fileSize = this.files[0].size;
+                const maxSize = 5242880; // 5MB
+                
+                if (fileSize > maxSize) {
+                    showError(fileInput, 'File size must not exceed 5MB.');
+                    this.value = '';
+                } else {
+                    clearError(fileInput);
+                }
+            }
+        });
+    }
+    
+    // Form submit validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Clear all previous errors
+        document.querySelectorAll('.form-error').forEach(el => el.remove());
+        document.querySelectorAll('.form-control, .form-select').forEach(el => el.classList.remove('is-invalid'));
+        
+        // Title validation
+        const title = document.getElementById('id_title');
+        if (!title.value.trim()) {
+            showError(title, 'This field is required.');
+            isValid = false;
+        }
+        
+        // Description validation
+        const description = document.getElementById('id_description');
+        if (!description.value.trim()) {
+            showError(description, 'This field is required.');
+            isValid = false;
+        }
+        
+        // Resource type validation
+        const resourceType = document.getElementById('id_resource_type');
+        if (!resourceType.value) {
+            showError(resourceType, 'This field is required.');
+            isValid = false;
+        }
+        
+        // File or URL validation
+        const hasFile = fileInput && fileInput.files && fileInput.files[0];
+        const hasUrl = urlInput && urlInput.value.trim();
+        
+        if (!hasFile && !hasUrl) {
+            const errorMsg = 'Please either upload a file or provide an external URL.';
+            if (fileInput) showError(fileInput, errorMsg);
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = document.querySelector('.form-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+    
+    function showError(input, message) {
+        input.classList.add('is-invalid');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'form-error';
+        errorDiv.textContent = message;
+        input.parentElement.appendChild(errorDiv);
+    }
+    
+    function clearError(input) {
+        input.classList.remove('is-invalid');
+        const errorDiv = input.parentElement.querySelector('.form-error');
+        if (errorDiv) errorDiv.remove();
+    }
+});
+</script>
 {% endblock %}

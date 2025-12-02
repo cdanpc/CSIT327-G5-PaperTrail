@@ -228,56 +228,8 @@
                         </div>
                     </div>
 
-                    <!-- Right Column: My Resources -->
+                    <!-- Right Column: Recently Verified Resources -->
                     <div class="col-lg-6">
-                        <div class="card dashboard-card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">My Resources</h5>
-                                <a href="{% url 'resources:my_resources' %}" class="text-decoration-none" style="color: #667eea; font-weight: 600; font-size: 0.875rem;">
-                                    View All>>
-                                </a>
-                            </div>
-                            <div class="card-body">
-                                {% if professor_resources %}
-                                    {% for resource in professor_resources %}
-                                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
-                                        <div style="flex: 1;">
-                                            <h6 class="mb-1" style="font-weight: 600; color: #1a1a1a;">
-                                                <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none;">
-                                                    {{ resource.title }}
-                                                </a>
-                                            </h6>
-                                            <small class="text-muted d-block">
-                                                <i class="fas fa-calendar"></i> Uploaded {{ resource.created_at|date:"M d, Y" }}
-                                                {% if resource.verification_status == 'verified' %}
-                                                    <span class="badge ms-2" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; font-size: 0.65rem;">Verified</span>
-                                                {% elif resource.verification_status == 'pending' %}
-                                                    <span class="badge ms-2" style="background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%); color: white; font-size: 0.65rem;">Pending</span>
-                                                {% endif %}
-                                            </small>
-                                        </div>
-                                        <a href="{% url 'resources:resource_edit' resource.pk %}" class="btn btn-sm" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2);" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <div class="text-center py-4">
-                                        <i class="fas fa-folder-open" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
-                                        <p class="text-muted mb-3">You haven't uploaded any resources yet.</p>
-                                        <a class="btn" href="{% url 'resources:resource_upload' %}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
-                                            <i class="fas fa-upload"></i> Upload Your First Resource
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recently Verified Resources -->
-                <div class="row g-3 mt-3">
-                    <div class="col-12">
                         <div class="card dashboard-card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">Recently Verified Resources</h5>
@@ -287,39 +239,25 @@
                             </div>
                             <div class="card-body">
                                 {% if recently_verified %}
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th style="font-weight: 600; color: #1a1a1a;">Resource</th>
-                                                    <th style="font-weight: 600; color: #1a1a1a;">Uploader</th>
-                                                    <th style="font-weight: 600; color: #1a1a1a;">Verified Date</th>
-                                                    <th style="font-weight: 600; color: #1a1a1a;">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for resource in recently_verified %}
-                                                <tr>
-                                                    <td>
-                                                        <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none; font-weight: 600;">
-                                                            {{ resource.title }}
-                                                        </a>
-                                                    </td>
-                                                    <td style="color: #4b5563;">{{ resource.uploader.get_display_name }}</td>
-                                                    <td style="color: #4b5563;">{{ resource.verified_at|date:"M d, Y" }}</td>
-                                                    <td>
-                                                        <span class="badge" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white;">Verified</span>
-                                                    </td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
+                                    {% for resource in recently_verified %}
+                                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
+                                        <div style="flex: 1;">
+                                            <h6 class="mb-1" style="font-weight: 600; color: #1a1a1a;">
+                                                <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none;">
+                                                    {{ resource.title }}
+                                                </a>
+                                            </h6>
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-user"></i> {{ resource.uploader.get_display_name }}
+                                                <span class="ms-2"><i class="fas fa-check-circle"></i> Verified {{ resource.verified_at|date:"M d, Y" }}</span>
+                                            </small>
+                                        </div>
                                     </div>
+                                    {% endfor %}
                                 {% else %}
                                     <div class="text-center py-4">
                                         <i class="fas fa-clipboard-check" style="font-size: 3rem; color: #d1d5db; margin-bottom: 1rem;"></i>
                                         <p class="text-muted mb-0">No recently verified resources.</p>
-                                        <small class="text-muted">Start verifying student submissions to see them here.</small>
                                     </div>
                                 {% endif %}
                             </div>

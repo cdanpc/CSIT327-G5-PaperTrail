@@ -198,7 +198,11 @@ def deck_edit(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def deck_delete(request: HttpRequest, pk: int) -> HttpResponse:
     """Delete a deck and all its cards. POST only; returns 405 otherwise."""
-    deck = get_object_or_404(Deck, pk=pk, owner=request.user)
+    deck = get_object_or_404(Deck, pk=pk)
+    # Allow owner, professor, or admin to delete
+    if deck.owner != request.user and not getattr(request.user, 'is_professor', False) and not request.user.is_staff:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("You can only delete your own decks.")
     if request.method != "POST":
         from django.http import HttpResponseNotAllowed
         return HttpResponseNotAllowed(["POST"])

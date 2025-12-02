@@ -1,0 +1,299 @@
+/* Learning Hub Styles */
+
+/* Define the custom color scheme using CSS variables */
+:root {
+    /* Primary (Sidebar BG): #1f2937 (Dark Gray) */
+    --color-primary: #1f2937; 
+    /* Secondary (Active Accent): #22d3ee (Cyan) */
+    --color-secondary: #22d3ee; 
+    
+    /* Functional Colors */
+    --color-success: #10b981;
+    --color-warning: #fbbf24;
+    --color-danger: #ef4444;
+    
+    /* Text & Background */
+    --color-text-primary: #1a1a1a;
+    --color-text-secondary: #6b7280;
+    --color-background: #f9fafb;
+}
+
+/* --- TYPOGRAPHY IMPLEMENTATION (System Font Stack) --- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    background-color: var(--color-background); 
+}
+
+/* Heading Gradient Effect (Success Green to Accent Cyan) */
+.gradient-heading {
+    background-image: linear-gradient(90deg, var(--color-success), var(--color-secondary)); 
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Sidebar Styling */
+.sidebar-bg { 
+    background-color: var(--color-primary); 
+}
+
+.sidebar-text-main { 
+    color: #f3f4f6; 
+}
+
+.sidebar-text-accent { 
+    color: var(--color-secondary); 
+}
+
+.sidebar-hover { 
+    background-color: #374151; 
+}
+
+/* Main Content Styling */
+.text-primary-color { 
+    color: var(--color-text-primary); 
+}
+
+.text-secondary-color { 
+    color: var(--color-text-secondary); 
+}
+
+.link-color { 
+    color: var(--color-secondary); 
+}
+
+.link-color:hover { 
+    color: #06b6d4; 
+}
+
+/* Functional Accents */
+.border-warning { 
+    border-left-color: var(--color-warning); 
+}
+
+.text-warning-color { 
+    color: var(--color-warning); 
+}
+
+.border-success { 
+    border-left-color: var(--color-success); 
+}
+
+.text-success-color { 
+    color: var(--color-success); 
+}
+
+.text-danger {
+    color: var(--color-danger);
+}
+
+.bg-warning-color {
+    background-color: var(--color-warning);
+}
+
+/* Layout helpers */
+.content-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .content-padding {
+        padding-left: 18rem;
+    }
+}
+
+/* Custom styles for the resource detail layout */
+.resource-detail-grid {
+    display: grid;
+    gap: 1.5rem;
+    /* Default mobile layout: Header -> Stats -> Uploader -> Actions */
+    grid-template-areas:
+        "header"
+        "uploader"
+        "actions"
+        "stats";
+}
+
+/* Tablet/Small Desktop Layout (768px+): Split left/right */
+@media (min-width: 768px) {
+    .resource-detail-grid {
+        grid-template-columns: 3fr 1fr;
+        grid-template-areas:
+            "header uploader"
+            "stats actions";
+    }
+}
+
+/* Large Desktop Layout (1024px+): Keep Header/Uploader/Actions/Stats on the top half. */
+@media (min-width: 1024px) {
+    .resource-detail-grid {
+        grid-template-columns: 3fr 1fr;
+        grid-template-areas:
+            "header uploader"
+            "stats actions";
+    }
+}
+
+.header-area { 
+    grid-area: header; 
+}
+
+.uploader-area { 
+    grid-area: uploader; 
+}
+
+.stats-area { 
+    grid-area: stats; 
+}
+
+.actions-area { 
+    grid-area: actions; 
+}
+
+.stat-card {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Style for the verified tag icon */
+.verified-icon {
+    color: var(--color-success);
+}
+
+/* Style for the Download and Preview buttons */
+.action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: background-color 0.15s;
+}
+
+/* Sidebar positioning */
+.sidebar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+@media (min-width: 1024px) {
+    .sidebar {
+        height: 100vh;
+        width: 16rem;
+        bottom: auto;
+    }
+}
+
+/* Avatar styles */
+.avatar-sm {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+}
+
+.avatar-md {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+}
+
+/* Comment textarea */
+.comment-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Button styles */
+.btn-primary {
+    padding: 0.5rem 1rem;
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.15s;
+}
+
+.btn-primary:hover {
+    background-color: #374151;
+}
+
+/* Card styles */
+.card {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.card-border-left {
+    border-left: 4px solid;
+}
+
+/* Navigation items */
+.nav-item {
+    width: 25%;
+}
+
+@media (min-width: 1024px) {
+    .nav-item {
+        width: 100%;
+    }
+}
+
+.nav-link-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+    transition: all 0.15s ease-in-out;
+}
+
+@media (min-width: 1024px) {
+    .nav-link-item {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+}
+
+.nav-link-active {
+    background-color: #111827;
+    color: var(--color-secondary);
+    font-weight: 600;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.nav-link-inactive {
+    background-color: #374151;
+    color: #f3f4f6;
+}
+
+.nav-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.75rem;
+}
+
+.nav-text {
+    font-size: 0.875rem;
+}
+
+@media (min-width: 1024px) {
+    .nav-text {
+        font-size: 1rem;
+    }
+}

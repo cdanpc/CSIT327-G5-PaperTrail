@@ -10,174 +10,256 @@
 {% endblock %}
 
 {% block header %}
-{% url 'resources:resource_list' as resources_url %}
+{% if request.user.is_professor %}
+  {% url 'resources:verified_resources_list' as resources_url %}
+{% else %}
+  {% url 'resources:resource_list' as resources_url %}
+{% endif %}
 {% include 'components/page_header.html' with page_title='Resource Detail' back_url=resources_url show_moderate_btn=False %}
 {% endblock %}
 
 {% block content %}
-<div class="ri-container">
-  <!-- Custom Header Card -->
-  <div class="ri-card ri-main">
-    <div class="ri-header">
-      <div class="ri-icon"><i class="fas fa-{{ resource_icon }}"></i></div>
-      <div class="flex-grow-1">
-        <div class="ri-badges-row">
-          <div class="ri-badges">
-            <span class="ri-type">{{ resource.resource_type|upper }}</span>
-            {% for status in status_tags %}
-              <span class="badge {{ status.class }} badge-sm">
-                <i class="fas fa-{{ status.icon }}"></i> {{ status.label }}
-              </span>
-            {% endfor %}
-          </div>
-          <div class="ri-header-actions">
-            {% if user.is_authenticated %}
-              <form method="post" action="{{ bookmark_url }}" class="d-inline">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.path }}">
-                <button type="submit" class="ri-icon-btn" title="{% if is_bookmarked %}Remove Bookmark{% else %}Add Bookmark{% endif %}">
-                  <i class="{% if is_bookmarked %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
-                </button>
-              </form>
-            {% endif %}
-            {% if is_owner %}
-              <a href="{{ edit_url }}" class="ri-icon-btn" title="Edit"><i class="fas fa-edit"></i></a>
-            {% endif %}
-          </div>
-        </div>
-        <h2 class="ri-title mt-2 mb-0">{{ resource.title }}</h2>
+<div class="resource-detail-container" data-resource-id="{{ resource.pk }}">
+  
+  <!-- Resource Detail Grid Layout -->
+  <div class="resource-detail-grid">
+    
+    <!-- 1. Header Area: Badges, Title, Description -->
+    <div class="header-area">
+      <div class="resource-header-badges">
+        <span class="resource-type-badge">{{ resource.resource_type|upper }}</span>
+        {% for status in status_tags %}
+          <span class="badge {{ status.class }} badge-sm">
+            <i class="fas fa-{{ status.icon }}"></i> {{ status.label }}
+          </span>
+        {% endfor %}
+      </div>
+      <h1 class="resource-title">{{ resource.title|upper }}</h1>
+      {% if resource.description %}
+      <p class="resource-description">{{ resource.description }}</p>
+      {% endif %}
+    </div>
+
+    <!-- 2. Uploader Area -->
+    <div class="uploader-area">
+      <h3 class="section-title">Uploaded by</h3>
+      <div class="uploader-info">
+        <a href="{% url 'accounts:public_profile' resource.uploader.username %}" class="uploader-profile-link">
+          {% if resource.uploader.profile_picture %}
+            <img src="{{ resource.uploader.profile_picture.url }}" class="uploader-avatar" alt="{{ resource.uploader.get_full_name }}">
+          {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ resource.uploader.first_name }}+{{ resource.uploader.last_name }}&size=40&background=1f2937&color=fff" 
+                 class="uploader-avatar" alt="{{ resource.uploader.get_full_name }}">
+          {% endif %}
+          <span class="uploader-name">{{ resource.uploader.get_full_name|default:resource.uploader.username }}</span>
+        </a>
       </div>
     </div>
 
-    {% if resource.description %}
-    <p class="ri-text para-muted pre-wrap mb-3">{{ resource.description }}</p>
-    {% endif %}
+    <!-- 3. Actions Area -->
+    <div class="actions-area">
+      <h3 class="section-title">Actions</h3>
+      <div class="actions-buttons">
+        {% if primary_action %}
+        {% if primary_action.method == 'POST' %}
+        <form method="post" action="{{ primary_action.url }}" class="w-100">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--primary btn--block">
+            <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
+          </button>
+        </form>
+        {% else %}
+        <a href="{{ primary_action.url }}" class="btn btn--primary btn--block" {% if primary_action.target %}target="{{ primary_action.target }}"{% endif %}>
+          <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
+        </a>
+        {% endif %}
+        {% endif %}
 
-    <!-- Primary Actions Row -->
-    <div class="ri-actions mt-2 d-flex align-items-center gap-3 flex-wrap">
-      <!-- Like Button -->
-      {% if user.is_authenticated %}
-      <div class="d-flex align-items-center me-2">
-        <i id="likeIcon" class="fas fa-heart {% if user_has_liked %}liked{% else %}unliked{% endif %}" 
-           style="cursor: pointer; font-size: 1.2rem; transition: all 0.2s ease;" 
-           data-resource-id="{{ resource.pk }}" 
-           title="{% if user_has_liked %}Unlike{% else %}Like{% endif %}"></i>
-        <span id="likeCount" class="ms-2 fw-bold" style="font-size: 1.1rem;">{{ resource.likes.count }}</span>
+        {% if resource.file_url %}
+        <button type="button" class="btn btn--secondary btn--block" data-bs-toggle="modal" data-bs-target="#previewModal">
+          <i class="fas fa-eye"></i> Preview
+        </button>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+        <button type="button" class="btn btn--rating btn--block {% if user_rating %}btn--rated{% endif %}" data-bs-toggle="modal" data-bs-target="#ratingModal">
+          <i class="{% if user_rating %}fas{% else %}far{% endif %} fa-star"></i> Rate Resource
+        </button>
+
+        <button type="button" class="btn btn--like btn--block {% if user_has_liked %}btn--liked{% endif %}" id="likeButton">
+          <i class="{% if user_has_liked %}fas{% else %}far{% endif %} fa-heart"></i> Like
+        </button>
+
+        <form method="post" action="{{ bookmark_url }}" class="w-100">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <button type="submit" class="btn btn--bookmark btn--block {% if is_bookmarked %}btn--bookmarked{% endif %}">
+            <i class="{% if is_bookmarked %}fas{% else %}far{% endif %} fa-bookmark"></i> Bookmark
+          </button>
+        </form>
+        {% endif %}
       </div>
-      {% endif %}
+    </div>
 
-      <!-- Download Button -->
-      {% if primary_action %}
-      <a href="{{ primary_action.url }}" class="btn {{ primary_action.class|default:'btn--primary' }} btn-pill" {% if primary_action.target %}target="{{ primary_action.target }}"{% endif %}>
-        <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
-      </a>
-      {% endif %}
-
-      <!-- Preview Button -->
-      {% if resource.file_url %}
-      <button type="button" class="btn btn-outline-primary btn-pill" data-bs-toggle="modal" data-bs-target="#previewModal">
-        <i class="fas fa-eye"></i> Preview
-      </button>
-      {% endif %}
+    <!-- 4. Stats Area: 4 Stacked Rows (Tailwind Layout) -->
+    <div class="stats-area">
+      <div class="stat-card">
+        <div>
+          <span class="stat-label">Downloads</span>
+          <span class="stat-value">{{ resource.download_count }}</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <span class="stat-label">Rating</span>
+          <span class="stat-value">{{ resource.get_average_rating|floatformat:1|default:"N/A" }}</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <span class="stat-label">Likes</span>
+          <span class="stat-value" id="likesStatValue">{{ resource.likes.count }}</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <span class="stat-label">Uploaded</span>
+          <span class="stat-value">{{ resource.created_at|date:"M d, Y" }}</span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Metadata Overview Component -->
-  {% include 'components/metadata_overview_card.html' with section_title='Resource Overview' metadata_items=metadata_items %}
-
   <!-- Tags Section -->
   {% if resource.tags.all %}
-  <div class="ri-card mt-3">
-    <div class="rd2-section-title mb-2">Tags</div>
-    <div class="ri-taglist">
+  <div class="resource-tags-section">
+    <div class="section-title">Tags</div>
+    <div class="resource-tags">
       {% for tag in resource.tags.all %}
-        <span class="ri-tag">{{ tag.name }}</span>
+        <span class="resource-tag">{{ tag.name }}</span>
       {% endfor %}
     </div>
   </div>
   {% endif %}
 
-  <!-- Rating System -->
-  {% if resource.verification_status == 'verified' and user.is_authenticated and user != resource.uploader %}
-  <div class="ri-card mt-3" id="rating-component" 
-       data-current-rating="{{ user_rating.stars|default:0 }}"
-       data-rate-url="{% url 'resources:rate_resource' resource.pk %}">
-    <div class="rd2-section-title mb-2">Rate this Resource</div>
-    
-    <div class="d-flex align-items-center flex-wrap gap-3">
-        <div class="rating-stars" style="font-size: 1.5rem; color: #ffc107; cursor: pointer;">
-            {% for i in "12345" %}
-            <i class="far fa-star rating-star" data-value="{{ i }}"></i>
-            {% endfor %}
-        </div>
-        
-        {% if user_rating %}
-            <button id="editRatingBtn" class="btn btn-sm btn--secondary btn-pill">Edit Rating</button>
-            <button id="submitRatingBtn" class="btn btn-sm btn--primary btn-pill d-none" disabled>Update Rating</button>
-        {% else %}
-            <button id="submitRatingBtn" class="btn btn-sm btn--primary btn-pill" disabled>Submit Rating</button>
-        {% endif %}
-        
-        <span class="text-muted" id="userRatingText">
-            {% if user_rating %}You rated: {{ user_rating.stars }} stars{% else %}Select stars to rate{% endif %}
-        </span>
-    </div>
-  </div>
-  {% endif %}
-
   <!-- Comments Section -->
-  {% if resource.verification_status == 'verified' and user.is_authenticated %}
-  <div class="ri-card mt-3">
-        <h6 class="mb-4 fw-bold" style="font-size: 1.1rem; color: #2c3e50;">Comments</h6>
-    
-    <!-- Comments List -->
-    <div class="comments-list mb-4">
-      {% if comments %}
-        {% for comment in comments %}
-          {% if not comment.parent_comment %}
-            {% include 'components/comment_post.html' with comment=comment delete_url_name='resources:delete_comment' current_user=user show_replies=True %}
-          {% endif %}
-        {% endfor %}
-      {% else %}
-        <p class="text-muted mb-0">No comments yet.</p>
-      {% endif %}
-    </div>
-
-    <!-- Comment Input -->
-    <div class="d-flex gap-3">
-        <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&size=40&background=667eea&color=fff{% endif %}" 
-             class="rounded-circle" width="40" height="40" style="object-fit: cover;">
-        <form method="post" action="{{ comment_url }}" class="flex-grow-1" id="commentForm">
-            {% csrf_token %}
-            <div class="form-group mb-0">
-                <textarea name="text" id="commentText" class="form-control" rows="1" placeholder="Comment as {{ user.get_full_name }}" 
-                          style="border-radius: 20px; resize: none; overflow: hidden; min-height: 40px; padding-top: 8px;"
-                          oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
-            </div>
-            <div class="text-end mt-2">
-                <button type="submit" class="btn btn--primary btn-sm btn-pill px-4">Post</button>
-            </div>
-        </form>
-    </div>
-  </div>
+  {% if resource.verification_status == 'verified' %}
+    {% include 'components/comment_section.html' with comments=comments comment_url=comment_url delete_url_name='resources:delete_comment' current_user=user %}
   {% endif %}
 
 </div>
 
 <!-- Preview Modal -->
 {% if resource.file_url %}
-<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content" style="height: 80vh;">
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true" data-resource-id="{{ resource.pk }}" data-file-type="{{ resource.resource_type }}">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">{{ resource.title }}</h5>
+        <h5 class="modal-title">
+          <i class="fas fa-file-alt me-2"></i>{{ resource.title }}
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-0">
-        <iframe src="{{ resource.file_url }}" width="100%" height="100%" style="border: none;"></iframe>
+      <div class="modal-body preview-modal-body">
+        
+        <!-- Loading Spinner -->
+        <div id="previewLoading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-3 text-muted">Loading file preview...</p>
+        </div>
+
+        <!-- Preview Content Container -->
+        <div id="previewContent" class="preview-content">
+          
+          <!-- Image Preview -->
+          <div id="imagePreview" class="preview-section">
+            <div class="text-center mb-4">
+              <img id="previewImage" alt="{{ resource.title }}" class="preview-image">
+            </div>
+          </div>
+
+          <!-- PDF Preview -->
+          <div id="pdfPreview" class="preview-section">
+            <div class="pdf-preview-container">
+              <iframe id="pdfFrame" type="application/pdf" width="100%" height="600"></iframe>
+            </div>
+            <small class="text-muted d-block mt-2">
+              <i class="fas fa-info-circle me-1"></i>If PDF doesn't display correctly, download it to view the full content.
+            </small>
+          </div>
+
+          <!-- Text Preview -->
+          <div id="textPreview" class="preview-section">
+            <div class="alert alert-info mb-2">
+              <i class="fas fa-file-lines me-2"></i>Text File Content
+            </div>
+            <div class="text-preview-container">
+              <span id="textContent" class="text-muted"></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Error Message -->
+        <div id="previewError" class="preview-error">
+          <div class="alert alert-warning mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="errorMessage"></span>
+          </div>
+        </div>
+
+
+        <!-- File Information -->
+        <hr class="my-4">
+        <div class="card border-0 bg-light">
+          <div class="card-body">
+            <h6 class="card-title mb-3">
+              <i class="fas fa-info-circle text-info me-2"></i>File Information
+            </h6>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block mb-1">Filename</small>
+                <strong class="d-block text-break">{{ resource.original_filename|default:resource.title }}</strong>
+              </div>
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block mb-1">File Type</small>
+                <strong class="d-block">{{ resource.resource_type|upper }}</strong>
+              </div>
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block mb-1">File Size</small>
+                <strong class="d-block">{{ formatted_file_size }}</strong>
+              </div>
+              <div class="col-md-6 mb-2">
+                <small class="text-muted d-block mb-1">Downloads</small>
+                <strong class="d-block">{{ resource.download_count }}</strong>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn--primary btn-pill" onclick="window.location.href='{{ primary_action.url }}';">
+          <i class="fas fa-download me-2"></i>Download File
+        </button>
       </div>
     </div>
   </div>
 </div>
+
 {% endif %}
+
+</div>
+
+<!-- Rating Modal -->
+{% include 'components/rating_modal.html' with rate_url=rate_resource_url modal_id='ratingModal' item_type='Resource' %}
+
+<script>
+  // Initialize rating modal when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    initRatingModal();
+  });
+</script>
+
 {% endblock %}

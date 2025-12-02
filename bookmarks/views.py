@@ -47,6 +47,7 @@ def bookmark_list(request):
                 'type': 'resource',
                 'id': r.id,
                 'title': r.title,
+                'description': r.description,
                 'is_private': not r.is_public,
                 'verification_status': r.verification_status,
                 'resource_type': r.resource_type,
@@ -71,6 +72,7 @@ def bookmark_list(request):
                 'type': 'quiz',
                 'id': qz.id,
                 'title': qz.title,
+                'description': qz.description,
                 'is_private': not qz.is_public,
                 'verification_status': qz.verification_status,
                 'questions': qz.total_questions,
@@ -92,6 +94,7 @@ def bookmark_list(request):
                 'type': 'flashcard',
                 'id': d.id,
                 'title': d.title,
+                'description': d.description,
                 'is_private': d.visibility == 'private',
                 'verification_status': d.verification_status,
                 'cards': d.cards_count,
@@ -108,7 +111,6 @@ def bookmark_list(request):
 
     # Filter options for component
     filter_options = [
-        {'value': '', 'label': 'All'},
         {'value': 'resources', 'label': 'Resources'},
         {'value': 'quizzes', 'label': 'Quizzes'},
         {'value': 'flashcards', 'label': 'Flashcards'},

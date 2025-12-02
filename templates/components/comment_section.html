@@ -1,0 +1,55 @@
+{% comment %}
+  Comment Section Component
+  
+  Purpose: Displays a complete comment section with list and input form
+  Reusable for: Resources, quizzes, flashcard decks, or any content type with comments
+  
+  Required Context Variables:
+    - comments: QuerySet of Comment objects
+    - user: Current logged-in user
+    - comment_url: URL to submit new comments
+    - delete_url_name: URL name for comment deletion (e.g., 'resources:delete_comment')
+    - current_user: Current logged-in user (for permission checks)
+    
+  Optional Context Variables:
+    - show_section: Boolean to show/hide entire section (default: True)
+    - section_title: Custom title for the section (default: "Comments")
+{% endcomment %}
+
+{% if show_section|default:True and user.is_authenticated %}
+<div class="resource-comments-section">
+  <h2 class="comments-heading">{{ section_title|default:"Comments" }} ({{ comments|length }})</h2>
+  
+  <!-- Comments List -->
+  <div class="comments-list mb-4">
+    {% if comments %}
+      {% for comment in comments %}
+        {% if not comment.parent_comment %}
+          {% include 'components/comment_post.html' with comment=comment delete_url_name=delete_url_name current_user=current_user show_replies=True %}
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <p class="text-muted mb-0">No comments yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Comment Input -->
+  <div class="comment-input-container">
+    <div class="comment-input-wrapper">
+      {% if user.profile_picture %}
+        <img src="{{ user.profile_picture.url }}" class="comment-avatar" alt="{{ user.get_full_name }}">
+      {% else %}
+        <img src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&size=40&background=1f2937&color=fff" 
+             class="comment-avatar" alt="{{ user.get_full_name }}">
+      {% endif %}
+      <form method="post" action="{{ comment_url }}" class="comment-form" id="commentForm">
+        {% csrf_token %}
+        <textarea name="text" id="commentText" class="comment-textarea" rows="3" placeholder="Add your comment..."></textarea>
+        <div class="comment-actions">
+          <button type="submit" class="btn-comment-post">Post Comment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}

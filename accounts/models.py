@@ -27,6 +27,27 @@ class User(AbstractUser):
         unique=True,
         help_text='University email must end with @cit.edu'
     )
+    
+    # Course field
+    COURSE_CHOICES = [
+        ('BSCS', 'Bachelor of Science in Computer Science'),
+        ('BSIT', 'Bachelor of Science in Information Technology'),
+        ('BSCE', 'Bachelor of Science in Computer Engineering'),
+        ('BSIS', 'Bachelor of Science in Information Systems'),
+        ('ACT', 'Associate in Computer Technology'),
+    ]
+    course = models.CharField(
+        max_length=10,
+        choices=COURSE_CHOICES,
+        blank=True,
+        null=True,
+        help_text='Academic course/program'
+    )
+    backup_email = models.EmailField(
+        blank=True,
+        null=True,
+        help_text='Optional backup email for account recovery'
+    )
 
     profile_picture = models.ImageField(
         upload_to='profile_pics/',
@@ -158,7 +179,7 @@ class User(AbstractUser):
 
     # Keep default username authentication internally
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['personal_email', 'first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     class Meta:
         db_table = 'accounts_user'
@@ -613,4 +634,45 @@ class PasswordResetRequest(models.Model):
     def complete(self):
         """Mark request as completed after password is reset"""
         self.status = 'completed'
+        self.save()
+
+
+class EmailChangeRequest(models.Model):
+    """Model to track university email change requests"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_change_requests')
+    new_email = models.EmailField()
+    reason = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_email_requests')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    admin_notes = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"{self.user.username} - {self.new_email} ({self.status})"
+    
+    def approve(self, admin_user):
+        self.status = 'approved'
+        self.reviewed_by = admin_user
+        self.reviewed_at = timezone.now()
+        self.save()
+        
+        # Update user's email
+        self.user.univ_email = self.new_email
+        self.user.save()
+        
+    def reject(self, admin_user, notes=''):
+        self.status = 'rejected'
+        self.reviewed_by = admin_user
+        self.reviewed_at = timezone.now()
+        self.admin_notes = notes
         self.save()
