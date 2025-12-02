@@ -30,6 +30,165 @@
         showDeleteModal(quizId, quizTitle, deleteUrl);
       });
     });
+
+    // Inline Editing Logic
+    const editBtn = document.getElementById('editQuizBtn');
+    const cancelBtn = document.getElementById('cancelQuizEditBtn');
+    const saveBtn = document.getElementById('saveQuizEditBtn');
+    
+    // Containers
+    const editControls = document.getElementById('quizEditControls');
+    const actionsContainer = document.getElementById('quizActions');
+    
+    // Display Elements
+    const titleDisplay = document.getElementById('quizTitleDisplay');
+    const descDisplay = document.getElementById('quizDescriptionDisplay');
+    const badgesContainer = document.getElementById('quizBadges');
+    
+    // Input Elements
+    const titleInput = document.getElementById('quizTitleInput');
+    const descInput = document.getElementById('quizDescriptionInput');
+    const publicInput = document.getElementById('quizPublicInput');
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function toggleEditMode(show) {
+        if (show) {
+            // Show Inputs, Hide Displays
+            titleDisplay.classList.add('d-none');
+            titleInput.classList.remove('d-none');
+            
+            descDisplay.classList.add('d-none');
+            editControls.classList.remove('d-none');
+            
+            if (actionsContainer) actionsContainer.classList.add('d-none');
+            
+            // Populate inputs with current text (in case they changed)
+            titleInput.value = titleDisplay.innerText.trim();
+            
+            const currentDesc = descDisplay.innerText.trim();
+            if (currentDesc === "No description provided.") {
+                descInput.value = "";
+            } else {
+                descInput.value = currentDesc;
+            }
+            
+            titleInput.focus();
+        } else {
+            // Hide Inputs, Show Displays
+            titleDisplay.classList.remove('d-none');
+            titleInput.classList.add('d-none');
+            
+            descDisplay.classList.remove('d-none');
+            editControls.classList.add('d-none');
+            
+            if (actionsContainer) actionsContainer.classList.remove('d-none');
+        }
+    }
+
+    if (editBtn) {
+        editBtn.addEventListener('click', function() {
+            toggleEditMode(true);
+        });
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            toggleEditMode(false);
+        });
+    }
+
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            const updateUrl = this.getAttribute('data-update-url');
+            const newTitle = titleInput.value;
+            const newDesc = descInput.value;
+            const isPublic = publicInput.checked;
+
+            const data = {
+                title: newTitle,
+                description: newDesc,
+                is_public: isPublic
+            };
+
+            // Disable button and show loading state
+            const originalBtnText = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            fetch(updateUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update DOM
+                    titleDisplay.innerText = data.title;
+                    
+                    if (data.description) {
+                        descDisplay.innerText = data.description;
+                    } else {
+                        descDisplay.innerHTML = '<span class="text-muted fst-italic">No description provided.</span>';
+                    }
+
+                    // Update Badges
+                    let badgesHtml = '';
+                    
+                    // Verification Status
+                    if (data.verification_status === 'verified') {
+                        badgesHtml += '<span class="badge badge-verified badge-sm"><i class="fas fa-check-circle"></i> Verified</span> ';
+                    } else if (data.verification_status === 'pending') {
+                        badgesHtml += '<span class="badge badge-pending badge-sm"><i class="fas fa-clock"></i> Pending</span> ';
+                    } else {
+                        badgesHtml += '<span class="badge bg-warning badge-sm"><i class="fas fa-eye-slash"></i> Unverified</span> ';
+                    }
+
+                    // Visibility Status
+                    if (!data.is_public) {
+                        badgesHtml += '<span class="badge bg-secondary badge-sm"><i class="fas fa-lock"></i> Private</span>';
+                    } else {
+                        badgesHtml += '<span class="badge bg-success badge-sm"><i class="fas fa-globe"></i> Public</span>';
+                    }
+                    
+                    badgesContainer.innerHTML = badgesHtml;
+
+                    // Exit edit mode
+                    toggleEditMode(false);
+                    
+                } else {
+                    alert('Error updating quiz: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while saving.');
+            })
+            .finally(() => {
+                // Restore button state
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnText;
+            });
+        });
+    }
   });
 </script>
 {% endblock %}

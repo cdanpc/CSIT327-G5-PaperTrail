@@ -1,10 +1,13 @@
 <!-- Quiz Detail Card Component -->
-<div class="quiz-detail-card">
+<div class="quiz-detail-card" id="quizDetailCard">
     <!-- Header with title and badges -->
     <div class="quiz-detail-card__header">
         <div class="quiz-detail-card__title">
-            <h1>{{ quiz.title }}</h1>
-            <div class="quiz-detail-card__badges">
+            <h1 id="quizTitleDisplay">{{ quiz.title }}</h1>
+            <!-- Inline Title Input -->
+            <input type="text" class="form-control form-control-lg d-none mb-2" id="quizTitleInput" value="{{ quiz.title }}" style="font-weight: 700; font-size: 2rem;">
+            
+            <div class="quiz-detail-card__badges" id="quizBadges">
                 <!-- Verification Status -->
                 {% if quiz.verification_status == 'verified' %}
                     <span class="badge badge-verified badge-sm"><i class="fas fa-check-circle"></i> Verified</span>
@@ -23,7 +26,7 @@
         </div>
 
         <!-- Action buttons at the top -->
-        <div class="quiz-detail-card__actions">
+        <div class="quiz-detail-card__actions" id="quizActions">
             <a href="{% url 'quizzes:quiz_attempt' quiz.pk %}" class="btn btn--primary" title="Start quiz">
                 <i class="fas fa-play"></i> Study
             </a>
@@ -38,9 +41,9 @@
                 <i class="fas fa-history"></i>
             </a>
             {% if quiz.creator == user or user.is_professor %}
-                <a href="{% url 'quizzes:quiz_edit' quiz.pk %}" class="btn btn--secondary" title="Edit Quiz">
+                <button type="button" class="btn btn--secondary" id="editQuizBtn" title="Edit Quiz">
                     <i class="fas fa-edit"></i>
-                </a>
+                </button>
                 <button type="button" class="btn btn--danger" title="Delete Quiz" data-quiz-id="{{ quiz.pk }}" data-quiz-title="{{ quiz.title }}" data-delete-url="{% url 'quizzes:quiz_delete' quiz.pk %}">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -56,13 +59,40 @@
     </div>
 
     <!-- Description -->
-    {% if quiz.description %}
     <div class="quiz-detail-card__content">
-        <div class="quiz-detail-card__description">
-            {{ quiz.description }}
+        <div class="quiz-detail-card__description" id="quizDescriptionDisplay">
+            {% if quiz.description %}
+                {{ quiz.description }}
+            {% else %}
+                <span class="text-muted fst-italic">No description provided.</span>
+            {% endif %}
+        </div>
+
+        <!-- Inline Edit Controls (Hidden by default) -->
+        <div id="quizEditControls" class="d-none">
+            <div class="mb-3">
+                <label class="form-label fw-bold text-muted small text-uppercase">Description</label>
+                <textarea class="form-control" id="quizDescriptionInput" rows="3">{{ quiz.description }}</textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3">
+                <!-- Privacy Switch -->
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="quizPublicInput" {% if quiz.is_public %}checked{% endif %}>
+                    <label class="form-check-label fw-bold" for="quizPublicInput">Public Quiz</label>
+                    <div class="text-muted small">Visible to everyone. Requires verification.</div>
+                </div>
+
+                <!-- Save/Cancel Buttons -->
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn--primary" id="saveQuizEditBtn" data-update-url="{% url 'quizzes:update_quiz_details' quiz.pk %}">
+                        <i class="fas fa-check"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancelQuizEditBtn">Cancel</button>
+                </div>
+            </div>
         </div>
     </div>
-    {% endif %}
 
     <!-- Score information if attempted -->
     {% if has_attempted %}

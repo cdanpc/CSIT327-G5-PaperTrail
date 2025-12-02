@@ -186,10 +186,69 @@ def quiz_edit(request, pk):
             messages.error(request, 'Please correct the errors below.')
     else:
         quiz_form = QuizForm(instance=quiz)
-    return render(request, 'quizzes/quiz_edit.html', {
-        'form': quiz_form,
-        'quiz': quiz,
-    })
+@login_required
+@require_http_methods(["POST"])
+def update_quiz_details(request, pk):
+    """AJAX endpoint to update quiz title, description, and visibility."""
+    quiz = get_object_or_404(Quiz, pk=pk)
+    
+    # Permission check
+    if quiz.creator != request.user:
+        return JsonResponse({'success': False, 'error': 'Permission denied.'}, status=403)
+        
+    try:
+        data = json.loads(request.body)
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        is_public = data.get('is_public')
+        
+        if not title:
+            return JsonResponse({'success': False, 'error': 'Title cannot be empty.'}, status=400)
+            
+        # Update fields
+        quiz.title = title
+        quiz.description = description
+        
+        # Handle visibility change logic
+        if is_public is not None:
+            original_public = quiz.is_public
+            new_public = bool(is_public)
+            quiz.is_public = new_public
+            
+            # Verification logic (copied from quiz_edit)
+            if getattr(request.user, 'is_professor', False):
+                if new_public:
+                    quiz.verification_status = 'verified'
+                    quiz.verification_by = request.user
+                    quiz.verified_at = timezone.now()
+                else:
+                    quiz.verification_status = 'verified'
+                    quiz.verification_by = request.user
+                    quiz.verified_at = timezone.now()
+            else:
+                if (not original_public) and new_public:
+                    quiz.verification_status = 'pending'
+                    quiz.verification_by = None
+                    quiz.verified_at = None
+                elif original_public and (not new_public):
+                    if quiz.verification_status != 'verified':
+                        quiz.verification_status = 'verified'
+                        quiz.verification_by = request.user
+                        quiz.verified_at = timezone.now()
+        
+        quiz.save()
+        
+        return JsonResponse({
+            'success': True,
+            'title': quiz.title,
+            'description': quiz.description,
+            'is_public': quiz.is_public,
+            'verification_status': quiz.verification_status
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @login_required

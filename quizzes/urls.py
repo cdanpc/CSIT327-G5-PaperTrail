@@ -16,5 +16,6 @@ urlpatterns = [
     path('moderation/', views.quiz_moderation_list, name='quiz_moderation_list'),
     path('<int:pk>/approve/', views.approve_quiz, name='approve_quiz'),
     path('<int:pk>/reject/', views.reject_quiz, name='reject_quiz'),
+    path('<int:pk>/update/', views.update_quiz_details, name='update_quiz_details'),
 ]
 

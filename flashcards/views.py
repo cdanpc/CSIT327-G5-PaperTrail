@@ -471,3 +471,51 @@ def bulk_verify_decks(request: HttpRequest) -> HttpResponse:
         verified_count += 1
     messages.success(request, f'Verified {verified_count} deck{"s" if verified_count != 1 else ""}.')
     return redirect('flashcards:deck_moderation_list')
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_deck_title(request: HttpRequest, pk: int) -> JsonResponse:
+    """AJAX endpoint to update deck title."""
+    deck = get_object_or_404(Deck, pk=pk, owner=request.user)
+    try:
+        data = json.loads(request.body)
+        new_title = data.get('title', '').strip()
+        if not new_title:
+            return JsonResponse({'success': False, 'error': 'Title cannot be empty.'}, status=400)
+        
+        deck.title = new_title
+        deck.save(update_fields=['title'])
+        return JsonResponse({'success': True, 'title': deck.title})
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_card(request: HttpRequest, pk: int, card_id: int) -> JsonResponse:
+    """AJAX endpoint to update card content."""
+    deck = get_object_or_404(Deck, pk=pk, owner=request.user)
+    card = get_object_or_404(Card, pk=card_id, deck=deck)
+    try:
+        data = json.loads(request.body)
+        front_text = data.get('front_text', '').strip()
+        back_text = data.get('back_text', '').strip()
+        
+        if not front_text or not back_text:
+            return JsonResponse({'success': False, 'error': 'Front and back text cannot be empty.'}, status=400)
+        
+        card.front_text = front_text
+        card.back_text = back_text
+        card.save(update_fields=['front_text', 'back_text'])
+        return JsonResponse({
+            'success': True, 
+            'front_text': card.front_text,
+            'back_text': card.back_text
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

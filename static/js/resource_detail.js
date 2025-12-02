@@ -661,4 +661,41 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   })();
+
+  // === REPLY FUNCTIONALITY ===
+  (function initReplyActions() {
+    document.addEventListener('click', function(e) {
+      // Reply button click
+      if (e.target.classList.contains('reply-btn-text') || e.target.closest('.reply-btn-text')) {
+        e.preventDefault();
+        const btn = e.target.classList.contains('reply-btn-text') ? e.target : e.target.closest('.reply-btn-text');
+        const commentId = btn.dataset.commentId;
+        const replyFormContainer = document.querySelector(`.reply-form-container[data-comment-id="${commentId}"]`);
+        
+        if (replyFormContainer) {
+          replyFormContainer.classList.remove('d-none');
+          // Focus textarea
+          const textarea = replyFormContainer.querySelector('textarea');
+          if (textarea) textarea.focus();
+          // Hide reply button
+          btn.classList.add('d-none');
+        }
+      }
+      
+      // Reply Cancel button click
+      if (e.target.classList.contains('reply-cancel-btn') || e.target.closest('.reply-cancel-btn')) {
+        e.preventDefault();
+        const btn = e.target.classList.contains('reply-cancel-btn') ? e.target : e.target.closest('.reply-cancel-btn');
+        const commentId = btn.dataset.commentId;
+        const replyFormContainer = document.querySelector(`.reply-form-container[data-comment-id="${commentId}"]`);
+        const replyBtn = document.querySelector(`.reply-btn-text[data-comment-id="${commentId}"]`);
+        
+        if (replyFormContainer) {
+          replyFormContainer.classList.add('d-none');
+          // Show reply button again
+          if (replyBtn) replyBtn.classList.remove('d-none');
+        }
+      }
+    });
+  })();
 });

@@ -18,7 +18,16 @@
         <!-- Header with title, badges and actions -->
         <div class="deck-detail-card__header">
             <div class="deck-detail-card__title">
-                <h1>{{ deck.title }}</h1>
+                <h1 id="deckTitleDisplay">{{ deck.title }}</h1>
+                <!-- Inline Title Input -->
+                <div class="d-none mb-2" id="deckTitleEditContainer" style="flex-grow: 1; max-width: 600px;">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg" id="deckTitleInput" value="{{ deck.title }}" style="font-weight: 700; font-size: 2rem;">
+                        <button class="btn btn--primary" id="saveDeckTitleBtn" data-update-url="{% url 'flashcards:update_deck_title' deck.pk %}"><i class="fas fa-check"></i></button>
+                        <button class="btn btn-secondary" id="cancelDeckTitleBtn"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+
                 <div class="deck-detail-card__badges">
                     {% if deck.visibility == 'public' %}
                         {% if deck.verification_status == 'verified' %}
@@ -33,7 +42,7 @@
             </div>
 
             <!-- Action buttons -->
-            <div class="deck-detail-card__actions">
+            <div class="deck-detail-card__actions" id="deckActions">
                 {% if deck.cards_count > 0 %}
                     <a href="{% url 'flashcards:study' deck.pk %}" class="fc-btn fc-btn-primary" title="Study deck"><i class="fas fa-play"></i><span> Study</span></a>
                 {% else %}
@@ -44,7 +53,10 @@
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
                     <button type="submit" class="fc-icon-btn-round" title="Bookmark Deck">{% if is_bookmarked %}<i class="fas fa-bookmark"></i>{% else %}<i class="far fa-bookmark"></i>{% endif %}</button>
                 </form>
-                <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="fc-icon-btn-round" title="Edit Deck"><i class="fas fa-edit"></i></a>
+                {% if user == deck.owner %}
+                <button type="button" class="fc-icon-btn-round" id="editDeckTitleBtn" title="Edit Title"><i class="fas fa-edit"></i></button>
+                {% endif %}
+                <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="fc-icon-btn-round" title="Edit Settings"><i class="fas fa-cog"></i></a>
                 <button type="button" class="fc-icon-btn-round delete-deck-btn" title="Delete Deck" data-deck-id="{{ deck.pk }}" data-deck-title="{{ deck.title|escapejs }}" data-delete-url="{% url 'flashcards:deck_delete' deck.pk %}"><i class="fas fa-trash"></i></button>
             </div>
         </div>
@@ -147,20 +159,41 @@
             {% if deck.cards_count > 0 %}
                 <ul class="fc-manage-cards">
                     {% for card in cards %}
-                    <li class="fc-manage-item">
-                        <div class="fc-manage-item-header">
-                            <strong>Front Text</strong>
-                            <div class="fc-manage-actions">
-                                <a href="{% url 'flashcards:card_edit' deck.pk card.pk %}" class="fc-manage-action-btn" title="Edit Card"><i class="fas fa-edit"></i></a>
-                                <button type="button" class="fc-manage-action-btn delete-card-btn" title="Delete Card" data-card-id="{{ card.pk }}" data-card-title="{{ card.front_text|truncatechars:30|escapejs }}" data-delete-url="{% url 'flashcards:card_delete' deck.pk card.pk %}"><i class="fas fa-trash"></i></button>
+                    <li class="fc-manage-item" id="card-{{ card.pk }}">
+                        <!-- View Mode -->
+                        <div class="card-view-mode">
+                            <div class="fc-manage-item-header">
+                                <strong>Front Text</strong>
+                                <div class="fc-manage-actions">
+                                    {% if user == deck.owner %}
+                                    <button type="button" class="fc-manage-action-btn edit-card-btn" title="Edit Card" data-card-id="{{ card.pk }}"><i class="fas fa-edit"></i></button>
+                                    <button type="button" class="fc-manage-action-btn delete-card-btn" title="Delete Card" data-card-id="{{ card.pk }}" data-card-title="{{ card.front_text|truncatechars:30|escapejs }}" data-delete-url="{% url 'flashcards:card_delete' deck.pk card.pk %}"><i class="fas fa-trash"></i></button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="fc-manage-text">
+                                <div class="card-front-content">{{ card.front_text }}</div>
+                            </div>
+                            <div class="fc-manage-back">
+                                <strong>Back Text</strong>
+                                <div class="card-back-content">{{ card.back_text }}</div>
                             </div>
                         </div>
-                        <div class="fc-manage-text">
-                            <div>{{ card.front_text }}</div>
-                        </div>
-                        <div class="fc-manage-back">
-                            <strong>Back Text</strong>
-                            <div>{{ card.back_text }}</div>
+
+                        <!-- Edit Mode (Hidden) -->
+                        <div class="card-edit-mode d-none">
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Front Text</label>
+                                <textarea class="form-control card-front-input" rows="2">{{ card.front_text }}</textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Back Text</label>
+                                <textarea class="form-control card-back-input" rows="2">{{ card.back_text }}</textarea>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-sm btn--primary save-card-edit-btn" data-card-id="{{ card.pk }}" data-update-url="{% url 'flashcards:update_card' deck.pk card.pk %}"><i class="fas fa-check"></i> Save</button>
+                                <button type="button" class="btn btn-sm btn-secondary cancel-card-edit-btn" data-card-id="{{ card.pk }}"><i class="fas fa-times"></i> Cancel</button>
+                            </div>
                         </div>
                     </li>
                     {% endfor %}
