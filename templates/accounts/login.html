@@ -73,7 +73,7 @@
     
     <!-- Forgot Password Link -->
     <div style="text-align: right; margin-bottom: 15px;">
-        <a href="{% url 'accounts:forgot_password_step1' %}" style="color: #4A90E2; text-decoration: none; font-size: 0.9rem;">
+        <a href="{% url 'accounts:forgot_password_step1' %}" style="color: #1f2937; text-decoration: none; font-size: 0.9rem; font-weight: 600;">
             <i class="fas fa-key"></i> Forgot Password?
         </a>
     </div>
@@ -105,6 +105,22 @@
     const eyeIcon = document.getElementById('eyeIcon');
     
     if (togglePassword && passwordInput && eyeIcon) {
+        // Hide toggle button initially if no value
+        function updateToggleVisibility() {
+            if (passwordInput.value.length > 0) {
+                togglePassword.style.display = 'flex';
+            } else {
+                togglePassword.style.display = 'none';
+            }
+        }
+        
+        // Initial check
+        updateToggleVisibility();
+        
+        // Show/hide toggle button based on input
+        passwordInput.addEventListener('input', updateToggleVisibility);
+        
+        // Toggle password visibility
         togglePassword.addEventListener('click', function() {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
@@ -115,6 +131,34 @@
             } else {
                 eyeIcon.src = "{% static 'svgs/basil--eye-outline.svg' %}";
             }
+        });
+    }
+    
+    // Hide validation errors when user starts typing
+    const formInputs = document.querySelectorAll('#loginForm input');
+    formInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            // Remove error class from input
+            this.classList.remove('error');
+            
+            // Hide validation icon and tooltip in the same wrapper
+            const wrapper = this.closest('.input-wrapper, .password-field-wrapper');
+            if (wrapper) {
+                const validationIcon = wrapper.querySelector('.validation-icon');
+                const validationTooltip = wrapper.querySelector('.validation-tooltip');
+                if (validationIcon) validationIcon.style.display = 'none';
+                if (validationTooltip) validationTooltip.style.display = 'none';
+            }
+        });
+    });
+    
+    // Hide non-field errors when user starts typing in any field
+    const errorMessage = document.querySelector('.error-message');
+    if (errorMessage) {
+        formInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                errorMessage.style.display = 'none';
+            });
         });
     }
 </script>

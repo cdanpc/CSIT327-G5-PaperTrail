@@ -1,0 +1,40 @@
+{% comment %}
+  Rating Modal Component
+  
+  Purpose: Displays a modal for users to rate content with a 5-star system
+  Reusable for: Resources, quizzes, flashcard decks, or any ratable content
+  
+  Required Context Variables:
+    - rate_url: URL endpoint for submitting the rating (e.g., {% url 'resources:rate_resource' resource.id %})
+    - modal_id: Unique ID for this modal instance (default: 'ratingModal')
+    - item_type: Type of item being rated (default: 'Resource')
+    
+  Optional Context Variables:
+    - current_rating: User's existing rating if any (for update mode)
+{% endcomment %}
+
+<div class="modal fade" id="{{ modal_id|default:'ratingModal' }}" tabindex="-1" aria-labelledby="{{ modal_id|default:'ratingModal' }}Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rating-modal">
+      <div class="modal-header rating-modal-header">
+        <h5 class="modal-title rating-modal-title" id="{{ modal_id|default:'ratingModal' }}Label">Rate This {{ item_type|default:'Resource' }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center rating-modal-body">
+        <p class="rating-prompt">How would you rate this {{ item_type|default:'resource'|lower }}?</p>
+        <div class="rating-modal-stars" id="ratingStars">
+          <i class="fas fa-star rating-star" data-rating="1"></i>
+          <i class="fas fa-star rating-star" data-rating="2"></i>
+          <i class="fas fa-star rating-star" data-rating="3"></i>
+          <i class="fas fa-star rating-star" data-rating="4"></i>
+          <i class="fas fa-star rating-star" data-rating="5"></i>
+        </div>
+        <div id="ratingMessage" class="rating-message"></div>
+      </div>
+      <div class="modal-footer rating-modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-submit-rating" id="submitRating" data-rate-url="{{ rate_url }}" disabled>Submit Rating</button>
+      </div>
+    </div>
+  </div>
+</div>

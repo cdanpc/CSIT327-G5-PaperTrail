@@ -52,12 +52,6 @@ urlpatterns = [
     # Full-page search route
     path('search/', accounts_views.global_search_page, name='global_search_page'),
     
-    # Prototype draft dashboard (frontend-only)
-    path(
-        'prototypes/dashboard/',
-        TemplateView.as_view(template_name='prototypes/student_dashboard_draft.html'),
-        name='prototype-dashboard'
-    ),
     path('', home_view, name='home'),  # Custom home view with authentication check
     
     # Force serve media files in both debug and production (for Render ephemeral storage)

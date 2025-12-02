@@ -5,10 +5,12 @@ from django.contrib import messages
 from django.db import OperationalError, transaction
 from django.utils import timezone
 from django.db.models import Q
+from django.urls import reverse
 from .models import Resource, Tag, Bookmark, Rating, Comment, Like
 from .forms import ResourceUploadForm, RatingForm, CommentForm
 from .supabase_storage import supabase_storage
 from django.utils.timesince import timesince
+import json
 
 
 # Helper function to format file sizes
@@ -164,9 +166,8 @@ def resource_detail(request, pk):
         if request.user == resource.uploader or getattr(request.user, 'is_professor', False):
             status_tags.append({'label': 'Pending', 'class': 'badge-pending', 'icon': 'clock'})
     
-    if resource.is_public:
-        status_tags.append({'label': 'Public', 'class': 'bg-success', 'icon': 'globe'})
-    else:
+    # Only show Private badge, not Public
+    if not resource.is_public:
         status_tags.append({'label': 'Private', 'class': 'bg-secondary', 'icon': 'lock'})
     
     # Icon mapping for resource types
@@ -215,8 +216,8 @@ def resource_detail(request, pk):
     ]
     
     # 3. Feedback Interface Component
-    rate_url = f'/resources/{resource.pk}/rate/'
-    comment_url = f'/resources/{resource.pk}/comment/'
+    rate_resource_url = reverse('resources:rate_resource', args=[resource.id])
+    comment_url = reverse('resources:add_comment', args=[resource.id])
     
     # Format file size for display
     formatted_file_size = format_file_size(resource.file_size)
@@ -236,7 +237,7 @@ def resource_detail(request, pk):
         'is_owner': is_owner,
         'bookmark_url': bookmark_url,
         'metadata_items': metadata_items,
-        'rate_url': rate_url,
+        'rate_resource_url': rate_resource_url,
         'comment_url': comment_url,
         'formatted_file_size': formatted_file_size,
     }
@@ -604,8 +605,8 @@ def resource_delete(request, pk):
         messages.error(request, 'This resource is private.')
         return redirect('resources:resource_list')
     
-    # Only uploader or admin can delete
-    if resource.uploader != request.user and not request.user.is_staff:
+    # Only uploader, professor, or admin can delete
+    if resource.uploader != request.user and not getattr(request.user, 'is_professor', False) and not request.user.is_staff:
         messages.error(request, 'You can only delete your own resources.')
         return redirect('resources:resource_detail', pk=pk)
     
@@ -865,7 +866,16 @@ def rate_resource(request, pk):
         return redirect('resources:resource_detail', pk=pk)
     
     if request.method == 'POST':
-        stars = request.POST.get('stars')
+        # Handle JSON request (from rating modal)
+        if is_ajax:
+            try:
+                data = json.loads(request.body)
+                stars = data.get('rating')
+            except json.JSONDecodeError:
+                return JsonResponse({'success': False, 'error': 'Invalid JSON data.'}, status=400)
+        else:
+            # Handle form POST
+            stars = request.POST.get('stars')
         
         # Validate that stars value is provided
         if not stars:
@@ -903,6 +913,7 @@ def rate_resource(request, pk):
             return JsonResponse({
                 'success': True,
                 'message': f'You {action} "{resource.title}" with {stars} star{"s" if stars != 1 else ""}!',
+                'new_average': avg_rating,
                 'avg_rating': avg_rating,
                 'rating_count': rating_count,
                 'user_stars': rating.stars,
@@ -979,6 +990,28 @@ def add_comment(request, pk):
             messages.error(request, 'Error adding comment.')
     
     return redirect('resources:resource_detail', pk=pk)
+
+
+@login_required
+def edit_comment(request, pk):
+    """Edit a comment (AJAX only)"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
+    
+    comment = get_object_or_404(Comment, pk=pk)
+    
+    # Only the comment author can edit
+    if comment.user != request.user:
+        return JsonResponse({'success': False, 'error': 'You can only edit your own comments.'}, status=403)
+    
+    text = request.POST.get('text', '').strip()
+    if not text:
+        return JsonResponse({'success': False, 'error': 'Comment cannot be empty.'}, status=400)
+    
+    comment.text = text
+    comment.save()
+    
+    return JsonResponse({'success': True, 'message': 'Comment updated successfully.'})
 
 
 @login_required

@@ -2,8 +2,8 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: var(--font-family-base);
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -28,7 +28,7 @@ body {
 .register-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -70,26 +70,31 @@ body {
     position: relative;
 }
 
-.input-wrapper input {
+.input-wrapper input,
+.input-wrapper select {
     width: 100%;
     padding: 0.875rem 3rem 0.875rem 1rem;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
     font-size: 1rem;
     transition: all 0.3s ease;
+    background: white;
 }
 
-.input-wrapper input:focus {
+.input-wrapper input:focus,
+.input-wrapper select:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #1f2937;
+    box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
 }
 
-.input-wrapper input.error {
+.input-wrapper input.error,
+.input-wrapper select.error {
     border-color: #fc8181;
 }
 
-.input-wrapper input.success {
+.input-wrapper input.success,
+.input-wrapper select.success {
     border-color: #68d391;
 }
 
@@ -146,8 +151,8 @@ body {
 
 .password-field-wrapper input:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #1f2937;
+    box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
 }
 
 .toggle-password-btn {
@@ -162,10 +167,13 @@ body {
     padding: 0.5rem;
     transition: color 0.2s ease;
     z-index: 5;
+    display: none;
+    align-items: center;
+    justify-content: center;
 }
 
 .toggle-password-btn:hover {
-    color: #667eea;
+    color: #1f2937;
 }
 
 .password-requirements-box {
@@ -246,7 +254,7 @@ body {
 .submit-btn {
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
     color: white;
     border: none;
     border-radius: 12px;
@@ -259,7 +267,7 @@ body {
 
 .submit-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 10px 25px rgba(31, 41, 55, 0.4);
 }
 
 .submit-btn:disabled {
@@ -275,7 +283,7 @@ body {
 }
 
 .login-link a {
-    color: #667eea;
+    color: #1f2937;
     text-decoration: none;
     font-weight: 600;
 }

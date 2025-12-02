@@ -1,16 +1,27 @@
-# Import all views from the views.py file to maintain backward compatibility
-import sys
-import importlib.util
-import os
+# Import all views to maintain backward compatibility
+from accounts.view_modules.auth import RegisterView, login_view, logout_view
+from accounts.view_modules.dashboard import student_dashboard, professor_dashboard, admin_dashboard
+from accounts.view_modules.study_reminders import add_study_reminder, toggle_study_reminder, delete_study_reminder
 
-# The views.py file is in the parent directory
-# We need to load it explicitly since we're in a views/ package
-spec = importlib.util.spec_from_file_location(
-    "accounts._views_file",
-    os.path.join(os.path.dirname(os.path.dirname(__file__)), 'views.py')
-)
-parent_views = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(parent_views)
+# Import the rest from the views.py file (not this package)
+# Using sys.modules to get the already-loaded views module
+import sys
+
+# The views.py file is imported as 'accounts.views' but Python sees our __init__.py first
+# So we need to temporarily rename ourselves and import the file
+_views_package = sys.modules.get('accounts.views')
+if _views_package is None or not hasattr(_views_package, 'profile'):
+    # Import from the parent directory's views.py file
+    import importlib.util
+    import os
+    spec = importlib.util.spec_from_file_location(
+        "accounts._views_file",
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'views.py')
+    )
+    parent_views = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(parent_views)
+else:
+    parent_views = _views_package
 
 profile = parent_views.profile
 update_profile_picture = parent_views.update_profile_picture
@@ -49,6 +60,10 @@ approve_password_reset = parent_views.approve_password_reset
 deny_password_reset = parent_views.deny_password_reset
 
 __all__ = [
+    # Auth
+    'RegisterView', 'login_view', 'logout_view',
+    # Dashboard
+    'student_dashboard', 'professor_dashboard', 'admin_dashboard',
     # Profile
     'profile', 'update_profile_picture', 'public_profile', 'password_change',
     # Settings
@@ -66,4 +81,6 @@ __all__ = [
     # Password Reset
     'forgot_password_step1', 'forgot_password_step2', 'forgot_password_step3',
     'admin_send_password_reset', 'approve_password_reset', 'deny_password_reset',
+    # Study Reminders
+    'add_study_reminder', 'toggle_study_reminder', 'delete_study_reminder',
 ]

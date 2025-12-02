@@ -27,6 +27,22 @@ class User(AbstractUser):
         unique=True,
         help_text='University email must end with @cit.edu'
     )
+    
+    # Course field
+    COURSE_CHOICES = [
+        ('BSCS', 'Bachelor of Science in Computer Science'),
+        ('BSIT', 'Bachelor of Science in Information Technology'),
+        ('BSCE', 'Bachelor of Science in Computer Engineering'),
+        ('BSIS', 'Bachelor of Science in Information Systems'),
+        ('ACT', 'Associate in Computer Technology'),
+    ]
+    course = models.CharField(
+        max_length=10,
+        choices=COURSE_CHOICES,
+        blank=True,
+        null=True,
+        help_text='Academic course/program'
+    )
     backup_email = models.EmailField(
         blank=True,
         null=True,
@@ -163,7 +179,7 @@ class User(AbstractUser):
 
     # Keep default username authentication internally
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['personal_email', 'first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     class Meta:
         db_table = 'accounts_user'

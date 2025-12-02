@@ -63,26 +63,6 @@
                 </div>
             </div>
             
-            <!-- Personal Email -->
-            <div class="form-field">
-                <label for="id_personal_email">Email Address</label>
-                <div class="input-wrapper">
-                    <input 
-                        type="email" 
-                        name="personal_email" 
-                        id="id_personal_email" 
-                        class="{% if form.personal_email.errors %}error{% endif %}"
-                        value="{{ form.personal_email.value|default:'' }}"
-                        placeholder="johndoe@gmail.com"
-                        required
-                    >
-                    {% if form.personal_email.errors %}
-                    <i class="fas fa-exclamation-circle validation-icon error"></i>
-                    <div class="validation-tooltip">{{ form.personal_email.errors.0 }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            
             <!-- University Email -->
             <div class="form-field">
                 <label for="id_univ_email">University Email</label>
@@ -120,6 +100,54 @@
                     <i class="fas fa-exclamation-circle validation-icon error"></i>
                     <div class="validation-tooltip">{{ form.stud_id.errors.0 }}</div>
                     {% endif %}
+                </div>
+            </div>
+            
+            <!-- Course & Year Level -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-field">
+                        <label for="id_course">Course</label>
+                        <div class="input-wrapper">
+                            <select 
+                                name="course" 
+                                id="id_course" 
+                                class="{% if form.course.errors %}error{% endif %}"
+                                required
+                            >
+                                <option value="">Select your course</option>
+                                <option value="BSCS" {% if form.course.value == 'BSCS' %}selected{% endif %}>Bachelor of Science in Computer Science</option>
+                                <option value="BSIT" {% if form.course.value == 'BSIT' %}selected{% endif %}>Bachelor of Science in Information Technology</option>
+                            </select>
+                            {% if form.course.errors %}
+                            <i class="fas fa-exclamation-circle validation-icon error"></i>
+                            <div class="validation-tooltip">{{ form.course.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-field">
+                        <label for="id_year_level">Year Level</label>
+                        <div class="input-wrapper">
+                            <select 
+                                name="year_level" 
+                                id="id_year_level" 
+                                class="{% if form.year_level.errors %}error{% endif %}"
+                                required
+                            >
+                                <option value="">Select year level</option>
+                                <option value="1" {% if form.year_level.value == '1' %}selected{% endif %}>1st Year</option>
+                                <option value="2" {% if form.year_level.value == '2' %}selected{% endif %}>2nd Year</option>
+                                <option value="3" {% if form.year_level.value == '3' %}selected{% endif %}>3rd Year</option>
+                                <option value="4" {% if form.year_level.value == '4' %}selected{% endif %}>4th Year</option>
+                            </select>
+                            {% if form.year_level.errors %}
+                            <i class="fas fa-exclamation-circle validation-icon error"></i>
+                            <div class="validation-tooltip">{{ form.year_level.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -223,13 +251,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Password toggle functionality
+        // Password toggle functionality with show/hide based on input
         document.querySelectorAll('.toggle-password-btn').forEach(btn => {
+            const targetId = btn.dataset.target;
+            const input = document.getElementById(targetId);
+            const icon = btn.querySelector('i');
+            
+            // Function to update toggle button visibility
+            function updateToggleVisibility() {
+                if (input.value.length > 0) {
+                    btn.style.display = 'flex';
+                } else {
+                    btn.style.display = 'none';
+                }
+            }
+            
+            // Initial check
+            updateToggleVisibility();
+            
+            // Update on input
+            input.addEventListener('input', updateToggleVisibility);
+            
+            // Toggle password visibility on click
             btn.addEventListener('click', function() {
-                const targetId = this.dataset.target;
-                const input = document.getElementById(targetId);
-                const icon = this.querySelector('i');
-                
                 if (input.type === 'password') {
                     input.type = 'text';
                     icon.classList.remove('fa-eye');
@@ -241,6 +285,55 @@
                 }
             });
         });
+        
+        // Hide validation errors when user starts typing
+        const formInputs = document.querySelectorAll('#registerForm input, #registerForm select');
+        formInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                // Remove error class from input/select
+                this.classList.remove('error');
+                
+                // Hide validation icon and tooltip in the same wrapper
+                const wrapper = this.closest('.input-wrapper');
+                if (wrapper) {
+                    const validationIcon = wrapper.querySelector('.validation-icon');
+                    const validationTooltip = wrapper.querySelector('.validation-tooltip');
+                    if (validationIcon) validationIcon.style.display = 'none';
+                    if (validationTooltip) validationTooltip.style.display = 'none';
+                }
+                
+                // Hide alert danger for this field
+                const fieldContainer = this.closest('.form-field');
+                if (fieldContainer) {
+                    const alertDanger = fieldContainer.querySelector('.alert-danger');
+                    if (alertDanger) alertDanger.style.display = 'none';
+                }
+            });
+            
+            // For select elements, also listen to change event
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', function() {
+                    this.classList.remove('error');
+                    const wrapper = this.closest('.input-wrapper');
+                    if (wrapper) {
+                        const validationIcon = wrapper.querySelector('.validation-icon');
+                        const validationTooltip = wrapper.querySelector('.validation-tooltip');
+                        if (validationIcon) validationIcon.style.display = 'none';
+                        if (validationTooltip) validationTooltip.style.display = 'none';
+                    }
+                });
+            }
+        });
+        
+        // Hide non-field errors when user starts typing in any field
+        const nonFieldErrors = document.querySelector('.alert-danger:not(.form-field .alert-danger)');
+        if (nonFieldErrors) {
+            formInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    nonFieldErrors.style.display = 'none';
+                });
+            });
+        }
         
         // Password requirements validation
         const password1 = document.getElementById('id_password1');

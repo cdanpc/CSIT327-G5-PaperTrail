@@ -438,12 +438,18 @@ Relationships:
 - **Body**: Font size 0.875rem - 1rem
 - **System Font Stack**: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto
 
+#### Spacing
+- **Grid**: 8px base unit
+- **Card Padding**: 1.5rem
+- **Section Margins**: 2rem
+- **Gap Between Cards**: 1rem - 1.5rem
+
 #### Components
 - **Cards**: White background, border-radius 12px, subtle shadow
 - **Buttons**: Gradient backgrounds, rounded corners, hover effects
 - **Forms**: Clean inputs with focus states
 - **Modals**: Centered, backdrop blur
-- **Toasts**: Find me the best position, auto-dismiss
+- **Toasts**: Top-right position, auto-dismiss
 
 ### 5.2 Responsive Breakpoints
 - **Mobile**: < 576px
@@ -483,11 +489,12 @@ Relationships:
 - Related resources sidebar
 
 #### Quiz List Page
+- Quiz cards grid
 - Filter by verification status, difficulty
 - Search bar
 
 #### Quiz Detail Page
-- Quiz info (title, number of questions, description, creator)
+- Quiz info (title, description, creator)
 - Statistics (attempts, average score)
 - "Start Quiz" button
 - Leaderboard (optional)
@@ -520,7 +527,7 @@ Relationships:
 - "Shuffle" and "Reset" options
 - Exit button
 
-#### student Profile Page
+#### User Profile Page
 - Profile header (avatar, name, tagline, bio)
 - Statistics (uploads, contributions)
 - Tabs:
@@ -528,12 +535,14 @@ Relationships:
   - Created Quizzes
   - Created Decks
   - Bookmarks
+  - Activity History
 - Edit profile button (own profile only)
 
 #### Settings Page
 - Account settings (email, password)
 - Notification preferences
 - Privacy settings
+- Theme customization (optional)
 
 ---
 

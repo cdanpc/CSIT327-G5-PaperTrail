@@ -7,11 +7,12 @@
     <title>Settings - PaperTrail</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/globals.css' %}?v=1.1">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=1.3">
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=3.9">
     <link rel="stylesheet" href="{% static 'css/coming-soon-notification.css' %}?v=1.0">
-    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=2.2">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=3.0">
     <link rel="stylesheet" href="{% static 'css/toast.css' %}?v=1.0">
 </head>
 <body>
@@ -34,17 +35,17 @@
                     <p class="settings-subtitle">Manage your account preferences and security</p>
                     
                     <!-- Role Badge -->
-                    <div style="margin-top: 1rem;">
+                    <div class="role-badge-container">
                         {% if user.is_staff or user.is_superuser %}
-                            <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 8px;">
+                            <span class="badge badge-admin">
                                 <i class="fas fa-crown"></i> Admin
                             </span>
                         {% elif user.is_professor %}
-                            <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 8px;">
+                            <span class="badge badge-professor">
                                 <i class="fas fa-chalkboard-teacher"></i> Professor
                             </span>
                         {% else %}
-                            <span class="badge" style="background: rgba(108, 117, 125, 0.2); color: #6c757d; padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 8px;">
+                            <span class="badge badge-student">
                                 <i class="fas fa-user-graduate"></i> Student
                             </span>
                         {% endif %}
@@ -99,13 +100,13 @@
                             </div>
                             <div class="setting-action">
                                 {% if pending_email_change %}
-                                    <a href="#" class="btn btn-outline-primary" onclick="alert('You have an ongoing request to change your university email. Cannot change university email'); return false;" style="opacity: 0.5; cursor: not-allowed;">
-                                        <i class="fas fa-university me-2"></i>
+                                    <button class="btn btn-outline-primary" disabled onclick="alert('You have an ongoing request to change your university email. Cannot change university email'); return false;">
+                                        <i class="fas fa-university"></i>
                                         Change Email
-                                    </a>
+                                    </button>
                                 {% else %}
                                     <a href="{% url 'accounts:change_university_email' %}" class="btn btn-outline-primary">
-                                        <i class="fas fa-university me-2"></i>
+                                        <i class="fas fa-university"></i>
                                         Change Email
                                     </a>
                                 {% endif %}

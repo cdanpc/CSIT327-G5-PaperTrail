@@ -452,10 +452,10 @@ def toggle_quiz_bookmark(request, pk):
 @login_required
 @require_http_methods(["POST"])
 def quiz_delete(request, pk):
-    """Delete a quiz (creator or professor)"""
+    """Delete a quiz (creator, professor, or admin)"""
     quiz = get_object_or_404(Quiz, pk=pk)
-    if not (quiz.creator == request.user or getattr(request.user, 'is_professor', False)):
-        messages.error(request, 'You do not have permission to delete this quiz.')
+    if quiz.creator != request.user and not getattr(request.user, 'is_professor', False) and not request.user.is_staff:
+        messages.error(request, 'You can only delete your own quizzes.')
         return redirect('quizzes:quiz_detail', pk=pk)
     title = quiz.title
     quiz.delete()

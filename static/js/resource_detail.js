@@ -163,16 +163,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // === LIKE BUTTON TOGGLE (NEW) ===
-  const likeIcon = document.getElementById('likeIcon');
-  const likeCount = document.getElementById('likeCount');
+  // === LIKE BUTTON TOGGLE ===
+  const likeButton = document.getElementById('likeButton');
+  const likesStatValue = document.getElementById('likesStatValue');
 
-  if (likeIcon) {
-    likeIcon.addEventListener('click', async function() {
-      const resourceId = this.getAttribute('data-resource-id');
+  if (likeButton) {
+    likeButton.addEventListener('click', async function() {
+      const resourceId = this.closest('[data-resource-id]')?.getAttribute('data-resource-id') || 
+                         window.location.pathname.match(/\/resources\/(\d+)\//)?.[1];
+
+      if (!resourceId) {
+        console.error('Resource ID not found');
+        return;
+      }
 
       // Disable during request
-      this.style.pointerEvents = 'none';
+      this.disabled = true;
       this.style.opacity = '0.6';
 
       try {
@@ -187,18 +193,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = await response.json();
 
         if (data.success) {
-          // Update like count
-          likeCount.textContent = data.like_count;
+          // Update like count in stats
+          if (likesStatValue) {
+            likesStatValue.textContent = data.like_count;
+          }
 
-          // Update icon appearance with new classes
+          // Update button appearance
+          const icon = this.querySelector('i');
           if (data.action === 'liked') {
-            this.classList.remove('unliked');
-            this.classList.add('liked');
-            this.setAttribute('title', 'Unlike');
+            this.classList.add('btn--liked');
+            if (icon) {
+              icon.classList.remove('far');
+              icon.classList.add('fas');
+            }
           } else {
-            this.classList.remove('liked');
-            this.classList.add('unliked');
-            this.setAttribute('title', 'Like');
+            this.classList.remove('btn--liked');
+            if (icon) {
+              icon.classList.remove('fas');
+              icon.classList.add('far');
+            }
           }
         } else {
           showAlert(data.error || 'Failed to update like. Please try again.', 'danger');
@@ -207,11 +220,182 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error toggling like:', error);
         showAlert('An error occurred. Please try again.', 'danger');
       } finally {
-        this.style.pointerEvents = 'auto';
+        this.disabled = false;
         this.style.opacity = '1';
       }
     });
   }
+
+  // === PREVIEW MODAL ===
+  const previewModal = document.getElementById('previewModal');
+  if (previewModal) {
+    previewModal.addEventListener('show.bs.modal', function() {
+      const resourceId = this.dataset.resourceId;
+      const fileType = this.dataset.fileType;
+      loadPreview(resourceId, fileType);
+    });
+  }
+
+  function loadPreview(resourceId, fileType) {
+    const previewLoading = document.getElementById('previewLoading');
+    const previewContent = document.getElementById('previewContent');
+    const previewError = document.getElementById('previewError');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    // Reset display states
+    if (previewLoading) previewLoading.style.display = 'block';
+    if (previewContent) previewContent.style.display = 'none';
+    if (previewError) previewError.style.display = 'none';
+    
+    // Fetch preview from backend
+    fetch(`/resources/${resourceId}/preview/`)
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.error || 'Failed to load preview');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (previewLoading) previewLoading.style.display = 'none';
+        
+        if (data.type === 'image') {
+          const imagePreview = document.getElementById('imagePreview');
+          const previewImage = document.getElementById('previewImage');
+          if (previewImage) previewImage.src = `data:${data.mime_type};base64,${data.content}`;
+          if (imagePreview) imagePreview.style.display = 'block';
+          if (previewContent) previewContent.style.display = 'block';
+        } 
+        else if (data.type === 'pdf') {
+          const pdfPreview = document.getElementById('pdfPreview');
+          const pdfFrame = document.getElementById('pdfFrame');
+          if (pdfFrame) pdfFrame.src = `data:application/pdf;base64,${data.content}`;
+          if (pdfPreview) pdfPreview.style.display = 'block';
+          if (previewContent) previewContent.style.display = 'block';
+        }
+        else if (data.type === 'text') {
+          const textPreview = document.getElementById('textPreview');
+          const textContent = document.getElementById('textContent');
+          if (textContent) textContent.textContent = data.content;
+          if (textPreview) textPreview.style.display = 'block';
+          if (previewContent) previewContent.style.display = 'block';
+        }
+      })
+      .catch(error => {
+        if (previewLoading) previewLoading.style.display = 'none';
+        if (previewError) previewError.style.display = 'block';
+        if (errorMessage) errorMessage.textContent = error.message || 'Could not load file preview. Please try downloading the file instead.';
+      });
+  }
+
+  // === RATING MODAL (NEW STYLE) ===
+  (function initRatingModal() {
+    const stars = document.querySelectorAll('.rating-star');
+    const submitBtn = document.getElementById('submitRating');
+    const ratingMessage = document.getElementById('ratingMessage');
+    const ratingModal = document.getElementById('ratingModal');
+    let selectedRating = 0;
+
+    if (!stars.length || !submitBtn) return;
+
+    stars.forEach(star => {
+      star.addEventListener('click', function() {
+        selectedRating = parseInt(this.dataset.rating);
+        updateStars(selectedRating);
+        submitBtn.disabled = false;
+      });
+
+      star.addEventListener('mouseenter', function() {
+        const hoverRating = parseInt(this.dataset.rating);
+        updateStars(hoverRating);
+      });
+    });
+
+    const ratingStars = document.getElementById('ratingStars');
+    if (ratingStars) {
+      ratingStars.addEventListener('mouseleave', function() {
+        updateStars(selectedRating);
+      });
+    }
+
+    function updateStars(rating) {
+      stars.forEach((star, index) => {
+        if (index < rating) {
+          star.classList.add('active');
+        } else {
+          star.classList.remove('active');
+        }
+      });
+    }
+
+    submitBtn.addEventListener('click', function() {
+      if (selectedRating === 0) return;
+
+      const rateUrl = this.dataset.rateUrl;
+
+      fetch(rateUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ rating: selectedRating })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          if (ratingMessage) {
+            ratingMessage.className = 'alert alert-success mt-3';
+            ratingMessage.textContent = 'Thank you for your rating!';
+            ratingMessage.style.display = 'block';
+          }
+          
+          // Update the rating display
+          const ratingStatValue = document.querySelector('.stat-card:nth-child(2) .stat-value');
+          if (ratingStatValue && data.new_average) {
+            ratingStatValue.textContent = parseFloat(data.new_average).toFixed(1);
+          }
+
+          setTimeout(() => {
+            if (ratingModal && bootstrap && bootstrap.Modal) {
+              const modalInstance = bootstrap.Modal.getInstance(ratingModal);
+              if (modalInstance) modalInstance.hide();
+            }
+            selectedRating = 0;
+            updateStars(0);
+            submitBtn.disabled = true;
+            if (ratingMessage) ratingMessage.style.display = 'none';
+          }, 1500);
+        } else {
+          if (ratingMessage) {
+            ratingMessage.className = 'rating-message alert-danger';
+            ratingMessage.textContent = data.error || data.message || 'Something went wrong. Please try again.';
+            ratingMessage.style.display = 'block';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Rating error:', error);
+        if (ratingMessage) {
+          ratingMessage.className = 'rating-message alert-danger';
+          ratingMessage.textContent = 'Error submitting rating. Please try again.';
+          ratingMessage.style.display = 'block';
+        }
+      });
+    });
+
+    // Reset modal on close
+    if (ratingModal) {
+      ratingModal.addEventListener('hidden.bs.modal', function() {
+        selectedRating = 0;
+        updateStars(0);
+        submitBtn.disabled = true;
+        if (ratingMessage) ratingMessage.style.display = 'none';
+      });
+    }
+  })();
 
   // === RATING SYSTEM ===
   (function initRatingSystem() {
@@ -326,5 +510,155 @@ document.addEventListener('DOMContentLoaded', function() {
           });
       });
     }
+  })();
+
+  // === COMMENT EDIT/DELETE FUNCTIONALITY ===
+  (function initCommentActions() {
+    // Edit button click
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('comment-edit-btn') || e.target.closest('.comment-edit-btn')) {
+        e.preventDefault();
+        const btn = e.target.classList.contains('comment-edit-btn') ? e.target : e.target.closest('.comment-edit-btn');
+        const commentId = btn.dataset.commentId;
+        const commentText = document.querySelector(`.comment-text[data-comment-id="${commentId}"]`);
+        const editTextarea = document.querySelector(`.comment-edit-textarea[data-comment-id="${commentId}"]`);
+        const saveBtn = document.querySelector(`.comment-save-btn[data-comment-id="${commentId}"]`);
+        const cancelBtn = document.querySelector(`.comment-cancel-btn[data-comment-id="${commentId}"]`);
+        const replyBtn = document.querySelector(`.reply-btn[data-comment-id="${commentId}"]`);
+        
+        if (commentText && editTextarea && saveBtn && cancelBtn) {
+          commentText.classList.add('d-none');
+          editTextarea.classList.remove('d-none');
+          saveBtn.classList.remove('d-none');
+          cancelBtn.classList.remove('d-none');
+          if (replyBtn) replyBtn.classList.add('d-none');
+          editTextarea.focus();
+        }
+      }
+      
+      // Cancel button click
+      if (e.target.classList.contains('comment-cancel-btn') || e.target.closest('.comment-cancel-btn')) {
+        const btn = e.target.classList.contains('comment-cancel-btn') ? e.target : e.target.closest('.comment-cancel-btn');
+        const commentId = btn.dataset.commentId;
+        const commentText = document.querySelector(`.comment-text[data-comment-id="${commentId}"]`);
+        const editTextarea = document.querySelector(`.comment-edit-textarea[data-comment-id="${commentId}"]`);
+        const saveBtn = document.querySelector(`.comment-save-btn[data-comment-id="${commentId}"]`);
+        const cancelBtn = document.querySelector(`.comment-cancel-btn[data-comment-id="${commentId}"]`);
+        const replyBtn = document.querySelector(`.reply-btn-text[data-comment-id="${commentId}"]`);
+        
+        if (commentText && editTextarea && saveBtn && cancelBtn) {
+          commentText.classList.remove('d-none');
+          editTextarea.classList.add('d-none');
+          saveBtn.classList.add('d-none');
+          cancelBtn.classList.add('d-none');
+          if (replyBtn) replyBtn.classList.remove('d-none');
+          // Reset textarea to original value
+          editTextarea.value = commentText.textContent.trim();
+        }
+      }
+      
+      // Save button click
+      if (e.target.classList.contains('comment-save-btn') || e.target.closest('.comment-save-btn')) {
+        const btn = e.target.classList.contains('comment-save-btn') ? e.target : e.target.closest('.comment-save-btn');
+        const commentId = btn.dataset.commentId;
+        const editTextarea = document.querySelector(`.comment-edit-textarea[data-comment-id="${commentId}"]`);
+        const newText = editTextarea.value.trim();
+        
+        if (!newText) {
+          alert('Comment cannot be empty');
+          return;
+        }
+        
+        // Disable button while saving
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        // Send AJAX request to update comment
+        fetch(`/resources/comment/${commentId}/edit/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: 'text=' + encodeURIComponent(newText)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Update the comment text display - find the container and update the paragraph inside
+            const commentTextContainer = document.querySelector(`.comment-text[data-comment-id="${commentId}"]`);
+            const commentParagraph = commentTextContainer.querySelector('p');
+            if (commentParagraph) {
+              commentParagraph.textContent = newText;
+            }
+            
+            // Hide edit mode
+            const saveBtn = document.querySelector(`.comment-save-btn[data-comment-id="${commentId}"]`);
+            const cancelBtn = document.querySelector(`.comment-cancel-btn[data-comment-id="${commentId}"]`);
+            const replyBtn = document.querySelector(`.reply-btn-text[data-comment-id="${commentId}"]`);
+            
+            commentTextContainer.classList.remove('d-none');
+            editTextarea.classList.add('d-none');
+            saveBtn.classList.add('d-none');
+            cancelBtn.classList.add('d-none');
+            if (replyBtn) replyBtn.classList.remove('d-none');
+            
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-check"></i> Save';
+          } else {
+            throw new Error(data.error || 'Failed to update comment');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert(error.message || 'An error occurred. Please try again.');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-check"></i> Save';
+        });
+      }
+      
+      // Delete button click
+      if (e.target.classList.contains('comment-delete-btn') || e.target.closest('.comment-delete-btn')) {
+        e.preventDefault();
+        const btn = e.target.classList.contains('comment-delete-btn') ? e.target : e.target.closest('.comment-delete-btn');
+        const commentId = btn.dataset.commentId;
+        const deleteUrl = btn.dataset.deleteUrl;
+        
+        if (confirm('Are you sure you want to delete this comment?')) {
+          fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              // Remove the comment from DOM
+              const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+              if (commentElement) {
+                commentElement.remove();
+              }
+              // Update comment count
+              const commentsHeading = document.querySelector('.comments-heading');
+              if (commentsHeading) {
+                const countMatch = commentsHeading.textContent.match(/\((\d+)\)/);
+                if (countMatch) {
+                  const newCount = parseInt(countMatch[1]) - 1;
+                  commentsHeading.textContent = `Comments (${newCount})`;
+                }
+              }
+            } else {
+              throw new Error('Failed to delete comment');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+          });
+        }
+      }
+    });
   })();
 });

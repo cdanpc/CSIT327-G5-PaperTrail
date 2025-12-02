@@ -124,6 +124,7 @@
                                 <!-- Hidden fields to preserve data from other tabs -->
                                 <input type="hidden" name="univ_email" value="{{ user.univ_email }}">
                                 <input type="hidden" name="stud_id" value="{{ user.stud_id }}">
+                                <input type="hidden" name="course" value="{{ user.course|default:'' }}">
                                 <input type="hidden" name="department" value="{{ user.department|default:'' }}">
                                 <input type="hidden" name="year_level" value="{{ user.year_level|default:'' }}">
                                 <input type="hidden" name="bio" value="{{ user.bio|default:'' }}">
@@ -196,15 +197,29 @@
                                 </div>
                             </div>
                             <div class="info-field">
-                                <label class="info-field-label">Department</label>
-                                <div class="info-field-value {% if not user.department %}empty{% endif %}">
-                                    {{ user.department|default:"Not provided" }}
+                                <label class="info-field-label">Course</label>
+                                <div class="info-field-value {% if not user.course %}empty{% endif %}">
+                                    {% if user.course %}
+                                        {% if user.course == 'BSCS' %}Bachelor of Science in Computer Science
+                                        {% elif user.course == 'BSIT' %}Bachelor of Science in Information Technology
+                                        {% elif user.course == 'BSCE' %}Bachelor of Science in Computer Engineering
+                                        {% elif user.course == 'BSIS' %}Bachelor of Science in Information Systems
+                                        {% elif user.course == 'ACT' %}Associate in Computer Technology
+                                        {% else %}{{ user.course }}
+                                        {% endif %}
+                                    {% else %}Not provided{% endif %}
                                 </div>
                             </div>
                             <div class="info-field">
                                 <label class="info-field-label">Year Level</label>
                                 <div class="info-field-value {% if not user.year_level %}empty{% endif %}">
                                     {% if user.year_level %}{{ user.year_level }}{% if user.year_level == '1' %}st{% elif user.year_level == '2' %}nd{% elif user.year_level == '3' %}rd{% else %}th{% endif %} Year{% else %}Not provided{% endif %}
+                                </div>
+                            </div>
+                            <div class="info-field">
+                                <label class="info-field-label">Department</label>
+                                <div class="info-field-value {% if not user.department %}empty{% endif %}">
+                                    {{ user.department|default:"Not provided" }}
                                 </div>
                             </div>
                         </div>
@@ -220,6 +235,7 @@
                                 <input type="hidden" name="phone" value="{{ user.phone|default:'' }}">
                                 <input type="hidden" name="bio" value="{{ user.bio|default:'' }}">
                                 <input type="hidden" name="profile_visibility" value="{{ user.profile_visibility }}">
+                                <input type="hidden" name="course" value="{{ user.course|default:'' }}">
                                 
                                 <div class="form-grid">
                                     <div class="form-group">
@@ -233,10 +249,17 @@
                                         <small class="form-text text-muted">This field cannot be changed</small>
                                     </div>
                                     <div class="form-group">
-                                        <label for="department" class="form-label">Department</label>
-                                        <input type="text" class="form-control {% if form.department.errors %}is-invalid{% endif %}" id="department" name="department" value="{{ user.department|default:'' }}" placeholder="e.g., Computer Science">
-                                        {% if form.department.errors %}
-                                            <div class="invalid-feedback">{{ form.department.errors.0 }}</div>
+                                        <label for="course" class="form-label">Course</label>
+                                        <select class="form-control {% if form.course.errors %}is-invalid{% endif %}" id="course" name="course">
+                                            <option value="">Select course</option>
+                                            <option value="BSCS" {% if user.course == 'BSCS' %}selected{% endif %}>Bachelor of Science in Computer Science</option>
+                                            <option value="BSIT" {% if user.course == 'BSIT' %}selected{% endif %}>Bachelor of Science in Information Technology</option>
+                                            <option value="BSCE" {% if user.course == 'BSCE' %}selected{% endif %}>Bachelor of Science in Computer Engineering</option>
+                                            <option value="BSIS" {% if user.course == 'BSIS' %}selected{% endif %}>Bachelor of Science in Information Systems</option>
+                                            <option value="ACT" {% if user.course == 'ACT' %}selected{% endif %}>Associate in Computer Technology</option>
+                                        </select>
+                                        {% if form.course.errors %}
+                                            <div class="invalid-feedback">{{ form.course.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                     <div class="form-group">
@@ -250,6 +273,13 @@
                                         </select>
                                         {% if form.year_level.errors %}
                                             <div class="invalid-feedback">{{ form.year_level.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="department" class="form-label">Department</label>
+                                        <input type="text" class="form-control {% if form.department.errors %}is-invalid{% endif %}" id="department" name="department" value="{{ user.department|default:'' }}" placeholder="e.g., Computer Science">
+                                        {% if form.department.errors %}
+                                            <div class="invalid-feedback">{{ form.department.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -296,6 +326,7 @@
                                 <input type="hidden" name="phone" value="{{ user.phone|default:'' }}">
                                 <input type="hidden" name="univ_email" value="{{ user.univ_email }}">
                                 <input type="hidden" name="stud_id" value="{{ user.stud_id }}">
+                                <input type="hidden" name="course" value="{{ user.course|default:'' }}">
                                 <input type="hidden" name="department" value="{{ user.department|default:'' }}">
                                 <input type="hidden" name="year_level" value="{{ user.year_level|default:'' }}">
                                 <input type="hidden" name="profile_visibility" value="{{ user.profile_visibility }}">

@@ -15,7 +15,7 @@
 /* Standard page containers with max-width */
 /* Dashboard pages: horizontal padding handled by .container-fluid to avoid double gutters */
 .dashboard-main {
-    max-width: 100%;
+    max-width: 90%;
     margin: 0 auto;
     padding: 2rem 0; /* no horizontal padding here */
     width: 100%;

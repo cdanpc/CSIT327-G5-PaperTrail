@@ -2,52 +2,50 @@
    MODERN CLEAN NAVBAR STYLES
    ==================================== */
 
-/* Navbar - White Background */
+/* Navbar - Dark Background */
 .navbar {
+    position: sticky;
+    top: 0;
     transition: all 0.4s ease;
     z-index: 1060;
     padding: 1rem 0;
-    background: white !important;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+    background: #1f2937 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(31, 41, 55, 0.3);
 }
 
 .navbar.scrolled {
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.12);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
-/* Navbar Brand - Logo with Purple Gradient */
+/* Navbar Brand - Logo White */
 .navbar-brand {
     font-size: 1.75rem;
     font-weight: 800;
     transition: transform 0.3s ease;
     letter-spacing: -0.5px;
+    color: #ffffff !important;
 }
 
 .navbar-brand:hover {
     transform: translateY(-2px);
 }
 
-/* Logo icon - Purple Gradient */
+/* Logo icon - White */
 .navbar-brand i {
     font-size: 1.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ffffff;
     transition: all 0.3s ease;
 }
 
-/* Brand text - Purple Gradient */
+/* Brand text - White */
 .navbar-brand strong {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ffffff;
 }
 
-/* Nav Links - Dark gray with purple hover */
+/* Nav Links - Light gray with white hover */
 .nav-link {
-    color: #4a5568 !important;
+    color: rgba(255, 255, 255, 0.8) !important;
     font-weight: 600;
     font-size: 1rem;
     padding: 0.5rem 1rem !important;
@@ -58,20 +56,19 @@
 }
 
 .nav-link:hover {
-    color: #667eea !important;
-    background: rgba(102, 126, 234, 0.08);
-    transform: translateY(-2px);
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .nav-link.active {
-    color: #667eea !important;
-    background: rgba(102, 126, 234, 0.12);
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 /* Auth Buttons */
 .navbar .btn-outline-light {
-    border: 2px solid #667eea;
-    color: #667eea;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.9);
     font-weight: 600;
     padding: 10px 24px;
     border-radius: 50px;
@@ -81,44 +78,43 @@
 }
 
 .navbar .btn-outline-light:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: transparent;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #ffffff;
 }
 
 .navbar .btn-light {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
     font-weight: 600;
     padding: 10px 24px;
     border-radius: 50px;
-    border: none;
     transition: all 0.3s ease;
     font-size: 0.95rem;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(10px);
 }
 
 .navbar .btn-light:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(118, 75, 162, 0.35);
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Dropdown menu (for authenticated users) */
 .navbar .dropdown-toggle {
-    color: #4a5568 !important;
+    color: rgba(255, 255, 255, 0.8) !important;
 }
 
 .navbar .dropdown-toggle:hover {
-    color: #667eea !important;
-    background: rgba(102, 126, 234, 0.08);
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .navbar .dropdown-menu {
-    border: 1px solid rgba(102, 126, 234, 0.1);
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.12);
+    background: rgba(26, 32, 44, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     border-radius: 12px;
     margin-top: 0.5rem;
 }
@@ -126,34 +122,34 @@
 .navbar .dropdown-item {
     padding: 0.75rem 1.25rem;
     transition: all 0.2s ease;
-    color: #4a5568;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .navbar .dropdown-item:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
 }
 
-/* Navbar Toggler for mobile - Purple */
+/* Navbar Toggler for mobile - White */
 .navbar .navbar-toggler {
-    border: 2px solid #667eea;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     padding: 0.5rem 0.75rem;
 }
 
 .navbar .navbar-toggler:focus {
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
 }
 
 .navbar .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(102, 126, 234, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
 /* Search form styling (for logged-in pages) */
 .navbar .search-input-group {
     border-radius: 50px;
     overflow: hidden;
-    background: rgba(102, 126, 234, 0.05);
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    background: rgba(107, 114, 128, 0.05);
+    border: 1px solid rgba(107, 114, 128, 0.2);
 }
 
 .navbar .search-input-group .input-group-text {
@@ -162,7 +158,7 @@
 }
 
 .navbar .search-input-group .input-group-text i {
-    color: #667eea;
+    color: #6b7280;
 }
 
 .navbar .search-input-group .form-control {
@@ -176,21 +172,21 @@
 }
 
 .navbar .search-input-group .form-control:focus {
-    background: rgba(102, 126, 234, 0.08);
+    background: rgba(107, 114, 128, 0.08);
     box-shadow: none;
     color: #2d3748;
 }
 
 .navbar .search-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     color: white;
     border: none;
     font-weight: 600;
 }
 
 .navbar .search-btn:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
 }
 
 /* Profile elements */
@@ -203,7 +199,7 @@
 .navbar .nav-profile-placeholder {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     color: white;
     border-radius: 50%;
     display: inline-flex;
@@ -217,7 +213,7 @@
 }
 
 .navbar .badge.bg-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
 }
 
 /* Toast Container */
@@ -227,7 +223,7 @@
 
 /* Footer Brand Gradient */
 .footer-brand-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -258,7 +254,7 @@ footer .hover-link::before {
 }
 
 footer .hover-link:hover {
-    color: #667eea !important;
+    color: #6b7280 !important;
     padding-left: 15px;
 }
 
@@ -275,20 +271,20 @@ footer .social-links .btn {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    border-color: #667eea !important;
-    color: #667eea !important;
+    border-color: #6b7280 !important;
+    color: #6b7280 !important;
 }
 
 footer .social-links .btn:hover {
     transform: translateY(-3px) rotate(360deg);
-    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 4px 10px rgba(107, 114, 128, 0.4);
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
     border-color: transparent !important;
     color: white !important;
 }
 
 footer h6 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

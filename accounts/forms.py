@@ -22,11 +22,6 @@ class CustomUserCreationForm(UserCreationForm):
         label='Last Name',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Doe'})
     )
-    personal_email = forms.EmailField(
-        required=True,
-        label='Email Address',
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'you@example.com'})
-    )
     univ_email = forms.EmailField(
         required=True,
         label='University Email',
@@ -38,10 +33,30 @@ class CustomUserCreationForm(UserCreationForm):
         label='Student ID',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '20-1234-567'})
     )
+    course = forms.ChoiceField(
+        required=True,
+        label='Course',
+        choices=[('', 'Select your course')] + [
+            ('BSCS', 'Bachelor of Science in Computer Science'),
+            ('BSIT', 'Bachelor of Science in Information Technology'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    year_level = forms.ChoiceField(
+        required=True,
+        label='Year Level',
+        choices=[('', 'Select year level')] + [
+            ('1', '1st Year'),
+            ('2', '2nd Year'),
+            ('3', '3rd Year'),
+            ('4', '4th Year'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'personal_email', 'univ_email', 'stud_id', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'univ_email', 'stud_id', 'course', 'year_level', 'password1', 'password2')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -84,7 +99,8 @@ class CustomUserCreationForm(UserCreationForm):
         # Store other required fields
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
-        user.personal_email = self.cleaned_data['personal_email']
+        user.course = self.cleaned_data['course']
+        user.year_level = self.cleaned_data['year_level']
         
         if commit:
             user.save()
@@ -167,7 +183,7 @@ class ProfileUpdateForm(forms.ModelForm):
         model = User
         fields = [
             'first_name', 'last_name', 'personal_email', 'univ_email', 
-            'stud_id', 'profile_picture', 'tagline', 'bio', 
+            'stud_id', 'course', 'profile_picture', 'tagline', 'bio', 
             'department', 'year_level', 'phone', 'profile_visibility'
         ]
         widgets = {
@@ -176,6 +192,14 @@ class ProfileUpdateForm(forms.ModelForm):
             'personal_email': forms.EmailInput(attrs={'class': 'form-control'}),
             'univ_email': forms.EmailInput(attrs={'class': 'form-control'}),
             'stud_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'course': forms.Select(attrs={'class': 'form-control'}, choices=[
+                ('', 'Select course'),
+                ('BSCS', 'Bachelor of Science in Computer Science'),
+                ('BSIT', 'Bachelor of Science in Information Technology'),
+                ('BSCE', 'Bachelor of Science in Computer Engineering'),
+                ('BSIS', 'Bachelor of Science in Information Systems'),
+                ('ACT', 'Associate in Computer Technology'),
+            ]),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
             'tagline': forms.TextInput(attrs={
                 'class': 'form-control',

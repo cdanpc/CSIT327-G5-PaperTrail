@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="doc-title">Learning Hub: Resources List</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load custom CSS -->
+    <link rel="stylesheet" href="static/css/learning-hub.css">
+</head>
+<body>
+
+    <!-- START Sidebar (Fixed on Desktop, Full-Width on Mobile) -->
+    <aside class="sidebar sidebar-bg sidebar-text-main shadow-xl">
+        <div class="p-6 hidden lg:block">
+            <h2 class="text-2xl font-bold border-b border-gray-600 pb-3">Learning Hub</h2>
+        </div>
+        
+        <!-- Navigation Links Container -->
+        <nav class="flex lg:block justify-around py-3 lg:py-0 space-x-2 lg:space-x-0">
+            <ul class="lg:space-y-2 flex lg:block w-full">
+                <!-- Navigation Item: Resources (Active) -->
+                <li class="nav-item">
+                    <a href="#" data-page="Resources" class="nav-link nav-link-item nav-link-active">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <span class="nav-text">Resources</span>
+                    </a>
+                </li>
+                
+                <!-- Navigation Item: Flashcards -->
+                <li class="nav-item">
+                    <a href="#" data-page="Flashcards" class="nav-link nav-link-item nav-link-inactive">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+                        <span class="nav-text">Flashcards</span>
+                    </a>
+                </li>
+                
+                <!-- Navigation Item: Quizzes -->
+                <li class="nav-item">
+                    <a href="#" data-page="Quizzes" class="nav-link nav-link-item nav-link-inactive">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        <span class="nav-text">Quizzes</span>
+                    </a>
+                </li>
+                
+                <!-- Navigation Item: Bookmarks -->
+                <li class="nav-item">
+                    <a href="#" data-page="Bookmarks" class="nav-link nav-link-item nav-link-inactive">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                        <span class="nav-text">Bookmarks</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    <!-- END Sidebar -->
+
+    <!-- START Main Content Area -->
+    <main class="content-padding pb-20 lg:pb-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 id="main-title" class="text-4xl font-extrabold gradient-heading">Resources Library</h1>
+            <p id="main-subtitle" class="text-base text-secondary-color mt-2">Browse the documents and guides you need for your current projects.</p>
+        </header>
+
+        <!-- Dynamic Content Injection Area -->
+        <div id="main-content-area">
+            <!-- Content will be injected here by JavaScript -->
+        </div>
+        
+        <!-- Mobile Spacer (Necessary because the sidebar is fixed at the bottom on mobile) -->
+        <div class="h-20 lg:hidden"></div>
+
+    </main>
+    <!-- END Main Content Area -->
+
+    <!-- Load custom JavaScript -->
+    <script src="static/js/learning-hub.js"></script>
+
+</body>
+</html>

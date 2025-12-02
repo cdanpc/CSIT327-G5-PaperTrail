@@ -21,6 +21,7 @@ urlpatterns = [
     # Rating and Comments
     path('<int:pk>/rate/', views.rate_resource, name='rate_resource'),
     path('<int:pk>/comment/', views.add_comment, name='add_comment'),
+    path('comment/<int:pk>/edit/', views.edit_comment, name='edit_comment'),
     path('comment/<int:pk>/delete/', views.delete_comment, name='delete_comment'),
     path('<int:pk>/like/', views.toggle_like, name='toggle_like'),
 

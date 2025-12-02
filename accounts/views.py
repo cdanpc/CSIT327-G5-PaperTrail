@@ -485,6 +485,22 @@ def student_dashboard(request):
     # Newly added counts (Tasks 1 & 2)
     total_quizzes_posted = Quiz.objects.filter(creator=request.user).count()
     
+    # Calculate study streak (consecutive days with activity)
+    study_streak = 0
+    check_date = manila_now.date()
+    while True:
+        # Check if user had any activity on check_date
+        has_activity = (
+            Resource.objects.filter(uploader=request.user, created_at__date=check_date).exists() or
+            QuizAttempt.objects.filter(student=request.user, started_at__date=check_date).exists() or
+            Bookmark.objects.filter(user=request.user, created_at__date=check_date).exists()
+        )
+        if has_activity:
+            study_streak += 1
+            check_date -= timedelta(days=1)
+        else:
+            break
+    
     context = {
         'user': request.user,
         'recent_resources': recent_resources,
@@ -517,6 +533,8 @@ def student_dashboard(request):
         'total_flashcard_cards': total_flashcard_cards,
         'recent_decks': recent_decks,
         'last_studied_deck': last_studied_deck,
+        # New dashboard features
+        'study_streak': study_streak,
     }
     return render(request, 'accounts/student_dashboard.html', context)
 
