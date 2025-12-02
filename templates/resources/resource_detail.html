@@ -277,7 +277,7 @@
 const previewModal = document.getElementById('previewModal');
 if (previewModal) {
   previewModal.addEventListener('show.bs.modal', function() {
-    loadPreview({{ resource.pk }}, '{{ resource.resource_type }}');
+    loadPreview('{{ resource.pk }}', '{{ resource.resource_type }}');
   });
 }
 
