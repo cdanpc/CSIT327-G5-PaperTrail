@@ -204,8 +204,8 @@ h6 { font-size: var(--font-size-base); }
 }
 
 .btn-secondary:hover {
-    background-color: #b8d4a8;
-    border-color: #b8d4a8;
+    background-color: #e5e7eb;
+    border-color: #e5e7eb;
     color: var(--text-primary);
 }
 
