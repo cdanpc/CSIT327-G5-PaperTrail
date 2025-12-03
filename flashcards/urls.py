@@ -16,6 +16,9 @@ urlpatterns = [
     path("<int:pk>/rate/", views.rate_deck, name="rate_deck"),
     path("<int:pk>/comment/add/", views.add_deck_comment, name="add_deck_comment"),
     path("<int:pk>/comment/<int:comment_id>/delete/", views.delete_deck_comment, name="delete_deck_comment"),
+    # AJAX Updates
+    path("<int:pk>/update-title/", views.update_deck_title, name="update_deck_title"),
+    path("<int:pk>/cards/<int:card_id>/update/", views.update_card, name="update_card"),
     # Moderation
     path("moderation/", views.deck_moderation_list, name="deck_moderation_list"),
     path("moderation/approve/<int:pk>/", views.approve_deck, name="approve_deck"),

@@ -25,7 +25,7 @@
     {% if comments %}
       {% for comment in comments %}
         {% if not comment.parent_comment %}
-          {% include 'components/comment_post.html' with comment=comment delete_url_name=delete_url_name current_user=current_user show_replies=True %}
+          {% include 'components/comment_post.html' with comment=comment delete_url_name=delete_url_name current_user=current_user show_replies=True comment_url=comment_url %}
         {% endif %}
       {% endfor %}
     {% else %}

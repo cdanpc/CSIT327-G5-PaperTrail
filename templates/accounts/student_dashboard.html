@@ -242,12 +242,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Count-up animation for stat values
     function animateValue(element, start, end, duration) {
-        // If start equals end, just set it and return (prevents negative counting)
         if (start === end) {
             element.textContent = end;
             return;
         }
-        
         const range = end - start;
         const increment = end > start ? 1 : -1;
         const stepTime = Math.abs(Math.floor(duration / range));

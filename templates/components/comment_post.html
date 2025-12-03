@@ -54,6 +54,31 @@
           </button>
           {% endif %}
         </div>
+
+        <!-- Reply Form (Hidden) -->
+        <div class="reply-form-container d-none mt-2" data-comment-id="{{ comment.pk }}">
+            <div class="d-flex gap-3">
+                {% if current_user.profile_picture %}
+                    <img src="{{ current_user.profile_picture.url }}" class="comment-user-avatar avatar-32" alt="{{ current_user.get_display_name }}">
+                {% else %}
+                    <div class="avatar-circle avatar-32">
+                        <span class="text-white small fw-bold">{{ current_user.get_display_name|first|upper }}</span>
+                    </div>
+                {% endif %}
+                <div class="flex-grow-1">
+                    <form method="post" action="{{ comment_url }}" class="reply-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_comment_id" value="{{ comment.pk }}">
+                        <textarea name="text" class="form-control mb-2" rows="2" placeholder="Add a reply..."></textarea>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-sm btn-secondary reply-cancel-btn" data-comment-id="{{ comment.pk }}">Cancel</button>
+                            <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <div class="comment-actions-row">
           <button type="button" class="btn btn-sm btn-success comment-save-btn d-none" data-comment-id="{{ comment.pk }}">
             <i class="fas fa-check"></i> Save
@@ -88,7 +113,7 @@
   {# Show nested replies if enabled #}
   {% if show_replies and comment.replies.all %}
     {% for reply in comment.replies.all %}
-      {% include 'components/comment_post.html' with comment=reply delete_url_name=delete_url_name current_user=current_user is_reply=True show_replies=False %}
+      {% include 'components/comment_post.html' with comment=reply delete_url_name=delete_url_name current_user=current_user is_reply=True show_replies=False comment_url=comment_url %}
     {% endfor %}
   {% endif %}
 </div>
