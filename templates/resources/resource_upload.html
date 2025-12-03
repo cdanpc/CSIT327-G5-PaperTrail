@@ -5,6 +5,404 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.2">
+<style>
+    .resource-upload-page {
+        padding: 2rem 0;
+        background-color: #f8f9fa;
+    }
+
+    .upload-form-card {
+        background: white;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .upload-form-header {
+        background: linear-gradient(135deg, #2d3436 0%, #1f2937 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .upload-form-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        letter-spacing: -0.3px;
+        color: white;
+    }
+
+    .upload-form-title i {
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .upload-form-body {
+        padding: 0;
+    }
+
+    .form-section {
+        margin-bottom: 0;
+        padding: 2rem 2.5rem;
+    }
+
+    .form-section:first-child {
+        padding-top: 2rem;
+    }
+
+    .form-section:last-child {
+        padding-bottom: 2rem;
+    }
+
+    .form-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-section-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #2d3436;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #2d3436;
+    }
+
+    .form-section-title i {
+        color: #2d3436;
+        font-size: 1rem;
+        width: 28px;
+        height: 28px;
+        background: #f0f0f0;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .form-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 700;
+        color: #2d3436;
+        font-size: 0.95rem;
+        margin-bottom: 0.7rem;
+        letter-spacing: 0.2px;
+    }
+
+    .form-label .required {
+        color: #e74c3c;
+        margin-left: 0.3rem;
+        font-weight: 900;
+    }
+
+    .form-control,
+    .form-select {
+        display: block;
+        width: 100%;
+        padding: 0.85rem 1rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #2d3748;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.25s ease;
+        background-color: #fafafa;
+    }
+
+    #id_resource_type {
+        color: #2d3748 !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        padding: 1rem !important;
+    }
+
+    #id_resource_type option {
+        color: #2d3748;
+        background-color: white;
+        padding: 0.5rem;
+    }
+
+    .form-control:hover,
+    .form-select:hover {
+        border-color: #c0c0c0;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #2d3436;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(45, 52, 54, 0.08);
+        outline: none;
+    }
+
+    .form-control::placeholder {
+        color: #9ca3af;
+    }
+
+    #id_description::placeholder {
+        opacity: 0;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 110px;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+
+    .form-help-text {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.5rem;
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-help-text i {
+        font-size: 0.75rem;
+    }
+
+    .upload-area {
+        padding: 1.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+
+    .form-error {
+        background: #fadbd8;
+        color: #c0392b;
+        padding: 0.7rem 0.9rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        border-left: 3px solid #c0392b;
+        font-weight: 500;
+        margin-top: 0.6rem;
+    }
+
+    .form-error-banner {
+        background: #fadbd8;
+        color: #c0392b;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #c0392b;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        font-weight: 500;
+    }
+
+    .privacy-toggle {
+        padding: 1.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+
+    .tag-checkbox {
+        display: inline-block;
+        margin-right: 1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .tag-checkbox input[type="checkbox"] {
+        margin-right: 0.3rem;
+    }
+
+    .tag-checkbox-label {
+        margin: 0;
+        font-weight: 500;
+        color: #2d3748;
+    }
+
+    .form-actions {
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .btn-submit {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #2d3436 0%, #1f2937 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(45, 52, 54, 0.25);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(45, 52, 54, 0.35);
+        color: white;
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    .guidelines-card {
+        background: white;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-top: 2rem;
+    }
+
+    .guidelines-header {
+        background: linear-gradient(135deg, #2d3436 0%, #1f2937 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+    }
+
+    .guidelines-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: white;
+    }
+
+    .guidelines-title i {
+        font-size: 1.2rem;
+    }
+
+    .guidelines-body {
+        padding: 2rem 2.5rem;
+    }
+
+    .guidelines-note {
+        background: rgba(31, 41, 55, 0.1);
+        color: #1f2937;
+        border: 1px solid rgba(31, 41, 55, 0.15);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.7rem;
+    }
+
+    .guidelines-note i {
+        color: #1f2937;
+        margin-top: 0.1rem;
+    }
+
+    .guidelines-tips {
+        margin-top: 1rem;
+    }
+
+    .tips-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #2d3436;
+        margin-bottom: 0.8rem;
+    }
+
+    .tips-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .tips-list li {
+        padding: 0.5rem 0;
+        padding-left: 1.5rem;
+        color: #555;
+        position: relative;
+        font-weight: 500;
+    }
+
+    .tips-list li:before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #2d3436;
+        font-weight: 700;
+    }
+
+    .alert.alert-info.alert-soft-primary {
+        background-color: rgba(31, 41, 55, 0.1) !important;
+        color: #1f2937 !important;
+        border: 1px solid rgba(31, 41, 55, 0.15);
+    }
+
+    .alert.alert-info.alert-soft-primary i {
+        color: #1f2937;
+    }
+
+    .alert.alert-info.alert-soft-primary strong {
+        color: #1f2937;
+    }
+
+    @media (max-width: 992px) {
+        .col-lg-8 {
+            max-width: 100%;
+            flex: 0 0 100%;
+            padding: 1rem;
+        }
+
+        .upload-form-body {
+            padding: 2rem 1.5rem;
+        }
+
+        .upload-form-header {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .upload-form-title {
+            font-size: 1.3rem;
+        }
+
+        .upload-form-body {
+            padding: 1.5rem 1rem;
+        }
+
+        .upload-form-header {
+            padding: 1.5rem 1rem;
+        }
+
+        .form-section {
+            margin-bottom: 1.5rem;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block header %}
@@ -13,24 +411,25 @@
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        
-        <!-- Upload Form Card -->
-        <div class="upload-form-card">
-            <div class="upload-form-header">
-                <h2 class="upload-form-title">
-                    <i class="fas fa-upload"></i> Submit New Resource
-                </h2>
-            </div>
-            <div class="upload-form-body">
-                <form method="post" enctype="multipart/form-data" id="uploadForm" novalidate>
+<div class="resource-upload-page">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <!-- Upload Form Card -->
+            <div class="upload-form-card">
+                <div class="upload-form-header">
+                    <h2 class="upload-form-title">
+                        <i class="fas fa-upload"></i> Upload Resource
+                    </h2>
+                </div>
+                <div class="upload-form-body">
+                    <form method="post" enctype="multipart/form-data" id="uploadForm" novalidate>
                     {% csrf_token %}
                     
                     <!-- Basic Details -->
                     <div class="form-section">
                         <h3 class="form-section-title">
-                            <i class="fas fa-info-circle"></i> Basic Details
+                            <i class="fas fa-pencil-alt"></i> Basic Details
                         </h3>
                         
                         <div class="form-group">
@@ -53,7 +452,7 @@
                     <!-- Resource Type -->
                     <div class="form-section">
                         <h3 class="form-section-title">
-                            <i class="fas fa-tag"></i> Resource Type
+                            <i class="fas fa-folder-open"></i> Resource Type
                         </h3>
                         
                         <div class="form-group">
@@ -131,7 +530,7 @@
                     <!-- Privacy Settings -->
                     <div class="form-section">
                         <h3 class="form-section-title">
-                            <i class="fas fa-lock"></i> Privacy Settings
+                            <i class="fas fa-shield-alt"></i> Privacy & Sharing
                         </h3>
                         
                         <div class="privacy-toggle">
