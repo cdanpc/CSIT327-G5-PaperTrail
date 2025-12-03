@@ -939,14 +939,17 @@ def add_comment(request, pk):
         messages.error(request, 'This resource is private.')
         return redirect('resources:resource_list')
     
-    # Prevent owner from commenting on own resource
-    if resource.uploader == request.user:
-        if is_ajax:
-            return JsonResponse({'success': False, 'error': 'You cannot comment on your own resource.'}, status=403)
-        messages.error(request, 'You cannot comment on your own resource.')
-        return redirect('resources:resource_detail', pk=pk)
-    
     if request.method == 'POST':
+        # Check if this is a reply or a top-level comment
+        parent_id = request.POST.get('parent_comment_id')
+        
+        # Prevent owner from adding TOP-LEVEL comments only (replies are allowed)
+        if resource.uploader == request.user and not parent_id:
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'You cannot add top-level comments on your own resource.'}, status=403)
+            messages.error(request, 'You cannot add top-level comments on your own resource.')
+            return redirect('resources:resource_detail', pk=pk)
+        
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)

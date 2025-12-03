@@ -104,6 +104,35 @@ html {
     font-size: 1rem;
 }
 
+/* Filter Dropdown */
+.filter-dropdown {
+    display: flex;
+    align-items: center;
+}
+
+.filter-dropdown .form-control {
+    min-width: 180px;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--card-radius);
+    background: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-dropdown .form-control:hover {
+    border-color: var(--primary-purple);
+}
+
+.filter-dropdown .form-control:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 /* Edit Button */
 .btn-edit-mode {
     padding: 0.5rem 1rem;

@@ -156,7 +156,7 @@
                     </div>
                     <div class="quick-stat-card">
                         <div class="quick-stat-icon rating">⭐</div>
-                        <div class="quick-stat-value">{{ avg_rating|floatformat:1 }}</div>
+                        <div class="quick-stat-value">{{ avg_rating|floatformat:1|default:"0.0" }}</div>
                         <div class="quick-stat-label">Avg Rating</div>
                         <div class="quick-stat-sublabel">On uploads</div>
                     </div>
@@ -361,6 +361,58 @@ document.addEventListener('DOMContentLoaded', function() {
             animateValue(stat, 0, target, 1200);
         }, 300 + (index * 100)); // Staggered start
     });
+    
+    // Make entire Continue Studying items clickable with dashboard return flag
+    document.querySelectorAll('.continue-item').forEach(item => {
+        const link = item.querySelector('.continue-title');
+        if (link) {
+            item.style.cursor = 'pointer';
+            item.addEventListener('click', function(e) {
+                // Set flag to indicate navigation came from dashboard
+                sessionStorage.setItem('returnToDashboard', 'true');
+                sessionStorage.setItem('dashboardUrl', window.location.href);
+                
+                // Don't trigger if clicking on the link itself
+                if (e.target.tagName !== 'A') {
+                    link.click();
+                }
+            });
+        }
+    });
+    
+    // Make entire Recommended items clickable with dashboard return flag
+    document.querySelectorAll('.recommended-list-item').forEach(item => {
+        const link = item.querySelector('.recommended-title');
+        if (link) {
+            item.style.cursor = 'pointer';
+            item.addEventListener('click', function(e) {
+                // Set flag to indicate navigation came from dashboard
+                sessionStorage.setItem('returnToDashboard', 'true');
+                sessionStorage.setItem('dashboardUrl', window.location.href);
+                
+                // Don't trigger if clicking on the link itself
+                if (e.target.tagName !== 'A') {
+                    link.click();
+                }
+            });
+        }
+    });
+    
+    // Handle back button behavior on other pages
+    // This script should also run on quiz/resource/deck pages
+    if (sessionStorage.getItem('returnToDashboard') === 'true') {
+        // Override default back button behavior
+        const backButtons = document.querySelectorAll('[onclick*="history.back()"], .btn-back, a[href*="javascript:history.back()"]');
+        backButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const dashboardUrl = sessionStorage.getItem('dashboardUrl');
+                sessionStorage.removeItem('returnToDashboard');
+                sessionStorage.removeItem('dashboardUrl');
+                window.location.href = dashboardUrl || "{% url 'accounts:student_dashboard' %}";
+            });
+        });
+    }
 });
 </script>
 {% endblock %}

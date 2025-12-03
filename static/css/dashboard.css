@@ -337,7 +337,7 @@ body {
 .dashboard-actions {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
     flex-wrap: nowrap;
     margin-left: auto;
 }
@@ -413,6 +413,17 @@ body {
 
 .profile-link:hover {
     transform: scale(1.05);
+}
+
+.profile-link img,
+.profile-link .rounded-circle {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    border: 2px solid #ffffff;
+}
+
+.profile-link:hover img,
+.profile-link:hover .rounded-circle {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .resource-type {
