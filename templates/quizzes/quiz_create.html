@@ -5,6 +5,314 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/components/quizzes.css' %}">
+<style>
+    .quiz-create-page {
+        padding: 2rem 0;
+        background-color: #f8f9fa;
+    }
+
+    .quiz-form-card {
+        background: white;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .quiz-form-header {
+        background: linear-gradient(135deg, #2d3436 0%, #1f2937 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .quiz-form-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        letter-spacing: -0.3px;
+        color: white;
+    }
+
+    .quiz-form-title i {
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .quiz-form-body {
+        padding: 0;
+    }
+
+    .form-section {
+        margin-bottom: 0;
+        padding: 2rem 2.5rem;
+    }
+
+    .form-section:first-child {
+        padding-top: 2rem;
+    }
+
+    .form-section:last-child {
+        padding-bottom: 2rem;
+    }
+
+    .form-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-section-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #2d3436;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #2d3436;
+    }
+
+    .form-section-title i {
+        color: #2d3436;
+        font-size: 1rem;
+        width: 28px;
+        height: 28px;
+        background: #f0f0f0;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .form-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 700;
+        color: #2d3436;
+        font-size: 0.95rem;
+        margin-bottom: 0.7rem;
+        letter-spacing: 0.2px;
+    }
+
+    .form-label .text-danger {
+        color: #e74c3c;
+        margin-left: 0.3rem;
+        font-weight: 900;
+    }
+
+    .form-control,
+    .form-select {
+        display: block;
+        width: 100%;
+        padding: 0.85rem 1rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #2d3748;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.25s ease;
+        background-color: #fafafa;
+    }
+
+    .form-control:hover,
+    .form-select:hover {
+        border-color: #c0c0c0;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #2d3436;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(45, 52, 54, 0.08);
+        outline: none;
+    }
+
+    .form-control::placeholder {
+        color: #9ca3af;
+    }
+
+    #id_description::placeholder {
+        opacity: 0;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 110px;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+
+    .form-hint {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.5rem;
+        font-weight: 400;
+    }
+
+    .questions-panel {
+        padding: 1.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+
+    .questions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .questions-title {
+        font-weight: 700;
+        color: #2d3436;
+        margin: 0;
+    }
+
+    .btn-add-question {
+        background: linear-gradient(135deg, #2d3436 0%, #1f2937 100%);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-add-question:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(45, 52, 54, 0.25);
+        color: white;
+    }
+
+    .no-questions {
+        text-align: center;
+        padding: 2rem;
+        color: #999;
+    }
+
+    .no-questions i {
+        font-size: 2.5rem;
+        color: #ccc;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .text-danger {
+        color: #c0392b;
+        font-size: 0.85rem;
+        margin-top: 0.4rem;
+        font-weight: 500;
+    }
+
+    .form-submit {
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .btn-submit {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #2d3436 0%, #1f2937 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(45, 52, 54, 0.25);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(45, 52, 54, 0.35);
+        color: white;
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    .alert.alert-info.alert-soft-primary {
+        background-color: rgba(31, 41, 55, 0.1) !important;
+        color: #1f2937 !important;
+        border: 1px solid rgba(31, 41, 55, 0.15);
+    }
+
+    .alert.alert-info.alert-soft-primary i {
+        color: #1f2937;
+    }
+
+    .alert.alert-info.alert-soft-primary strong {
+        color: #1f2937;
+    }
+
+    @media (max-width: 992px) {
+        .col-lg-10 {
+            max-width: 100%;
+            flex: 0 0 100%;
+            padding: 1rem;
+        }
+
+        .quiz-form-body {
+            padding: 2rem 1.5rem;
+        }
+
+        .quiz-form-header {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .quiz-form-title {
+            font-size: 1.3rem;
+        }
+
+        .quiz-form-body {
+            padding: 1.5rem 1rem;
+        }
+
+        .quiz-form-header {
+            padding: 1.5rem 1rem;
+        }
+
+        .form-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .questions-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block header %}
@@ -15,71 +323,84 @@
 {% block content %}
 {# Removed toasts/messages per request #}
 
-<div class="row justify-content-center">
-  <div class="col-lg-10">
-    <form method="post" id="quizCreateForm">
-      {% csrf_token %}
-
-      <!-- Quiz Basic Info -->
-      <div class="card dashboard-card mb-4">
-        <div class="card-header">
-          <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Quiz Information</h5>
+<div class="quiz-create-page">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="quiz-form-card">
+        <div class="quiz-form-header">
+          <h2 class="quiz-form-title">
+            <i class="fas fa-quiz"></i> Create New Quiz
+          </h2>
         </div>
-        <div class="card-body">
-          <div class="mb-3">
-            <label for="{{ form.title.id_for_label }}" class="form-label">Quiz Title <span class="text-danger">*</span></label>
-            {{ form.title }}
-            {% if form.title.errors %}
-              <div class="text-danger small">{{ form.title.errors }}</div>
-            {% endif %}
-          </div>
-          <div class="mb-3">
-            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-            {{ form.description }}
-            {% if form.description.errors %}
-              <div class="text-danger small">{{ form.description.errors }}</div>
-            {% endif %}
-          </div>
-          
-          <!-- Privacy Settings -->
-          <div class="mb-4">
-            <h6 class="form-section-header">
-              <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
-            </h6>
-            {% include 'components/visibility_toggle.html' with toggle_id='privacyToggle' hidden_id='id_is_public' field_name='is_public' is_public=True label='Make this quiz public' public_description='This quiz will be public and require verification if you are a student.' private_description='Private quizzes are only visible to you; they are auto-verified.' %}
-          </div>
+        <div class="quiz-form-body">
+          <form method="post" id="quizCreateForm">
+            {% csrf_token %}
+
+            <!-- Quiz Basic Info -->
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <i class="fas fa-pencil-alt"></i> Basic Information
+              </h3>
+              <div class="form-group">
+                <label for="{{ form.title.id_for_label }}" class="form-label">Quiz Title <span class="text-danger">*</span></label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                  <div class="text-danger">{{ form.title.errors }}</div>
+                {% endif %}
+                <p class="form-hint">Give your quiz a clear and descriptive title</p>
+              </div>
+              <div class="form-group">
+                <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                  <div class="text-danger">{{ form.description.errors }}</div>
+                {% endif %}
+                <p class="form-hint">Optional: Explain the purpose and scope of this quiz</p>
+              </div>
+              
+              <!-- Privacy Settings -->
+              <div class="form-group">
+                <h4 class="form-section-title" style="font-size: 0.8rem; margin-bottom: 1rem;">
+                  <i class="fas fa-shield-alt"></i> Privacy Settings
+                </h4>
+                {% include 'components/visibility_toggle.html' with toggle_id='privacyToggle' hidden_id='id_is_public' field_name='is_public' is_public=True label='Make this quiz public' public_description='This quiz will be public and require verification if you are a student.' private_description='Private quizzes are only visible to you; they are auto-verified.' %}
+              </div>
+            </div>
+
+            <!-- Questions Section -->
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <i class="fas fa-question-circle"></i> Questions
+              </h3>
+              <div class="questions-panel">
+                <div class="questions-header">
+                  <h4 class="questions-title">Quiz Questions</h4>
+                  <button type="button" class="btn-add-question" id="addQuestionBtn">
+                    <i class="fas fa-plus"></i> Add Question
+                  </button>
+                </div>
+                <div id="questionsContainer"></div>
+                <div id="noQuestions" class="no-questions">
+                  <i class="fas fa-question-circle"></i>
+                  <p>No questions added yet. Click "Add Question" to get started.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hidden input for questions data -->
+            <input type="hidden" name="questions_data" id="questionsDataInput">
+
+            <!-- Submit Button -->
+            <div class="form-submit">
+              <button type="submit" class="btn-submit">
+                <i class="fas fa-check-circle"></i> Create Quiz
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-
-      <!-- Questions Section -->
-      <div class="card dashboard-card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0"><i class="fas fa-question-circle"></i> Questions</h5>
-          <button type="button" class="btn btn-sm btn-gradient-primary" id="addQuestionBtn">
-            <i class="fas fa-plus"></i> Add Question
-          </button>
-        </div>
-        <div class="card-body">
-          <div id="questionsContainer"></div>
-          <div id="noQuestions" class="text-center py-4 text-muted">
-            <i class="fas fa-question-circle empty-icon"></i>
-            <p>No questions added yet. Click "Add Question" to get started.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hidden input for questions data -->
-      <input type="hidden" name="questions_data" id="questionsDataInput">
-
-      <!-- Submit Button -->
-      <div class="mt-4 text-end">
-        <button type="submit" class="btn btn-lg btn-gradient-primary" style="padding: 0.75rem 2rem; font-weight: 600;">
-          <i class="fas fa-save"></i> Create Quiz
-        </button>
-      </div>
-    </form>
+    </div>
   </div>
-  
 </div>
 {% endblock %}
 

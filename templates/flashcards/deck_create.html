@@ -10,67 +10,348 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/flashcards.css' %}?v=1.1">
 <link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">
+<style>
+    .deck-create-page {
+        padding: 2rem 0;
+        background-color: #f8f9fa;
+    }
+
+    .deck-form-card {
+        background: white;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .deck-form-header {
+        background: linear-gradient(135deg, #2d3436 0%, #1f2937 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .deck-form-header h5 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        letter-spacing: -0.3px;
+        color: white;
+    }
+
+    .deck-form-header i {
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .deck-form-body {
+        padding: 0;
+    }
+
+    .form-section {
+        margin-bottom: 0;
+        padding: 2rem 2.5rem;
+    }
+
+    .form-section:first-child {
+        padding-top: 2rem;
+    }
+
+    .form-section:last-child {
+        padding-bottom: 2rem;
+    }
+
+    .form-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-section-header {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #2d3436;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #2d3436;
+    }
+
+    .form-section-header i {
+        color: #2d3436;
+        font-size: 1rem;
+        width: 28px;
+        height: 28px;
+        background: #f0f0f0;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .form-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 700;
+        color: #2d3436;
+        font-size: 0.95rem;
+        margin-bottom: 0.7rem;
+        letter-spacing: 0.2px;
+    }
+
+    .form-label .text-danger {
+        color: #e74c3c;
+        margin-left: 0.3rem;
+        font-weight: 900;
+    }
+
+    .form-control,
+    .form-select {
+        display: block;
+        width: 100%;
+        padding: 0.85rem 1rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #2d3436;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.25s ease;
+        background-color: #fafafa;
+    }
+
+    .form-control:hover,
+    .form-select:hover {
+        border-color: #c0c0c0;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #2d3436;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(45, 52, 54, 0.08);
+        outline: none;
+    }
+
+    .form-control::placeholder {
+        color: #9ca3af;
+    }
+
+    #id_description::placeholder {
+        opacity: 0;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 110px;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+
+    .form-hint {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.5rem;
+        font-weight: 400;
+    }
+
+    .soft-panel {
+        padding: 1.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0.6rem 0 0 0;
+    }
+
+    .errorlist li {
+        background: #fadbd8;
+        color: #c0392b;
+        padding: 0.7rem 0.9rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        border-left: 3px solid #c0392b;
+        font-weight: 500;
+    }
+
+    .btn-gradient-primary {
+        padding: 1rem 2rem !important;
+        border-radius: 8px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        background: linear-gradient(135deg, #2d3436 0%, #1f2937 100%) !important;
+        border: none !important;
+        color: white !important;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+        width: 100%;
+    }
+
+    .btn-gradient-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(45, 52, 54, 0.2) !important;
+        color: white !important;
+    }
+
+    .btn-gradient-primary:active {
+        transform: translateY(0);
+    }
+
+    .btn-gradient-primary i {
+        margin-right: 0.6rem;
+    }
+
+    .alert.alert-info.alert-soft-primary {
+        background-color: rgba(31, 41, 55, 0.1) !important;
+        color: #1f2937 !important;
+        border: 1px solid rgba(31, 41, 55, 0.15);
+    }
+
+    .alert.alert-info.alert-soft-primary i {
+        color: #1f2937;
+    }
+
+    .alert.alert-info.alert-soft-primary strong {
+        color: #1f2937;
+    }
+
+    @media (max-width: 992px) {
+        .col-lg-8 {
+            max-width: 100%;
+            flex: 0 0 100%;
+            padding: 1rem;
+        }
+
+        .deck-form-body {
+            padding: 2rem 1.5rem;
+        }
+
+        .deck-form-header {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .deck-form-header h5 {
+            font-size: 1.3rem;
+        }
+
+        .deck-form-body {
+            padding: 1.5rem 1rem;
+        }
+
+        .deck-form-header {
+            padding: 1.5rem 1rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+    }
+</style>
 {% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card dashboard-card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-layer-group"></i> Submit New Flashcard
-                </h5>
-            </div>
-            <div class="card-body">
-                <form id="deckForm" method="post" class="fc-form">
-                    {% csrf_token %}
-                    
-                    <!-- Basic Details -->
-                    <div class="mb-4">
-                        <h6 class="form-section-header">
-                            <i class="fas fa-info-circle" style="color: #667eea;"></i> Basic Details
-                        </h6>
-                        <div class="mb-3">
-                            <label class="form-label">Title <span class="text-danger">*</span></label>
-                            {{ form.title }}
+<div class="deck-create-page">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card deck-form-card">
+                <div class="deck-form-header">
+                    <h5>
+                        <i class="fas fa-layer-group"></i> Create New Deck
+                    </h5>
+                </div>
+                <div class="deck-form-body">
+                    <form id="deckForm" method="post" class="fc-form">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Details -->
+                        <div class="form-section">
+                            <h6 class="form-section-header">
+                                <i class="fas fa-pencil-alt"></i> Basic Details
+                            </h6>
+                            <div class="form-group">
+                                <label class="form-label">Deck Title <span class="text-danger">*</span></label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="errorlist">
+                                        {% for error in form.title.errors %}<li>{{ error }}</li>{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <p class="form-hint">Enter a clear and descriptive title for your deck</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Description</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="errorlist">
+                                        {% for error in form.description.errors %}<li>{{ error }}</li>{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <p class="form-hint">Describe the content and learning objectives (optional)</p>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            {{ form.description }}
-                        </div>
-                    </div>
 
-                    <!-- Categorization -->
-                    <div class="mb-4">
-                        <h6 class="form-section-header">
-                            <i class="fas fa-tags" style="color: #667eea;"></i> Categorization
-                        </h6>
-                        <div class="mb-3">
-                            <label class="form-label">Category <span class="text-danger">*</span></label>
-                            {{ form.category }}
+                        <!-- Categorization -->
+                        <div class="form-section">
+                            <h6 class="form-section-header">
+                                <i class="fas fa-folder-open"></i> Organization
+                            </h6>
+                            <div class="form-group">
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                    <div class="errorlist">
+                                        {% for error in form.category.errors %}<li>{{ error }}</li>{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tags</label>
+                                {{ form.tags }}
+                                {% if form.tags.errors %}
+                                    <div class="errorlist">
+                                        {% for error in form.tags.errors %}<li>{{ error }}</li>{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <p class="form-hint">Use commas to separate tags (e.g., biology, midterm, chapter-5)</p>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tags</label>
-                            {{ form.tags }}
-                        </div>
-                    </div>
 
-                    <!-- Privacy Settings -->
-                    <div class="mb-4">
-                        <h6 class="form-section-header">
-                            <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
-                        </h6>
-                        <div class="soft-panel">
-                            {% include 'components/visibility_toggle.html' with toggle_id='deckVisibilityToggle' hidden_id='deckVisibilityValue' field_name='visibility' is_public=True label='Make this deck public (visible to all students)' public_description='Appears in "All Decks" after verification (professor uploads verify immediately).' private_description='Only visible to you under "My Decks".' %}
+                        <!-- Privacy Settings -->
+                        <div class="form-section">
+                            <h6 class="form-section-header">
+                                <i class="fas fa-lock"></i> Privacy Settings
+                            </h6>
+                            <div class="soft-panel">
+                                {% include 'components/visibility_toggle.html' with toggle_id='deckVisibilityToggle' hidden_id='deckVisibilityValue' field_name='visibility' is_public=True label='Make this deck public (visible to all students)' public_description='Appears in "All Decks" after verification (professor uploads verify immediately).' private_description='Only visible to you under "My Decks".' %}
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Submit Button -->
-                    <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-lg btn-gradient-primary" style="padding: 1rem; border-radius: 12px; font-weight: 700;">
-                            <i class="fas fa-save"></i> Create Deck
-                        </button>
-                    </div>
-                </form>
+                        <!-- Submit Button -->
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-lg btn-gradient-primary">
+                                <i class="fas fa-check-circle"></i> Create Deck
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
