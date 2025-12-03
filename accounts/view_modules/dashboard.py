@@ -329,11 +329,11 @@ def student_dashboard(request):
     profile_completion = request.user.get_profile_completion_percentage()
     profile_complete = request.user.check_profile_completion()
     
-    # Stats
-    total_resources = Resource.objects.filter(uploader=request.user).count()
-    total_bookmarks = Bookmark.objects.filter(user=request.user).count()
-    quizzes_completed = QuizAttempt.objects.filter(student=request.user, completed_at__isnull=False).count()
-    total_quizzes_posted = Quiz.objects.filter(creator=request.user).count()
+    # Stats - Only user's personal content
+    total_resources = Resource.objects.filter(uploader=request.user).count()  # Resources uploaded by user
+    total_bookmarks = Bookmark.objects.filter(user=request.user).count()  # Bookmarks saved by user
+    total_quizzes_posted = Quiz.objects.filter(creator=request.user).count()  # Quizzes created by user
+    # Flashcard decks created by user (from flashcard_summary)
     
     context = {
         'user': request.user,
@@ -343,7 +343,6 @@ def student_dashboard(request):
         'profile_complete': profile_complete,
         'total_resources': total_resources,
         'total_bookmarks': total_bookmarks,
-        'quizzes_completed': quizzes_completed,
         'total_quizzes_posted': total_quizzes_posted,
         'in_progress_quiz_attempts': in_progress_quiz_attempts,
         'trending_tags': trending_tags,
