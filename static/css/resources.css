@@ -1690,6 +1690,19 @@
     background: #bfdbfe;
 }
 
+/* Edit Button Styles */
+.action-btn-edit {
+    background: #e0e7ff;
+    border-color: #c7d2fe;
+    color: #3730a3;
+}
+
+.action-btn-edit:hover {
+    background: #c7d2fe;
+    border-color: #a5b4fc;
+    color: #312e81;
+}
+
 /* Responsive Grid */
 @media (max-width: 991px) {
     .resource-detail-grid-4 {
