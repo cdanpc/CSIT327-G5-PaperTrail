@@ -21,34 +21,36 @@
 {% block content %}
 <div class="resource-detail-container" data-resource-id="{{ resource.pk }}">
   
-  <!-- Resource Detail Grid Layout -->
-  <div class="resource-detail-grid">
+  <!-- Resource Detail Grid Layout (4 boxes) -->
+  <div class="resource-detail-grid-4">
     
-    <!-- 1. Header Area: Badges, Title, Description -->
-    <div class="header-area">
-      <div class="resource-header-badges">
-        <span class="resource-type-badge">{{ resource.resource_type|upper }}</span>
-        {% for status in status_tags %}
-          <span class="badge {{ status.class }} badge-sm">
-            <i class="fas fa-{{ status.icon }}"></i> {{ status.label }}
-          </span>
-        {% endfor %}
+    <!-- Top Left: Title, Description, Verified, File Type -->
+    <div class="grid-item grid-resource-header">
+      <div class="resource-info-card">
+        <div class="resource-header-badges">
+          <span class="resource-type-badge">{{ resource.resource_type|upper }}</span>
+          {% for status in status_tags %}
+            <span class="badge {{ status.class }} badge-sm">
+              <i class="fas fa-{{ status.icon }}"></i> {{ status.label }}
+            </span>
+          {% endfor %}
+        </div>
+        <h1 class="resource-title">{{ resource.title }}</h1>
+        {% if resource.description %}
+          <p class="resource-description">{{ resource.description }}</p>
+        {% endif %}
       </div>
-      <h1 class="resource-title">{{ resource.title|upper }}</h1>
-      {% if resource.description %}
-      <p class="resource-description">{{ resource.description }}</p>
-      {% endif %}
     </div>
 
-    <!-- 2. Uploader Area -->
-    <div class="uploader-area">
-      <h3 class="section-title">Uploaded by</h3>
-      <div class="uploader-info">
+    <!-- Top Right: Uploader Profile -->
+    <div class="grid-item grid-resource-uploader">
+      <div class="uploader-card">
+        <h3 class="uploader-card-title">Uploaded by</h3>
         <a href="{% url 'accounts:public_profile' resource.uploader.username %}" class="uploader-profile-link">
           {% if resource.uploader.profile_picture %}
             <img src="{{ resource.uploader.profile_picture.url }}" class="uploader-avatar" alt="{{ resource.uploader.get_full_name }}">
           {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ resource.uploader.first_name }}+{{ resource.uploader.last_name }}&size=40&background=1f2937&color=fff" 
+            <img src="https://ui-avatars.com/api/?name={{ resource.uploader.first_name }}+{{ resource.uploader.last_name }}&size=48&background=1f2937&color=fff" 
                  class="uploader-avatar" alt="{{ resource.uploader.get_full_name }}">
           {% endif %}
           <span class="uploader-name">{{ resource.uploader.get_full_name|default:resource.uploader.username }}</span>
@@ -56,78 +58,33 @@
       </div>
     </div>
 
-    <!-- 3. Actions Area -->
-    <div class="actions-area">
-      <h3 class="section-title">Actions</h3>
-      <div class="actions-buttons">
-        {% if primary_action %}
-        {% if primary_action.method == 'POST' %}
-        <form method="post" action="{{ primary_action.url }}" class="w-100">
-          {% csrf_token %}
-          <button type="submit" class="btn btn--primary btn--block">
-            <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
-          </button>
-        </form>
-        {% else %}
-        <a href="{{ primary_action.url }}" class="btn btn--primary btn--block" {% if primary_action.target %}target="{{ primary_action.target }}"{% endif %}>
-          <i class="fas fa-{{ primary_action.icon }}"></i> {{ primary_action.text }}
-        </a>
-        {% endif %}
-        {% endif %}
-
-        {% if resource.file_url %}
-        <button type="button" class="btn btn--secondary btn--block" data-bs-toggle="modal" data-bs-target="#previewModal">
-          <i class="fas fa-eye"></i> Preview
-        </button>
-        {% endif %}
-
-        {% if user.is_authenticated %}
-        <button type="button" class="btn btn--rating btn--block {% if user_rating %}btn--rated{% endif %}" data-bs-toggle="modal" data-bs-target="#ratingModal">
-          <i class="{% if user_rating %}fas{% else %}far{% endif %} fa-star"></i> Rate Resource
-        </button>
-
-        <button type="button" class="btn btn--like btn--block {% if user_has_liked %}btn--liked{% endif %}" id="likeButton">
-          <i class="{% if user_has_liked %}fas{% else %}far{% endif %} fa-heart"></i> Like
-        </button>
-
-        <form method="post" action="{{ bookmark_url }}" class="w-100">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.path }}">
-          <button type="submit" class="btn btn--bookmark btn--block {% if is_bookmarked %}btn--bookmarked{% endif %}">
-            <i class="{% if is_bookmarked %}fas{% else %}far{% endif %} fa-bookmark"></i> Bookmark
-          </button>
-        </form>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- 4. Stats Area: 4 Stacked Rows (Tailwind Layout) -->
-    <div class="stats-area">
-      <div class="stat-card">
-        <div>
+    <!-- Bottom Left: Stats (Downloads, Rating, Likes, Uploaded Date) -->
+    <div class="grid-item grid-resource-stats">
+      <div class="stats-card">
+        <div class="stat-row">
           <span class="stat-label">Downloads</span>
           <span class="stat-value">{{ resource.download_count }}</span>
         </div>
-      </div>
-      <div class="stat-card">
-        <div>
+        <div class="stat-row">
           <span class="stat-label">Rating</span>
-          <span class="stat-value">{{ resource.get_average_rating|floatformat:1|default:"N/A" }}</span>
+          <span class="stat-value">{{ resource.get_average_rating|floatformat:1|default:"0.0" }}</span>
         </div>
-      </div>
-      <div class="stat-card">
-        <div>
+        <div class="stat-row">
           <span class="stat-label">Likes</span>
           <span class="stat-value" id="likesStatValue">{{ resource.likes.count }}</span>
         </div>
-      </div>
-      <div class="stat-card">
-        <div>
+        <div class="stat-row">
           <span class="stat-label">Uploaded</span>
           <span class="stat-value">{{ resource.created_at|date:"M d, Y" }}</span>
         </div>
       </div>
     </div>
+
+    <!-- Bottom Right: Actions Component -->
+    <div class="grid-item grid-resource-actions">
+      {% include 'components/resource_actions.html' %}
+    </div>
+    
   </div>
 
   <!-- Tags Section -->

@@ -87,7 +87,7 @@ Role-based features:
 
     {# Profile Link - Available for all roles #}
     {% if show_profile|default:True %}
-    <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center ms-2 profile-link" title="View Profile">
+    <a href="{% url 'accounts:profile' %}" class="d-flex align-items-center profile-link" title="View Profile">
       {% if user.profile_picture %}
         <img src="{{ user.profile_picture.url }}" alt="{{ user.get_display_name }}" class="rounded-circle" style="width:34px; height:34px; object-fit:cover;">
       {% else %}

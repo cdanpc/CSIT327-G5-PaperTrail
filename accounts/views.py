@@ -1153,6 +1153,8 @@ def public_profile(request, username):
         'profile_user': profile_user,
         'user': request.user,
         'user_resources': profile_resources,
+        'user_quizzes': user_quizzes,
+        'user_decks': user_decks,
         'user_bookmarks': profile_bookmarks,
         'user_achievements': profile_achievements,
         'is_own_profile': request.user == profile_user,

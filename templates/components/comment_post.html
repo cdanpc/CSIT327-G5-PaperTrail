@@ -48,11 +48,9 @@
         <textarea class="form-control comment-edit-textarea d-none" data-comment-id="{{ comment.pk }}" rows="3">{{ comment.text }}</textarea>
         <div class="d-flex align-items-center gap-3 mb-2">
           <small class="text-muted" data-timestamp="{{ comment.created_at|date:'c' }}">{{ comment.created_at|short_timesince }}</small>
-          {% if not is_reply %}
           <button type="button" class="reply-btn-text" data-comment-id="{{ comment.pk }}" data-author="{{ comment.user.get_display_name }}">
             Reply
           </button>
-          {% endif %}
         </div>
 
         <!-- Reply Form (Hidden) -->
@@ -113,7 +111,7 @@
   {# Show nested replies if enabled #}
   {% if show_replies and comment.replies.all %}
     {% for reply in comment.replies.all %}
-      {% include 'components/comment_post.html' with comment=reply delete_url_name=delete_url_name current_user=current_user is_reply=True show_replies=False comment_url=comment_url %}
+      {% include 'components/comment_post.html' with comment=reply delete_url_name=delete_url_name current_user=current_user is_reply=True show_replies=True comment_url=comment_url %}
     {% endfor %}
   {% endif %}
 </div>

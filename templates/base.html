@@ -608,6 +608,43 @@
     {% load static %}
     <script src="{% static 'js/script.js' %}?v=3.2"></script>
 
+    <!-- Dashboard Return Logic -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle back button behavior when coming from dashboard
+        if (sessionStorage.getItem('returnToDashboard') === 'true') {
+            // Find all back buttons and links
+            const backElements = document.querySelectorAll('a[href*="javascript:history.back()"], .btn-back, button[onclick*="history.back"]');
+            
+            backElements.forEach(element => {
+                element.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const dashboardUrl = sessionStorage.getItem('dashboardUrl');
+                    sessionStorage.removeItem('returnToDashboard');
+                    sessionStorage.removeItem('dashboardUrl');
+                    
+                    window.location.href = dashboardUrl || "{% url 'accounts:student_dashboard' %}";
+                }, true);
+            });
+            
+            // Also override window.history.back() calls
+            const originalBack = window.history.back;
+            window.history.back = function() {
+                const dashboardUrl = sessionStorage.getItem('dashboardUrl');
+                if (sessionStorage.getItem('returnToDashboard') === 'true') {
+                    sessionStorage.removeItem('returnToDashboard');
+                    sessionStorage.removeItem('dashboardUrl');
+                    window.location.href = dashboardUrl || "{% url 'accounts:student_dashboard' %}";
+                } else {
+                    originalBack.call(window.history);
+                }
+            };
+        }
+    });
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

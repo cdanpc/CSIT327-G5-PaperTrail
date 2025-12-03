@@ -1,0 +1,64 @@
+{% comment %}
+Resource Actions Component
+Reusable action buttons for resources (download, preview, rate, like, bookmark)
+
+Usage:
+  {% include 'components/resource_actions.html' with 
+    resource=resource
+    primary_action=primary_action
+    user_rating=user_rating
+    user_has_liked=user_has_liked
+    is_bookmarked=is_bookmarked
+    bookmark_url=bookmark_url
+  %}
+{% endcomment %}
+
+<div class="actions-card">
+  <h3 class="actions-title">Actions</h3>
+  <div class="actions-list">
+    {% if primary_action %}
+      {% if primary_action.method == 'POST' %}
+        <form method="post" action="{{ primary_action.url }}" class="w-100">
+          {% csrf_token %}
+          <button type="submit" class="action-btn action-btn-primary">
+            <i class="fas fa-{{ primary_action.icon }}"></i>
+            <span>{{ primary_action.text }}</span>
+          </button>
+        </form>
+      {% else %}
+        <a href="{{ primary_action.url }}" class="action-btn action-btn-primary" {% if primary_action.target %}target="{{ primary_action.target }}"{% endif %}>
+          <i class="fas fa-{{ primary_action.icon }}"></i>
+          <span>{{ primary_action.text }}</span>
+        </a>
+      {% endif %}
+    {% endif %}
+
+    {% if resource.file_url %}
+      <button type="button" class="action-btn action-btn-secondary" data-bs-toggle="modal" data-bs-target="#previewModal">
+        <i class="fas fa-eye"></i>
+        <span>Preview</span>
+      </button>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+      <button type="button" class="action-btn action-btn-rating {% if user_rating %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#ratingModal">
+        <i class="{% if user_rating %}fas{% else %}far{% endif %} fa-star"></i>
+        <span>Rate Resource</span>
+      </button>
+
+      <button type="button" class="action-btn action-btn-like {% if user_has_liked %}active{% endif %}" id="likeButton">
+        <i class="{% if user_has_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+        <span>Like</span>
+      </button>
+
+      <form method="post" action="{{ bookmark_url }}" class="w-100">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button type="submit" class="action-btn action-btn-bookmark {% if is_bookmarked %}active{% endif %}">
+          <i class="{% if is_bookmarked %}fas{% else %}far{% endif %} fa-bookmark"></i>
+          <span>Bookmark</span>
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</div>
