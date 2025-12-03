@@ -161,6 +161,14 @@
             });
         });
     }
+    
+    // Set login flag when form is submitted successfully
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function() {
+            sessionStorage.setItem('justLoggedIn', 'true');
+        });
+    }
 </script>
 {% endblock %}
 

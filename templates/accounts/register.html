@@ -430,5 +430,13 @@
                 this.classList.remove('error');
             }
         });
+    
+    // Set new user flag when registration form is submitted successfully
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function() {
+            sessionStorage.setItem('isNewUser', 'true');
+        });
+    }
     </script>
 {% endblock %}

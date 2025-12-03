@@ -109,10 +109,10 @@
     </div>
 </div>
 
-<!-- Main Grid: Quick Actions | Continue Studying | Recommended for You -->
-<div class="row g-3 align-items-stretch mb-3">
+<!-- Dashboard Grid Layout -->
+<div class="dashboard-grid-container">
     <!-- Quick Actions -->
-    <div class="col-12 col-lg-4">
+    <div class="grid-item grid-quick-actions">
         <div class="card dashboard-card quick-actions-card h-100">
             <div class="card-header">
                 <h5 class="card-title mb-0">Quick Actions</h5>
@@ -140,8 +140,45 @@
         </div>
     </div>
 
+    <!-- Quick Stats -->
+    <div class="grid-item grid-quick-stats">
+        <div class="card dashboard-card quick-stats-card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="quick-stats-grid">
+                    <div class="quick-stat-card">
+                        <div class="quick-stat-icon time">📚</div>
+                        <div class="quick-stat-value">{% if study_hours == 0 %}0h{% else %}{{ study_hours|floatformat:1 }}h{% endif %}</div>
+                        <div class="quick-stat-label">Time Studied</div>
+                        <div class="quick-stat-sublabel">Total</div>
+                    </div>
+                    <div class="quick-stat-card">
+                        <div class="quick-stat-icon rating">⭐</div>
+                        <div class="quick-stat-value">{{ avg_rating|floatformat:1 }}</div>
+                        <div class="quick-stat-label">Avg Rating</div>
+                        <div class="quick-stat-sublabel">On uploads</div>
+                    </div>
+                    <div class="quick-stat-card">
+                        <div class="quick-stat-icon likes">❤️</div>
+                        <div class="quick-stat-value">{{ total_likes|default:0 }}</div>
+                        <div class="quick-stat-label">Total Likes</div>
+                        <div class="quick-stat-sublabel">On uploads</div>
+                    </div>
+                    <div class="quick-stat-card">
+                        <div class="quick-stat-icon downloads">⬇️</div>
+                        <div class="quick-stat-value">{{ total_downloads|default:0 }}</div>
+                        <div class="quick-stat-label">Downloads</div>
+                        <div class="quick-stat-sublabel">By students</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Continue Studying -->
-    <div class="col-12 col-lg-4">
+    <div class="grid-item grid-continue-studying">
         <div class="card dashboard-card continue-studying-card h-100">
             <div class="card-header">
                 <h5 class="card-title mb-0">Continue Studying</h5>
@@ -151,23 +188,39 @@
                     <ul class="list-unstyled mb-0 continue-list">
                         {% for attempt in in_progress_quiz_attempts|slice:":3" %}
                             <li class="continue-item">
-                                <div class="continue-icon quiz-icon">
-                                    <i class="fas fa-question-circle"></i>
+                                <div class="continue-left">
+                                    <div class="continue-icon quiz-icon">
+                                        <i class="fas fa-question-circle"></i>
+                                    </div>
+                                    <div class="continue-content">
+                                        <a href="{% url 'quizzes:quiz_attempt' attempt.quiz.id %}" class="continue-title">{{ attempt.quiz.title|truncatechars:35 }}</a>
+                                        <div class="continue-meta">{{ attempt.questions_answered }}/{{ attempt.total_questions }} questions</div>
+                                    </div>
                                 </div>
-                                <div class="continue-content">
-                                    <a href="{% url 'quizzes:quiz_attempt' attempt.quiz.id %}" class="continue-title">{{ attempt.quiz.title|truncatechars:40 }}</a>
-                                    <div class="continue-meta">In Progress • {{ attempt.questions_answered }}/{{ attempt.total_questions }} questions</div>
+                                <div class="continue-center">
+                                    <div class="continue-time">{{ attempt.started_at|date:"M d" }}{% if attempt.started_at.year != today.year %}, {{ attempt.started_at|date:"Y" }}{% endif %}</div>
+                                </div>
+                                <div class="continue-right">
+                                    <span class="continue-badge badge-progress">In Progress</span>
                                 </div>
                             </li>
                         {% endfor %}
                         {% for deck in recent_decks|slice:":2" %}
                             <li class="continue-item">
-                                <div class="continue-icon deck-icon">
-                                    <i class="fas fa-clone"></i>
+                                <div class="continue-left">
+                                    <div class="continue-icon deck-icon">
+                                        <i class="fas fa-clone"></i>
+                                    </div>
+                                    <div class="continue-content">
+                                        <a href="{% url 'flashcards:deck_detail' deck.id %}" class="continue-title">{{ deck.title|truncatechars:35 }}</a>
+                                        <div class="continue-meta">{{ deck.cards.count }} cards</div>
+                                    </div>
                                 </div>
-                                <div class="continue-content">
-                                    <a href="{% url 'flashcards:deck_detail' deck.id %}" class="continue-title">{{ deck.title|truncatechars:40 }}</a>
-                                    <div class="continue-meta">{{ deck.cards.count }} cards • Review now</div>
+                                <div class="continue-center">
+                                    <div class="continue-time">{% if deck.last_studied_at %}{{ deck.last_studied_at|date:"M d" }}{% if deck.last_studied_at.year != today.year %}, {{ deck.last_studied_at|date:"Y" }}{% endif %}{% else %}Never{% endif %}</div>
+                                </div>
+                                <div class="continue-right">
+                                    <span class="continue-badge badge-review">Review</span>
                                 </div>
                             </li>
                         {% endfor %}
@@ -184,7 +237,7 @@
     </div>
 
     <!-- Recommended for You -->
-    <div class="col-12 col-lg-4">
+    <div class="grid-item grid-recommended">
         <div class="card dashboard-card recommended-card h-100">
             <div class="card-header">
                 <h5 class="card-title mb-0">Recommended for You</h5>
@@ -194,12 +247,20 @@
                     <ul class="list-unstyled mb-0 recommended-list">
                         {% for resource in top_rated_resources|slice:":4" %}
                             <li class="recommended-list-item">
-                                <div class="recommended-icon">
-                                    <i class="fas fa-file-alt"></i>
+                                <div class="recommended-left">
+                                    <div class="recommended-icon">
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                    <div class="recommended-content">
+                                        <a href="{% url 'resources:resource_detail' resource.id %}" class="recommended-title">{{ resource.title|truncatechars:35 }}</a>
+                                        <div class="recommended-meta">{{ resource.subject.name|truncatechars:20 }}</div>
+                                    </div>
                                 </div>
-                                <div class="recommended-content">
-                                    <a href="{% url 'resources:resource_detail' resource.id %}" class="recommended-title">{{ resource.title|truncatechars:40 }}</a>
-                                    <div class="recommended-meta"><i class="fas fa-star"></i> {{ resource.avg_rating|floatformat:1 }} • {{ resource.subject.name|truncatechars:20 }}</div>
+                                <div class="recommended-center">
+                                    <div class="recommended-time">{{ resource.created_at|date:"M d" }}{% if resource.created_at.year != today.year %}, {{ resource.created_at|date:"Y" }}{% endif %}</div>
+                                </div>
+                                <div class="recommended-right">
+                                    <div class="recommended-rating"><i class="fas fa-star"></i> {{ resource.avg_rating|floatformat:1 }}</div>
                                 </div>
                             </li>
                         {% endfor %}
@@ -215,29 +276,61 @@
         </div>
     </div>
 </div>
+<!-- End Dashboard Grid -->
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Dynamic greeting based on time
-    const hour = new Date().getHours();
-    let greeting = 'Good day';
+    const greetingEl = document.getElementById('dynamicGreeting');
+    if (!greetingEl) return;
     
-    if (hour >= 5 && hour < 12) {
-        greeting = 'Good morning';
-    } else if (hour >= 12 && hour < 17) {
-        greeting = 'Good afternoon';
-    } else if (hour >= 17 && hour < 22) {
-        greeting = 'Good evening';
-    } else {
-        greeting = 'Good night';
+    const firstName = greetingEl.textContent.split(', ')[1].replace('!', '');
+    
+    // Check if user just logged in or is new (from session/localStorage)
+    const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+    const isNewUser = sessionStorage.getItem('isNewUser');
+    
+    function getTimeBasedGreeting() {
+        const hour = new Date().getHours();
+        
+        if (hour >= 0 && hour < 12) {
+            return 'Good morning';
+        } else if (hour === 12) {
+            return 'Good noon';
+        } else if (hour >= 13 && hour < 18) {
+            return 'Good afternoon';
+        } else if (hour >= 18 && hour < 24) {
+            return 'Good evening';
+        }
+        return 'Good day';
     }
     
-    const greetingEl = document.getElementById('dynamicGreeting');
-    if (greetingEl) {
-        const firstName = greetingEl.textContent.split(', ')[1].replace('!', '');
+    function updateGreeting() {
+        let greeting;
+        
+        if (isNewUser === 'true') {
+            greeting = 'Welcome';
+            sessionStorage.removeItem('isNewUser');
+            sessionStorage.setItem('justLoggedIn', 'true');
+        } else if (justLoggedIn === 'true') {
+            greeting = 'Welcome back';
+        } else {
+            greeting = getTimeBasedGreeting();
+        }
+        
         greetingEl.textContent = `${greeting}, ${firstName}!`;
+    }
+    
+    // Initial greeting
+    updateGreeting();
+    
+    // If just logged in, change to time-based greeting after 10 seconds
+    if (justLoggedIn === 'true') {
+        setTimeout(() => {
+            sessionStorage.removeItem('justLoggedIn');
+            greetingEl.textContent = `${getTimeBasedGreeting()}, ${firstName}!`;
+        }, 10000); // 10 seconds
     }
     
     // Count-up animation for stat values

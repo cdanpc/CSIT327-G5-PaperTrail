@@ -17,9 +17,9 @@ body {
   --color-primary-light: rgba(31, 41, 55, 0.1);
   --color-primary-gradient: linear-gradient(135deg, #1f2937 0%, #111827 100%);
   
-  --color-secondary: #22d3ee;
-  --color-secondary-dark: #06b6d4;
-  --color-secondary-light: rgba(34, 211, 238, 0.1);
+  --color-secondary: #4f46e5;
+  --color-secondary-dark: #4338ca;
+  --color-secondary-light: rgba(79, 70, 229, 0.1);
   
   --color-success: #10b981;
   --color-success-dark: #059669;
