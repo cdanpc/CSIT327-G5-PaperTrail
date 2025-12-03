@@ -23,7 +23,7 @@ from resources.models import Resource, Bookmark, Tag, Rating, Comment
 from flashcards.models import Deck, Card
 from flashcards import services as flashcard_services
 from quizzes.models import QuizAttempt, Quiz
-from django.db.models import Count, Avg, Q, F
+from django.db.models import Count, Avg, Q, F, Sum
 from django.db import models
 from zoneinfo import ZoneInfo
 from datetime import timedelta
@@ -501,6 +501,37 @@ def student_dashboard(request):
         else:
             break
     
+    # Get time studied from UserStats (total_study_time is in minutes)
+    user_stats, created = UserStats.objects.get_or_create(user=request.user)
+    study_hours = round(user_stats.total_study_time / 60, 1) if user_stats.total_study_time > 0 else 0
+    
+    # Calculate total likes received on all user's uploads (resources, quizzes, flashcard decks)
+    from resources.models import Like as ResourceLike
+    from quizzes.models import QuizLike
+    from flashcards.models import DeckLike
+    
+    resource_likes = ResourceLike.objects.filter(resource__uploader=request.user).count()
+    quiz_likes = QuizLike.objects.filter(quiz__creator=request.user).count()
+    deck_likes = DeckLike.objects.filter(deck__creator=request.user).count()
+    total_likes = resource_likes + quiz_likes + deck_likes
+    
+    # Calculate total downloads on user's uploaded resources
+    user_resources = Resource.objects.filter(uploader=request.user)
+    total_downloads = user_resources.aggregate(total_dls=Sum('download_count'))['total_dls'] or 0
+    
+    # Calculate average rating across all user's uploads (resources, quizzes, flashcard decks)
+    from resources.models import Rating as ResourceRating
+    from quizzes.models import QuizRating
+    from flashcards.models import DeckRating
+    
+    resource_ratings_avg = ResourceRating.objects.filter(resource__uploader=request.user).aggregate(avg=Avg('stars'))['avg']
+    quiz_ratings_avg = QuizRating.objects.filter(quiz__creator=request.user).aggregate(avg=Avg('rating'))['avg']
+    deck_ratings_avg = DeckRating.objects.filter(deck__creator=request.user).aggregate(avg=Avg('rating'))['avg']
+    
+    # Calculate overall average rating
+    ratings_list = [r for r in [resource_ratings_avg, quiz_ratings_avg, deck_ratings_avg] if r is not None]
+    avg_rating = round(sum(ratings_list) / len(ratings_list), 1) if ratings_list else 0
+    
     context = {
         'user': request.user,
         'recent_resources': recent_resources,
@@ -535,6 +566,11 @@ def student_dashboard(request):
         'last_studied_deck': last_studied_deck,
         # New dashboard features
         'study_streak': study_streak,
+        # Quick Stats metrics
+        'study_hours': study_hours,
+        'total_likes': total_likes,
+        'total_downloads': total_downloads,
+        'avg_rating': avg_rating,
     }
     return render(request, 'accounts/student_dashboard.html', context)
 
