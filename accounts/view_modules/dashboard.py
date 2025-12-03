@@ -12,9 +12,9 @@ import calendar as _cal
 
 from ..models import User, StudyReminder
 from resources.models import Resource, Bookmark, Tag, Rating, Comment
-from flashcards.models import Deck, Card
+from flashcards.models import Deck, Card, DeckBookmark
 from flashcards import services as flashcard_services
-from quizzes.models import QuizAttempt, Quiz
+from quizzes.models import QuizAttempt, Quiz, QuizBookmark
 
 
 @login_required
@@ -331,7 +331,13 @@ def student_dashboard(request):
     
     # Stats
     total_resources = Resource.objects.filter(uploader=request.user).count()
-    total_bookmarks = Bookmark.objects.filter(user=request.user).count()
+    
+    # Total bookmarks: Count ALL types (resources + quizzes + flashcards) to match bookmark page
+    resource_bookmarks = Bookmark.objects.filter(user=request.user).count()
+    quiz_bookmarks = QuizBookmark.objects.filter(user=request.user).count()
+    deck_bookmarks = DeckBookmark.objects.filter(user=request.user).count()
+    total_bookmarks = resource_bookmarks + quiz_bookmarks + deck_bookmarks
+    
     quizzes_completed = QuizAttempt.objects.filter(student=request.user, completed_at__isnull=False).count()
     total_quizzes_posted = Quiz.objects.filter(creator=request.user).count()
     

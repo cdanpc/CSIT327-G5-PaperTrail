@@ -7,7 +7,9 @@
     --sidebar-bg: #FFFFFF;        /* Pure White Background */
     --sidebar-hover: #f3f4f6;     /* Light Gray Hover */
     --sidebar-active: #1f2937;    /* Dark Gray Active State (Primary Color) */
+    --sidebar-active-hover: #111827; /* Darker gray for active hover */
     --sidebar-text: #6b7280;      /* Medium Grey Default Text */
+    --sidebar-text-hover: #1f2937; /* Dark gray on hover */
     --sidebar-text-active: #FFFFFF; /* White Active Text */
     /* --- COLOR MODIFICATIONS END HERE --- */
     --transition-speed: 0.3s;
@@ -25,6 +27,7 @@
     --text-size: 0.9375rem;
     --logo-icon-size: 1.5rem;
     --logo-text-size: 1.125rem;
+    --icon-text-gap: 1rem;        /* Gap between icon and text */
 }
 
 /* Scope variables to sidebar to prevent page-level :root overrides (e.g., settings.css) */
@@ -39,6 +42,7 @@
     --text-size: 0.9375rem;
     --logo-icon-size: 1.5rem;
     --logo-text-size: 1.125rem;
+    --icon-text-gap: 1rem;
 }
 
 /* Sidebar Container - Default Collapsed */
@@ -227,7 +231,7 @@
 }
 
 .nav-item {
-    margin: var(--spacing-xs) var(--spacing-sm);
+    margin: var(--spacing-sm) var(--spacing-sm);
 }
 
 /* Navigation Links - Centered Icons When Collapsed */
@@ -235,8 +239,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
+    gap: var(--icon-text-gap);
+    padding: var(--spacing-lg);
     color: var(--sidebar-text);
     text-decoration: none;
     border-radius: 0.5rem;
@@ -244,56 +248,52 @@
     position: relative;
     font-size: var(--text-size);
     line-height: 1.5;
-    min-height: 44px;
+    min-height: 48px;
 }
 
 /* Expanded State - Left-Aligned */
 .sidebar.expanded .nav-link {
     justify-content: flex-start;
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-lg) var(--spacing-xl);
 }
 
-.nav-link:hover {
-    background: transparent; /* no background on hover */
-    color: var(--sidebar-text); /* keep label color */
+/* Hover State - Non-active links */
+.nav-link:not(.active):hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text-hover);
 }
 
-/* Icon glow on hover */
-/* Icon glow on hover (exclude active so it stays white) */
 .nav-link:not(.active):hover i {
-    color: var(--sidebar-active);
-    text-shadow: 0 0 6px rgba(31, 41, 55, 0.6), 0 0 12px rgba(31, 41, 55, 0.4);
-    filter: drop-shadow(0 0 2px rgba(31, 41, 55, 0.3));
+    color: var(--sidebar-text-hover);
 }
 
-/* When expanded, glow the label too */
-/* Label glow on hover (exclude active) */
-.sidebar.expanded .nav-link:not(.active):hover .nav-text {
-    color: var(--sidebar-active);
-    text-shadow: 0 0 6px rgba(31, 41, 55, 0.6), 0 0 12px rgba(31, 41, 55, 0.4);
+.nav-link:not(.active):hover .nav-text {
+    color: var(--sidebar-text-hover);
 }
 
+/* Active State - Default */
 .nav-link.active {
     background: var(--sidebar-active);
-    color: #4B5563; /* dark grey when not hovered */
+    color: var(--sidebar-text-active);
 }
 
 .nav-link.active i {
-    color: #4B5563; /* icon matches text when not hovered */
+    color: var(--sidebar-text-active);
 }
 
 .nav-link.active .nav-text {
-    color: #4B5563; /* ensure label uses dark grey */
+    color: var(--sidebar-text-active);
 }
 
+/* Active State - Hover */
 .nav-link.active:hover {
-    background: #111827; /* darker gray on hover */
-    color: #FFFFFF; /* text turns white on hover */
+    background: var(--sidebar-active-hover);
+    color: var(--sidebar-text-active);
 }
 
 .nav-link.active:hover i,
 .nav-link.active:hover .nav-text {
-    color: #FFFFFF; /* icon and label both white on hover */
+    color: var(--sidebar-text-active);
 }
 
 /* Icon Styling */
@@ -305,7 +305,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    margin-left: 9px;
+    transition: color 0.2s var(--transition-timing);
 }
 
 /* Text Labels - Hidden When Collapsed */
@@ -391,13 +391,11 @@
 }
 
 .user-profile:hover {
-    background: transparent; /* no background on hover */
+    background: var(--sidebar-hover);
 }
 
-/* Glow the avatar/icon instead of background */
 .user-profile:hover .user-avatar-placeholder i {
-    text-shadow: 0 0 6px rgba(31, 41, 55, 0.8), 0 0 12px rgba(31, 41, 55, 0.6);
-    color: #1f2937;
+    color: var(--sidebar-text-hover);
 }
 .user-profile:hover .user-avatar {
     box-shadow: 0 0 0 2px rgba(31, 41, 55, 0.6), 0 0 10px rgba(31, 41, 55, 0.5);
@@ -651,12 +649,12 @@ body.sidebar-expanded .main-content-wrapper > .main-content {
 
 /* Ensure nav link dimensions */
 .sidebar .nav-link {
-    min-height: 44px !important;
-    padding: var(--spacing-md) !important;
+    min-height: 48px !important;
+    padding: var(--spacing-lg) !important;
 }
 
 .sidebar.expanded .nav-link {
-    padding: var(--spacing-md) var(--spacing-lg) !important;
+    padding: var(--spacing-lg) var(--spacing-xl) !important;
 }
 
 /* Prevent any global link styles */
