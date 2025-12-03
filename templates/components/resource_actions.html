@@ -1,6 +1,7 @@
 {% comment %}
 Resource Actions Component
 Reusable action buttons for resources (download, preview, rate, like, bookmark)
+Shows Edit/Delete for owner, Rate/Like for other users
 
 Usage:
   {% include 'components/resource_actions.html' with 
@@ -10,6 +11,8 @@ Usage:
     user_has_liked=user_has_liked
     is_bookmarked=is_bookmarked
     bookmark_url=bookmark_url
+    is_owner=is_owner
+    edit_url=edit_url
   %}
 {% endcomment %}
 
@@ -41,15 +44,26 @@ Usage:
     {% endif %}
 
     {% if user.is_authenticated %}
-      <button type="button" class="action-btn action-btn-rating {% if user_rating %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#ratingModal">
-        <i class="{% if user_rating %}fas{% else %}far{% endif %} fa-star"></i>
-        <span>Rate Resource</span>
-      </button>
+      {% if is_owner %}
+        {# Owner actions: Edit #}
+        {% if edit_url %}
+          <a href="{{ edit_url }}" class="action-btn action-btn-edit">
+            <i class="fas fa-edit"></i>
+            <span>Edit</span>
+          </a>
+        {% endif %}
+      {% else %}
+        {# Other users' actions: Rate and Like #}
+        <button type="button" class="action-btn action-btn-rating {% if user_rating %}active{% endif %}" data-bs-toggle="modal" data-bs-target="#ratingModal">
+          <i class="{% if user_rating %}fas{% else %}far{% endif %} fa-star"></i>
+          <span>Rate Resource</span>
+        </button>
 
-      <button type="button" class="action-btn action-btn-like {% if user_has_liked %}active{% endif %}" id="likeButton">
-        <i class="{% if user_has_liked %}fas{% else %}far{% endif %} fa-heart"></i>
-        <span>Like</span>
-      </button>
+        <button type="button" class="action-btn action-btn-like {% if user_has_liked %}active{% endif %}" id="likeButton">
+          <i class="{% if user_has_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+          <span>Like</span>
+        </button>
+      {% endif %}
 
       <form method="post" action="{{ bookmark_url }}" class="w-100">
         {% csrf_token %}
