@@ -505,6 +505,12 @@ def student_dashboard(request):
     user_stats, created = UserStats.objects.get_or_create(user=request.user)
     study_hours = round(user_stats.total_study_time / 60, 1) if user_stats.total_study_time > 0 else 0
     
+    # Calculate quiz attempts on user's verified quizzes
+    quiz_attempts = QuizAttempt.objects.filter(
+        quiz__creator=request.user,
+        quiz__verification_status='verified'
+    ).count()
+    
     # Calculate total likes received on all user's uploads (resources, quizzes, flashcard decks)
     from resources.models import Like as ResourceLike
     from quizzes.models import QuizLike
@@ -568,6 +574,7 @@ def student_dashboard(request):
         'study_streak': study_streak,
         # Quick Stats metrics
         'study_hours': study_hours,
+        'quiz_attempts': quiz_attempts,
         'total_likes': total_likes,
         'total_downloads': total_downloads,
         'avg_rating': avg_rating,
@@ -642,6 +649,9 @@ def professor_dashboard(request):
 
     # Get professor's uploaded resources
     professor_resources = Resource.objects.filter(uploader=request.user).order_by('-created_at')[:5]
+    
+    # Get total resources on the platform
+    total_platform_resources = Resource.objects.count()
 
     # Calculate total pending verifications (resources + quizzes + decks)
     total_pending = pending_verifications.count() + pending_quizzes.count() + pending_decks.count()
@@ -681,6 +691,7 @@ def professor_dashboard(request):
         'pending_quizzes': pending_quizzes,
         'pending_decks': pending_decks,
         'professor_resources': professor_resources,
+        'total_platform_resources': total_platform_resources,
         'recently_verified': recently_verified,
         'total_pending': total_pending,
         'total_recently_verified': total_recently_verified,

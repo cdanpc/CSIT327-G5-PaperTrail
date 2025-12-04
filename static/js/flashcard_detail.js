@@ -390,3 +390,204 @@ function initEditDeckForm() {
         });
     });
 }
+
+// === COMMENT FUNCTIONALITY (Copied from resource_detail.js) ===
+(function() {
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // === COMMENT EDIT/DELETE FUNCTIONALITY ===
+    document.addEventListener('click', function(e) {
+        // Edit button click
+        if (e.target.classList.contains('comment-edit-btn') || e.target.closest('.comment-edit-btn')) {
+            e.preventDefault();
+            const btn = e.target.classList.contains('comment-edit-btn') ? e.target : e.target.closest('.comment-edit-btn');
+            const commentId = btn.dataset.commentId;
+            const commentText = document.querySelector(`.comment-text[data-comment-id="${commentId}"]`);
+            const editTextarea = document.querySelector(`.comment-edit-textarea[data-comment-id="${commentId}"]`);
+            const saveBtn = document.querySelector(`.comment-save-btn[data-comment-id="${commentId}"]`);
+            const cancelBtn = document.querySelector(`.comment-cancel-btn[data-comment-id="${commentId}"]`);
+            const replyBtn = document.querySelector(`.reply-btn-text[data-comment-id="${commentId}"]`);
+            
+            if (commentText && editTextarea && saveBtn && cancelBtn) {
+                commentText.classList.add('d-none');
+                editTextarea.classList.remove('d-none');
+                saveBtn.classList.remove('d-none');
+                cancelBtn.classList.remove('d-none');
+                if (replyBtn) replyBtn.classList.add('d-none');
+                editTextarea.focus();
+            }
+        }
+        
+        // Cancel button click
+        if (e.target.classList.contains('comment-cancel-btn') || e.target.closest('.comment-cancel-btn')) {
+            const btn = e.target.classList.contains('comment-cancel-btn') ? e.target : e.target.closest('.comment-cancel-btn');
+            const commentId = btn.dataset.commentId;
+            const commentText = document.querySelector(`.comment-text[data-comment-id="${commentId}"]`);
+            const editTextarea = document.querySelector(`.comment-edit-textarea[data-comment-id="${commentId}"]`);
+            const saveBtn = document.querySelector(`.comment-save-btn[data-comment-id="${commentId}"]`);
+            const cancelBtn = document.querySelector(`.comment-cancel-btn[data-comment-id="${commentId}"]`);
+            const replyBtn = document.querySelector(`.reply-btn-text[data-comment-id="${commentId}"]`);
+            
+            if (commentText && editTextarea && saveBtn && cancelBtn) {
+                commentText.classList.remove('d-none');
+                editTextarea.classList.add('d-none');
+                saveBtn.classList.add('d-none');
+                cancelBtn.classList.add('d-none');
+                if (replyBtn) replyBtn.classList.remove('d-none');
+                // Reset textarea to original value
+                editTextarea.value = commentText.textContent.trim();
+            }
+        }
+        
+        // Save button click
+        if (e.target.classList.contains('comment-save-btn') || e.target.closest('.comment-save-btn')) {
+            const btn = e.target.classList.contains('comment-save-btn') ? e.target : e.target.closest('.comment-save-btn');
+            const commentId = btn.dataset.commentId;
+            const editTextarea = document.querySelector(`.comment-edit-textarea[data-comment-id="${commentId}"]`);
+            const newText = editTextarea.value.trim();
+            
+            if (!newText) {
+                alert('Comment cannot be empty');
+                return;
+            }
+            
+            // Disable button while saving
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            
+            // Send AJAX request to update comment
+            fetch(`/flashcards/comment/${commentId}/edit/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'text=' + encodeURIComponent(newText)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the comment text display
+                    const commentTextContainer = document.querySelector(`.comment-text[data-comment-id="${commentId}"]`);
+                    const commentParagraph = commentTextContainer.querySelector('p');
+                    if (commentParagraph) {
+                        commentParagraph.textContent = newText;
+                    }
+                    
+                    // Hide edit mode
+                    const saveBtn = document.querySelector(`.comment-save-btn[data-comment-id="${commentId}"]`);
+                    const cancelBtn = document.querySelector(`.comment-cancel-btn[data-comment-id="${commentId}"]`);
+                    const replyBtn = document.querySelector(`.reply-btn-text[data-comment-id="${commentId}"]`);
+                    
+                    commentTextContainer.classList.remove('d-none');
+                    editTextarea.classList.add('d-none');
+                    saveBtn.classList.add('d-none');
+                    cancelBtn.classList.add('d-none');
+                    if (replyBtn) replyBtn.classList.remove('d-none');
+                    
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-check"></i> Save';
+                } else {
+                    throw new Error(data.error || 'Failed to update comment');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message || 'An error occurred. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Save';
+            });
+        }
+        
+        // Delete button click
+        if (e.target.classList.contains('comment-delete-btn') || e.target.closest('.comment-delete-btn')) {
+            e.preventDefault();
+            const btn = e.target.classList.contains('comment-delete-btn') ? e.target : e.target.closest('.comment-delete-btn');
+            const commentId = btn.dataset.commentId;
+            const deleteUrl = btn.dataset.deleteUrl;
+            
+            if (confirm('Are you sure you want to delete this comment?')) {
+                fetch(deleteUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Remove the comment from DOM
+                        const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+                        if (commentElement) {
+                            commentElement.remove();
+                        }
+                        // Update comment count
+                        const commentsHeading = document.querySelector('.comments-heading');
+                        if (commentsHeading) {
+                            const countMatch = commentsHeading.textContent.match(/\((\d+)\)/);
+                            if (countMatch) {
+                                const newCount = parseInt(countMatch[1]) - 1;
+                                commentsHeading.textContent = `Comments (${newCount})`;
+                            }
+                        }
+                    } else {
+                        throw new Error('Failed to delete comment');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            }
+        }
+
+        // === REPLY FUNCTIONALITY ===
+        // Reply button click
+        if (e.target.classList.contains('reply-btn-text') || e.target.closest('.reply-btn-text')) {
+            e.preventDefault();
+            const btn = e.target.classList.contains('reply-btn-text') ? e.target : e.target.closest('.reply-btn-text');
+            const commentId = btn.dataset.commentId;
+            const replyFormContainer = document.querySelector(`.reply-form-container[data-comment-id="${commentId}"]`);
+            
+            if (replyFormContainer) {
+                replyFormContainer.classList.remove('d-none');
+                // Focus textarea
+                const textarea = replyFormContainer.querySelector('textarea');
+                if (textarea) textarea.focus();
+                // Hide reply button
+                btn.classList.add('d-none');
+            }
+        }
+        
+        // Reply Cancel button click
+        if (e.target.classList.contains('reply-cancel-btn') || e.target.closest('.reply-cancel-btn')) {
+            e.preventDefault();
+            const btn = e.target.classList.contains('reply-cancel-btn') ? e.target : e.target.closest('.reply-cancel-btn');
+            const commentId = btn.dataset.commentId;
+            const replyFormContainer = document.querySelector(`.reply-form-container[data-comment-id="${commentId}"]`);
+            const replyBtn = document.querySelector(`.reply-btn-text[data-comment-id="${commentId}"]`);
+            
+            if (replyFormContainer) {
+                replyFormContainer.classList.add('d-none');
+                // Show reply button again
+                if (replyBtn) replyBtn.classList.remove('d-none');
+            }
+        }
+    });
+})();

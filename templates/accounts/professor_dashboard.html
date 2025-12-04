@@ -69,9 +69,9 @@
                                 <i class="fas fa-folder"></i>
                             </div>
                             <div class="stat-content">
-                                <div class="stat-label">My Resources</div>
-                                <div class="stat-value" data-target="{{ professor_resources.count }}">0</div>
-                                <div class="stat-sublabel">Resources uploaded</div>
+                                <div class="stat-label">Total Resources</div>
+                                <div class="stat-value" data-target="{{ total_platform_resources }}">0</div>
+                                <div class="stat-sublabel">Available on platform</div>
                             </div>
                         </div>
                     </div>
@@ -89,41 +89,6 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <a href="{% url 'resources:resource_upload' %}" class="card dashboard-card" style="text-decoration: none; color: inherit;">
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
-                                    <i class="fas fa-upload"></i>
-                                </div>
-                                <h5 class="card-title">Upload Resource</h5>
-                                <p class="text-muted">Share educational materials with students</p>
-                                {% if professor_resources %}
-                                    <span class="badge bg-info text-dark mt-2">{{ professor_resources.count }} uploaded</span>
-                                {% else %}
-                                    <p class="text-muted mb-3">You have no uploaded resources</p>
-                                {% endif %}
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <a href="{% url 'resources:moderation_list' %}" class="card dashboard-card" style="text-decoration: none; color: inherit;">
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <h5 class="card-title">Verify Content</h5>
-                                <p class="text-muted">Review and verify student submissions</p>
-                                {% if total_pending > 0 %}
-                                    <span class="badge bg-warning text-dark mt-2">{{ total_pending }} pending</span>
-                                {% else %}
-                                    <span class="badge bg-success mt-2">All caught up</span>
-                                {% endif %}
-                            </div>
-                        </a>
-                    </div>
-                </div>
                 
                 <!-- Main Content Grid -->
                 <div class="row g-3">
@@ -132,7 +97,7 @@
                         <div class="card dashboard-card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">Pending Verifications</h5>
-                                <a href="{% url 'resources:moderation_list' %}" class="text-decoration-none" style="color: #667eea; font-weight: 600; font-size: 0.875rem;">
+                                <a href="{% url 'resources:moderation_list' %}" class="text-decoration-none" style="color: #000000; font-weight: 600; font-size: 0.875rem;">
                                     View All>>
                                 </a>
                             </div>
@@ -150,7 +115,7 @@
                                         <tbody>
                                             {% for resource in pending_verifications %}
                                             <tr>
-                                                <td><a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none">{{ resource.title }}</a></td>
+                                                <td><a href="{% url 'resources:resource_detail' resource.pk %}" class="text-decoration-none text-dark">{{ resource.title }}</a></td>
                                                 <td>{{ resource.created_at|date:"M d, Y" }}</td>
                                                 <td>
                                                     <form method="post" action="{% url 'resources:approve_resource' resource.pk %}?next={{ request.path }}" style="display:inline-block">
@@ -166,7 +131,7 @@
                                             {% endfor %}
                                             {% for quiz in pending_quizzes %}
                                             <tr>
-                                                <td><a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="text-decoration-none">{{ quiz.title }}</a></td>
+                                                <td><a href="{% url 'quizzes:quiz_detail' quiz.pk %}" class="text-decoration-none text-dark">{{ quiz.title }}</a></td>
                                                 <td>{{ quiz.created_at|date:"M d, Y" }}</td>
                                                 <td>
                                                     <form method="post" action="{% url 'quizzes:approve_quiz' quiz.pk %}?next={{ request.path }}" style="display:inline-block">
@@ -182,7 +147,7 @@
                                             {% endfor %}
                                             {% for deck in pending_decks %}
                                             <tr>
-                                                <td><a href="{% url 'flashcards:deck_detail' deck.pk %}" class="text-decoration-none">{{ deck.title }}</a></td>
+                                                <td><a href="{% url 'flashcards:deck_detail' deck.pk %}" class="text-decoration-none text-dark">{{ deck.title }}</a></td>
                                                 <td>{{ deck.created_at|date:"M d, Y" }}</td>
                                                 <td>
                                                     <form method="post" action="{% url 'flashcards:approve_deck' deck.pk %}?next={{ request.path }}" style="display:inline-block">
@@ -217,7 +182,7 @@
                         <div class="card dashboard-card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">Recently Verified Resources</h5>
-                                <a href="{% url 'resources:verified_resources_list' %}" class="text-decoration-none" style="color: #667eea; font-weight: 600; font-size: 0.875rem;">
+                                <a href="{% url 'resources:verified_resources_list' %}" class="text-decoration-none" style="color: #000000; font-weight: 600; font-size: 0.875rem;">
                                     View All>>
                                 </a>
                             </div>
@@ -227,7 +192,7 @@
                                     <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
                                         <div style="flex: 1;">
                                             <h6 class="mb-1" style="font-weight: 600; color: #1a1a1a;">
-                                                <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #667eea; text-decoration: none;">
+                                                <a href="{% url 'resources:resource_detail' resource.pk %}" style="color: #000000; text-decoration: none;">
                                                     {{ resource.title }}
                                                 </a>
                                             </h6>

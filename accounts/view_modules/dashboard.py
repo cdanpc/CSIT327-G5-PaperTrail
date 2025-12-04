@@ -398,6 +398,9 @@ def professor_dashboard(request):
     # Professor's resources
     professor_resources = Resource.objects.filter(uploader=request.user).order_by('-created_at')[:5]
 
+    # Total platform resources
+    total_platform_resources = Resource.objects.count()
+
     # Total pending
     total_pending = pending_verifications.count() + pending_quizzes.count() + pending_decks.count()
 
@@ -440,6 +443,7 @@ def professor_dashboard(request):
         'recently_verified': recently_verified,
         'total_pending': total_pending,
         'total_recently_verified': total_recently_verified,
+        'total_platform_resources': total_platform_resources,
     }
     return render(request, 'accounts/professor_dashboard.html', context)
 

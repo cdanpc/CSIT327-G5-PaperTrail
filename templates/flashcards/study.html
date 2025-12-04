@@ -90,7 +90,19 @@
             
             // Update Buttons State
             prevBtn.disabled = idx === 0;
-            nextBtn.disabled = idx === cards.length - 1;
+            
+            // Next Button Logic (Next vs Retry)
+            if (idx === cards.length - 1) {
+                nextBtn.innerHTML = '<i class="fas fa-redo me-1"></i> Retry';
+                nextBtn.classList.remove('fc-btn-primary');
+                nextBtn.classList.add('fc-btn-secondary'); // Or any other style for retry
+                nextBtn.disabled = false;
+            } else {
+                nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right ms-1"></i>';
+                nextBtn.classList.add('fc-btn-primary');
+                nextBtn.classList.remove('fc-btn-secondary');
+                nextBtn.disabled = false;
+            }
         }
 
         flipBtn.onclick = () => { 
@@ -103,7 +115,12 @@
                 idx++; 
                 flipped = false; // Reset to front
                 render(true); // Instant render to avoid seeing answer
-            } 
+            } else {
+                // Retry logic: Go back to first card
+                idx = 0;
+                flipped = false;
+                render(true);
+            }
         };
 
         prevBtn.onclick = () => { 
