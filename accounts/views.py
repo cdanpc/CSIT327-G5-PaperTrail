@@ -70,6 +70,7 @@ def login_view(request):
             
             if user is not None:
                 login(request, user)
+                
                 messages.success(request, f'Welcome back, {user.get_display_name()}!')
                 
                 # Check if password change is required
@@ -107,10 +108,28 @@ def student_dashboard(request):
     recent_resources = Resource.objects.filter(uploader=request.user).order_by('-created_at')[:5]
     recent_bookmarks = Bookmark.objects.filter(user=request.user).select_related('resource').order_by('-created_at')[:5]
 
-    # Continue Studying panel assumptions:
-    #   - In-progress quizzes: attempts started but not completed
-    #   - Flashcards: most recently updated decks (simulates ongoing study)
-    in_progress_quiz_attempts = QuizAttempt.objects.filter(student=request.user, completed_at__isnull=True).select_related('quiz')[:3]
+    # Continue Studying - Improved logic with prioritization by last activity
+    # 1. In-progress quizzes ordered by most recently started
+    in_progress_quiz_attempts = QuizAttempt.objects.filter(
+        student=request.user, 
+        completed_at__isnull=True
+    ).select_related('quiz').order_by('-started_at')[:3]
+    
+    # 2. Recently studied or created flashcard decks
+    # Prioritize decks with recent study activity, then by creation date
+    recent_studied_decks = Deck.objects.filter(
+        owner=request.user,
+        last_studied_at__isnull=False
+    ).order_by('-last_studied_at')[:2]
+    
+    recent_created_decks = Deck.objects.filter(
+        owner=request.user,
+        last_studied_at__isnull=True
+    ).order_by('-created_at')[:2]
+    
+    # Combine and limit to 3 total decks
+    recent_decks_list = list(recent_studied_decks) + list(recent_created_decks)
+    recent_decks_for_continue = recent_decks_list[:3]
 
     # Trending Tags (top 6 by resource count in last 7 days)
     cutoff = timezone.now() - timedelta(days=7)
@@ -118,11 +137,66 @@ def student_dashboard(request):
         recent_count=Count('resources', filter=Q(resources__created_at__gte=cutoff))
     ).order_by('-recent_count', 'name')[:6]
 
-    # Top Rated Resources (avg rating, minimum 3 ratings)
-    top_rated_resources = Resource.objects.annotate(
-        avg_rating=Avg('ratings__stars'),
-        rating_count=Count('ratings')
-    ).filter(rating_count__gte=3).order_by('-avg_rating')[:5]
+    # Recommended for You - Option 4: Mixed personalized approach
+    # Step 1: Identify user's preferred subjects from their activity
+    user_subjects = set()
+    
+    # From uploaded resources
+    user_resource_subjects = Resource.objects.filter(uploader=request.user).values_list('subject_id', flat=True)
+    user_subjects.update(user_resource_subjects)
+    
+    # From bookmarked resources
+    bookmarked_subjects = Bookmark.objects.filter(user=request.user).select_related('resource').values_list('resource__subject_id', flat=True)
+    user_subjects.update(bookmarked_subjects)
+    
+    # From quiz attempts
+    quiz_subjects = QuizAttempt.objects.filter(student=request.user).select_related('quiz').values_list('quiz__subject_id', flat=True)
+    user_subjects.update(quiz_subjects)
+    
+    # Step 2: Get resources user has already interacted with (to exclude)
+    interacted_resource_ids = set()
+    interacted_resource_ids.update(Resource.objects.filter(uploader=request.user).values_list('id', flat=True))
+    interacted_resource_ids.update(Bookmark.objects.filter(user=request.user).values_list('resource_id', flat=True))
+    
+    # Step 3: Build personalized recommendations
+    recommended_items = []
+    
+    if user_subjects:
+        # Get highly-rated resources in user's preferred subjects
+        subject_resources = Resource.objects.filter(
+            subject_id__in=user_subjects,
+            is_public=True,
+            approved=True,
+            verification_status='verified'
+        ).exclude(
+            id__in=interacted_resource_ids
+        ).annotate(
+            avg_rating=Avg('ratings__stars'),
+            rating_count=Count('ratings')
+        ).filter(rating_count__gte=2).order_by('-avg_rating', '-created_at')[:3]
+        
+        recommended_items.extend(subject_resources)
+    
+    # Step 4: Fallback to trending/top-rated if not enough personalized recommendations
+    if len(recommended_items) < 4:
+        fallback_resources = Resource.objects.filter(
+            is_public=True,
+            approved=True,
+            verification_status='verified'
+        ).exclude(
+            id__in=interacted_resource_ids
+        ).annotate(
+            avg_rating=Avg('ratings__stars'),
+            rating_count=Count('ratings')
+        ).filter(rating_count__gte=3).order_by('-avg_rating', '-created_at')[:4]
+        
+        # Add fallback items that aren't already in recommendations
+        existing_ids = {item.id for item in recommended_items}
+        for item in fallback_resources:
+            if item.id not in existing_ids and len(recommended_items) < 4:
+                recommended_items.append(item)
+    
+    top_rated_resources = recommended_items[:4]
 
     # Upcoming Quizzes panel limitation:
     # Quiz model has no scheduling fields; we show latest quizzes not by the user as 'Explore'
@@ -485,22 +559,6 @@ def student_dashboard(request):
     # Newly added counts (Tasks 1 & 2)
     total_quizzes_posted = Quiz.objects.filter(creator=request.user).count()
     
-    # Calculate study streak (consecutive days with activity)
-    study_streak = 0
-    check_date = manila_now.date()
-    while True:
-        # Check if user had any activity on check_date
-        has_activity = (
-            Resource.objects.filter(uploader=request.user, created_at__date=check_date).exists() or
-            QuizAttempt.objects.filter(student=request.user, started_at__date=check_date).exists() or
-            Bookmark.objects.filter(user=request.user, created_at__date=check_date).exists()
-        )
-        if has_activity:
-            study_streak += 1
-            check_date -= timedelta(days=1)
-        else:
-            break
-    
     # Get time studied from UserStats (total_study_time is in minutes)
     user_stats, created = UserStats.objects.get_or_create(user=request.user)
     study_hours = round(user_stats.total_study_time / 60, 1) if user_stats.total_study_time > 0 else 0
@@ -568,10 +626,8 @@ def student_dashboard(request):
         # Flashcards context
         'total_flashcard_decks': total_flashcard_decks,
         'total_flashcard_cards': total_flashcard_cards,
-        'recent_decks': recent_decks,
+        'recent_decks': recent_decks_for_continue,
         'last_studied_deck': last_studied_deck,
-        # New dashboard features
-        'study_streak': study_streak,
         # Quick Stats metrics
         'study_hours': study_hours,
         'quiz_attempts': quiz_attempts,
@@ -1016,7 +1072,6 @@ def profile(request):
     
     learning_summary = {
         'study_progress': round(study_progress_percent, 1),
-        'active_streak': stats.active_streak,
         'recent_activities': activities,
         'quizzes_completed': quiz_attempts_count,
     }
@@ -1155,7 +1210,6 @@ def public_profile(request, username):
     
     learning_summary = {
         'study_progress': round(study_progress_percent, 1),
-        'active_streak': stats.active_streak,
         'recent_activities': activities,
         'quizzes_completed': quiz_attempts_count,
     }

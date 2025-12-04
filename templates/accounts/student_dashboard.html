@@ -121,22 +121,13 @@
 </div>
 
 {% block content %}
-<!-- Dynamic Greeting & Streak Banner -->
+<!-- Dynamic Greeting Banner -->
 <div class="row mb-3">
     <div class="col-12">
         <div class="greeting-banner fade-in-up">
             <div class="greeting-content">
                 <h2 class="greeting-text" id="dynamicGreeting">Good day, {{ user.first_name }}!</h2>
                 <p class="greeting-subtitle">Ready to continue your learning journey?</p>
-            </div>
-            <div class="streak-display">
-                <div class="streak-icon-small">
-                    <i class="fas fa-fire"></i>
-                </div>
-                <div class="streak-info">
-                    <div class="streak-number-small">{{ study_streak|default:0 }}</div>
-                    <div class="streak-label-small">Day Streak</div>
-                </div>
             </div>
         </div>
     </div>

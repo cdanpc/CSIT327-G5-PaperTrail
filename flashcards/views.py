@@ -268,7 +268,13 @@ def deck_delete(request: HttpRequest, pk: int) -> HttpResponse:
     if request.method != "POST":
         from django.http import HttpResponseNotAllowed
         return HttpResponseNotAllowed(["POST"])
+    
+    is_owner = deck.owner == request.user
     deck.delete()
+    
+    # Redirect to My Decks if user is the owner
+    if is_owner:
+        return redirect(reverse("flashcards:deck_list") + "?scope=mine")
     return redirect("flashcards:deck_list")
 
 

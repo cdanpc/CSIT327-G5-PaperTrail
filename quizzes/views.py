@@ -621,8 +621,13 @@ def quiz_delete(request, pk):
         messages.error(request, 'You can only delete your own quizzes.')
         return redirect('quizzes:quiz_detail', pk=pk)
     title = quiz.title
+    is_creator = quiz.creator == request.user
     quiz.delete()
     messages.success(request, f'Quiz "{title}" deleted.')
+    
+    # Redirect to My Quizzes if user is the creator
+    if is_creator:
+        return redirect(reverse('quizzes:quiz_list') + '?scope=mine')
     return redirect('quizzes:quiz_list')
 
 

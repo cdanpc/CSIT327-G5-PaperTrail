@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 250);
     });
     
-    // Close on nav link click (mobile)
+    // Close on nav link click (mobile) and preserve state on desktop
     const navLinks = document.querySelectorAll('.sidebar .nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateBodyClass(false);
                 sidebarOverlay.classList.remove('active');
             }
+            // Don't modify sidebar state on desktop - let it persist
         });
     });
 

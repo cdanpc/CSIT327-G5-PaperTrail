@@ -6,11 +6,14 @@
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/resources.css' %}?v=1.0">{% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/delete_modal.js' %}?v=1.0"></script>
 <script src="{% static 'js/resource_detail.js' %}?v=1.2"></script>
 {% endblock %}
 
 {% block header %}
-{% if request.user.is_professor %}
+{% if 'my-resources' in request.META.HTTP_REFERER|default:'' or request.GET.from == 'my' %}
+  {% url 'resources:my_resources' as resources_url %}
+{% elif request.user.is_professor %}
   {% url 'resources:verified_resources_list' as resources_url %}
 {% else %}
   {% url 'resources:resource_list' as resources_url %}
@@ -211,6 +214,63 @@
 
 <!-- Rating Modal -->
 {% include 'components/rating_modal.html' with rate_url=rate_resource_url modal_id='ratingModal' item_type='Resource' %}
+
+<!-- Edit Resource Modal -->
+{% if is_owner %}
+<div class="modal fade" id="editResourceModal" tabindex="-1" aria-labelledby="editResourceModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editResourceModalLabel">Edit Resource</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editResourceForm" data-resource-id="{{ resource.pk }}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="editResourceTitle" class="form-label">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="editResourceTitle" name="title" value="{{ resource.title }}" required>
+          </div>
+          <div class="mb-3">
+            <label for="editResourceDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editResourceDescription" name="description" rows="3">{{ resource.description }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label for="editResourceTags" class="form-label">Tags</label>
+            <input type="text" class="form-control" id="editResourceTags" name="tags_text" placeholder="math, history, chapter1" value="{% if resource.tags.all %}{% for t in resource.tags.all %}{{ t.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}">
+            <small class="text-muted">Use commas to separate tags</small>
+          </div>
+          <div class="mb-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="editResourceVisibility" name="is_public" {% if resource.is_public %}checked{% endif %}>
+              <label class="form-check-label" for="editResourceVisibility">
+                Make this resource public
+              </label>
+            </div>
+            <small class="text-muted">
+              {% if user.is_professor %}
+                Public resources are automatically verified for professors.
+              {% else %}
+                Public resources require verification. Private resources are only visible to you.
+              {% endif %}
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger me-auto" onclick="showDeleteModal('{{ resource.pk }}', '{{ resource.title|escapejs }}', '{% url 'resources:resource_delete' resource.pk %}')" data-bs-dismiss="modal">
+            <i class="fas fa-trash-alt"></i> Delete
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Delete Confirmation Modal -->
+{% include 'components/delete_modal.html' %}
 
 <script>
   // Initialize rating modal when page loads

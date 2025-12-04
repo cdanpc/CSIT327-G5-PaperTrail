@@ -77,27 +77,6 @@
                                 </button>
                             </div>
                         </div>
-                        
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4 class="setting-title">University Email</h4>
-                                <p class="setting-description">Update your university email (requires verification)</p>
-                                <small class="text-muted">Current: {{ user.univ_email }}</small>
-                            </div>
-                            <div class="setting-action">
-                                {% if pending_email_change %}
-                                    <button class="btn btn-outline-primary" disabled title="You have an ongoing request to change your university email">
-                                        <i class="fas fa-university me-2"></i>
-                                        Change Email
-                                    </button>
-                                {% else %}
-                                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changeUnivEmailModal">
-                                        <i class="fas fa-university me-2"></i>
-                                        Change Email
-                                    </button>
-                                {% endif %}
-                            </div>
-                        </div>
                                     
                                     <!--
                                     <div class="setting-item">
@@ -113,58 +92,6 @@
                                     </div>
                                     -->
                                 </div>
-                            </div>
-
-                            <!-- Preferences Card -->
-                            <div class="profile-card">
-                                <div class="card-header-row">
-                                    <h3 class="card-title">
-                                        <i class="fas fa-sliders-h"></i>
-                                        Preferences
-                                    </h3>
-                                </div>
-                                
-                                <form method="post" id="preferencesForm">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="save_preferences" value="1">
-                                    
-                                    <div class="settings-section">
-                                        <div class="setting-item">
-                                            <div class="setting-info">
-                                                <h4 class="setting-title">Default Dashboard View</h4>
-                                                <p class="setting-description">Choose which page to see when you log in</p>
-                                            </div>
-                                            <select class="form-select settings-select" name="default_dashboard" id="defaultDashboard">
-                                                {% for value, label in dashboard_choices %}
-                                                    <option value="{{ value }}" {% if user.default_dashboard == value %}selected{% endif %}>
-                                                        {{ label }}
-                                                    </option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                        
-
-                                        
-                                        <!--
-                                        <div class="setting-item">
-                                            <div class="setting-info">
-                                                <h4 class="setting-title">Theme Mode</h4>
-                                                <p class="setting-description">Customize the appearance of PaperTrail</p>
-                                                <span class="badge bg-info text-dark">Coming in Phase 8</span>
-                                            </div>
-                                            <select class="form-select settings-select" disabled>
-                                                <option value="light" selected>Light</option>
-                                                <option value="dark">Dark</option>
-                                                <option value="auto">System Default</option>
-                                            </select>
-                                        </div>
-                                        -->
-                                        
-                                        <div class="setting-item">
-                                            <div class="setting-info"></div>
-                                        </div>
-                                    </div>
-                                </form>
                             </div>
 
                             <!-- Notifications Card -->
@@ -216,32 +143,6 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="setting-item">
-                                        <div class="setting-info">
-                                            <h4 class="setting-title">System Updates</h4>
-                                            <p class="setting-description">Receive announcements and important system updates</p>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input notification-toggle" type="checkbox" 
-                                                   id="systemUpdates" 
-                                                   {% if user.notify_system_updates %}checked{% endif %}>
-                                            <label class="form-check-label" for="systemUpdates"></label>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="setting-item">
-                                        <div class="setting-info">
-                                            <h4 class="setting-title">Weekly Summary</h4>
-                                            <p class="setting-description">Receive a weekly summary of your PaperTrail activity</p>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input notification-toggle" type="checkbox" 
-                                                   id="weeklySummary" 
-                                                   {% if user.notify_weekly_summary %}checked{% endif %}>
-                                            <label class="form-check-label" for="weeklySummary"></label>
-                                        </div>
-                                    </div>
-                                    
 
                                 </div>
                             </div>
@@ -256,20 +157,6 @@
                                 </div>
                                 
                                 <div class="settings-section">
-                                    <div class="setting-item">
-                                        <div class="setting-info">
-                                            <h4 class="setting-title">Profile Visibility</h4>
-                                            <p class="setting-description">Control who can see your profile information</p>
-                                        </div>
-                                        <select class="form-select settings-select" id="profileVisibility">
-                                            {% for value, label in visibility_choices %}
-                                                <option value="{{ value }}" {% if user.profile_visibility == value %}selected{% endif %}>
-                                                    {{ label }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    
                                     <div class="setting-item">
                                         <div class="setting-info">
                                             <h4 class="setting-title">Active Sessions</h4>

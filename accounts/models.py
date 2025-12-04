@@ -462,7 +462,7 @@ class UserStats(models.Model):
     students_helped = models.IntegerField(default=0)  # Views/downloads of user's content
     total_study_time = models.IntegerField(default=0)  # In minutes
     quizzes_completed = models.IntegerField(default=0)
-    active_streak = models.IntegerField(default=0)  # Days
+    # active_streak = models.IntegerField(default=0)  # Days - REMOVED
     last_activity = models.DateTimeField(null=True, blank=True)
 
     class Meta:

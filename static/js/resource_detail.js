@@ -698,4 +698,43 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   })();
+
+  // === EDIT RESOURCE FORM HANDLER ===
+  (function initEditResourceForm() {
+    const editForm = document.getElementById('editResourceForm');
+    if (!editForm) return;
+
+    editForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const resourceId = editForm.dataset.resourceId;
+      const formData = new FormData(editForm);
+      
+      fetch(`/resources/${resourceId}/update/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Close modal
+          const modal = bootstrap.Modal.getInstance(document.getElementById('editResourceModal'));
+          modal.hide();
+          
+          // Reload page to show updated content
+          window.location.reload();
+        } else {
+          alert(data.message || 'Failed to update resource');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the resource');
+      });
+    });
+  })();
 });
