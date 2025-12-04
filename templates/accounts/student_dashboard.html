@@ -30,6 +30,83 @@
 .delay-2 { animation-delay: 0.2s; }
 .delay-3 { animation-delay: 0.3s; }
 .delay-4 { animation-delay: 0.4s; }
+
+/* Custom Grid Layout Override */
+.dashboard-grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    grid-template-areas:
+        "quick-actions continue-studying recommended";
+}
+
+/* Uniform Card Height */
+.dashboard-grid-container .card {
+    height: 500px;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-grid-container .card-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+/* Quick Actions Layout Adjustment */
+.quick-actions-body {
+    height: 100%;
+}
+
+.qa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columns */
+    grid-template-rows: 1fr 1fr; /* 2 rows */
+    gap: 1rem;
+    height: 100%;
+    padding: 0;
+}
+
+.qa-tile {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .dashboard-grid-container {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+        grid-template-areas:
+            "quick-actions quick-actions"
+            "continue-studying recommended";
+    }
+    .dashboard-grid-container .card {
+        height: 400px; /* Slightly shorter on tablets */
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        grid-template-areas:
+            "quick-actions"
+            "continue-studying"
+            "recommended";
+    }
+    .dashboard-grid-container .card {
+        height: auto;
+        min-height: 300px;
+    }
+}
 </style>
 {% endblock %}
 
@@ -135,43 +212,6 @@
                         <div class="qa-icon"><i class="fas fa-clone"></i></div>
                         <div class="qa-title">Flashcards</div>
                     </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Stats -->
-    <div class="grid-item grid-quick-stats">
-        <div class="card dashboard-card quick-stats-card h-100">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Quick Stats</h5>
-            </div>
-            <div class="card-body">
-                <div class="quick-stats-grid">
-                    <div class="quick-stat-card">
-                        <div class="quick-stat-icon time">📚</div>
-                        <div class="quick-stat-value">{{ quiz_attempts|default:0 }}</div>
-                        <div class="quick-stat-label">Quiz Attempts</div>
-                        <div class="quick-stat-sublabel">By students</div>
-                    </div>
-                    <div class="quick-stat-card">
-                        <div class="quick-stat-icon rating">⭐</div>
-                        <div class="quick-stat-value">{{ avg_rating|floatformat:1|default:"0.0" }}</div>
-                        <div class="quick-stat-label">Avg Rating</div>
-                        <div class="quick-stat-sublabel">On uploads</div>
-                    </div>
-                    <div class="quick-stat-card">
-                        <div class="quick-stat-icon likes">❤️</div>
-                        <div class="quick-stat-value">{{ total_likes|default:0 }}</div>
-                        <div class="quick-stat-label">Total Likes</div>
-                        <div class="quick-stat-sublabel">On uploads</div>
-                    </div>
-                    <div class="quick-stat-card">
-                        <div class="quick-stat-icon downloads">⬇️</div>
-                        <div class="quick-stat-value">{{ total_downloads|default:0 }}</div>
-                        <div class="quick-stat-label">Downloads</div>
-                        <div class="quick-stat-sublabel">By students</div>
-                    </div>
                 </div>
             </div>
         </div>
