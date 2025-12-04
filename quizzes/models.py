@@ -57,6 +57,17 @@ class Quiz(models.Model):
         """Increment attempts count"""
         self.attempts_count += 1
         self.save(update_fields=['attempts_count'])
+    
+    def get_average_rating(self):
+        """Return average rating (float) or 0 if none."""
+        ratings = self.ratings.all()
+        if not ratings:
+            return 0
+        return round(sum(r.stars for r in ratings) / len(ratings), 1)
+    
+    def get_rating_count(self):
+        """Return total number of ratings."""
+        return self.ratings.count()
 
 
 class Question(models.Model):

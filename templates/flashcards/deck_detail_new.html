@@ -23,27 +23,25 @@
     <!-- Top Left: Title, Description, Category -->
     <div class="grid-item grid-resource-header">
       <div class="resource-info-card">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div class="resource-header-badges">
-            <span class="resource-type-badge">FLASHCARD DECK</span>
-            {% if deck.visibility == 'public' %}
-              {% if deck.verification_status == 'verified' %}
-                <span class="badge badge-verified badge-sm"><i class="fas fa-check-circle"></i> Verified</span>
-              {% else %}
-                <span class="badge badge-pending badge-sm"><i class="fas fa-clock"></i> Pending</span>
-              {% endif %}
+        <div class="resource-header-badges">
+          <span class="resource-type-badge">FLASHCARD DECK</span>
+          {% if deck.visibility == 'public' %}
+            {% if deck.verification_status == 'verified' %}
+              <span class="badge badge-verified badge-sm"><i class="fas fa-check-circle"></i> Verified</span>
             {% else %}
-              <span class="badge bg-secondary badge-sm"><i class="fas fa-lock"></i> Private</span>
+              <span class="badge badge-pending badge-sm"><i class="fas fa-clock"></i> Pending</span>
             {% endif %}
-          </div>
-          <div>
-            <span class="text-muted"><i class="fas fa-folder"></i> {{ deck.get_category_display }}</span>
-          </div>
+          {% else %}
+            <span class="badge bg-secondary badge-sm"><i class="fas fa-lock"></i> Private</span>
+          {% endif %}
         </div>
         <h1 class="resource-title">{{ deck.title }}</h1>
         {% if deck.description %}
           <p class="resource-description">{{ deck.description }}</p>
         {% endif %}
+        <div class="mt-2">
+          <span class="text-muted"><i class="fas fa-folder"></i> {{ deck.get_category_display }}</span>
+        </div>
       </div>
     </div>
 
@@ -132,16 +130,9 @@
                 <span>Rate Deck</span>
               </button>
               
-              <button type="button" class="action-btn action-btn-like" id="likeBtn" 
-                      data-liked="{% if user_has_liked %}true{% else %}false{% endif %}"
-                      data-like-url="{% url 'flashcards:like_toggle' deck.pk %}">
-                {% if user_has_liked %}
-                  <i class="fas fa-heart"></i>
-                  <span>Liked</span>
-                {% else %}
-                  <i class="far fa-heart"></i>
-                  <span>Like</span>
-                {% endif %}
+              <button type="button" class="action-btn action-btn-like" id="likeBtn" data-liked="false">
+                <i class="far fa-heart"></i>
+                <span>Like</span>
               </button>
             {% endif %}
 
@@ -167,10 +158,8 @@
     
   </div>
 
-  <!-- Comment Section: Show only if deck is public OR user is not the owner -->
-  {% if deck.visibility == 'public' or user != deck.owner %}
-    {% include 'components/comment_section.html' with comments=comments user=user comment_url=comment_url delete_url_name='flashcards:delete_deck_comment' current_user=user %}
-  {% endif %}
+  <!-- Comment Section -->
+  {% include 'components/comment_section.html' with comments=comments user=user comment_url=comment_url delete_url_name='flashcards:delete_deck_comment' current_user=user %}
 
 </div>
 
@@ -217,67 +206,24 @@
         {% if cards %}
           <div class="list-group">
             {% for card in cards %}
-              <div class="list-group-item card-item-{{ card.pk }}" style="padding: 1rem; border-left: 3px solid var(--color-secondary);">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <small class="text-muted fw-semibold">Card {{ forloop.counter }}</small>
+              <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <strong class="text-primary">Card {{ forloop.counter }}</strong>
                   {% if user == deck.owner %}
-                    <div class="dropdown">
-                      <button class="btn btn-sm btn-link text-muted p-0" type="button" id="cardDropdown{{ card.pk }}" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 1.1rem;">
-                        <i class="fas fa-ellipsis-v"></i>
-                      </button>
-                      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="cardDropdown{{ card.pk }}">
-                        <li>
-                          <a class="dropdown-item edit-card-btn" href="#" 
-                             data-card-id="{{ card.pk }}"
-                             data-front-text="{{ card.front_text }}"
-                             data-back-text="{{ card.back_text }}"
-                             data-update-url="{% url 'flashcards:update_card' deck.pk card.pk %}">
-                            <i class="fas fa-edit"></i> Edit
-                          </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                          <a class="dropdown-item text-danger delete-card-btn" href="#" 
-                             data-card-id="{{ card.pk }}" 
-                             data-delete-url="{% url 'flashcards:card_delete' deck.pk card.pk %}">
-                            <i class="fas fa-trash"></i> Delete
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-card-btn" 
+                            data-card-id="{{ card.pk }}" 
+                            data-delete-url="{% url 'flashcards:card_delete' deck.pk card.pk %}">
+                      <i class="fas fa-trash"></i>
+                    </button>
                   {% endif %}
                 </div>
-                
-                <!-- View Mode -->
-                <div class="card-view-mode-{{ card.pk }}">
-                  <div class="mb-2">
-                    <p class="mb-1 fw-semibold" style="font-size: 0.95rem; color: var(--color-primary);" id="cardFront{{ card.pk }}">{{ card.front_text }}</p>
-                  </div>
-                  <div>
-                    <p class="mb-0 text-muted" style="font-size: var(--font-size-sm); line-height: var(--line-height-normal);" id="cardBack{{ card.pk }}">{{ card.back_text }}</p>
-                  </div>
+                <div class="mb-2">
+                  <small class="text-muted d-block mb-1"><strong>Front:</strong></small>
+                  <p class="mb-0">{{ card.front_text }}</p>
                 </div>
-                
-                <!-- Edit Mode (Hidden by default) -->
-                <div class="card-edit-mode-{{ card.pk }} d-none">
-                  <div class="mb-3">
-                    <label class="form-label small text-muted mb-1">Question / Front</label>
-                    <textarea class="form-control card-front-input-{{ card.pk }}" rows="2" style="font-size: 0.95rem;">{{ card.front_text }}</textarea>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label small text-muted mb-1">Answer / Back</label>
-                    <textarea class="form-control card-back-input-{{ card.pk }}" rows="3" style="font-size: 0.875rem;">{{ card.back_text }}</textarea>
-                  </div>
-                  <div class="d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-sm btn-secondary cancel-edit-btn" data-card-id="{{ card.pk }}">
-                      <i class="fas fa-times"></i> Cancel
-                    </button>
-                    <button type="button" class="btn btn-sm btn-primary save-edit-btn" 
-                            data-card-id="{{ card.pk }}" 
-                            data-update-url="{% url 'flashcards:update_card' deck.pk card.pk %}">
-                      <i class="fas fa-check"></i> Save
-                    </button>
-                  </div>
+                <div>
+                  <small class="text-muted d-block mb-1"><strong>Back:</strong></small>
+                  <p class="mb-0">{{ card.back_text }}</p>
                 </div>
               </div>
             {% endfor %}

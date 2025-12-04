@@ -154,9 +154,10 @@
 
 /* ===== Resource Detail v3 (Modern Layout) ===== */
 .resource-detail-container {
-  max-width: 1200px;
+  max-width: 90%;
   margin: 0 auto;
   padding: var(--spacing-2xl) var(--spacing-lg);
+  width: 100%;
 }
 
 /* Resource Detail Grid Layout */
