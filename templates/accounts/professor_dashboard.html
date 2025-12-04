@@ -54,7 +54,7 @@
                     <div class="col-lg-4 col-md-6">
                         <div class="stat-card stat-card-purple">
                             <div class="stat-icon">
-                                <i class="fas fa-clock"></i>
+                                <i class="fas fa-hourglass-half"></i>
                             </div>
                             <div class="stat-content">
                                 <div class="stat-label">Pending Verifications</div>
@@ -91,7 +91,7 @@
 
                 <!-- Quick Actions -->
                 <div class="row g-3 mb-4">
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-md-6">
                         <a href="{% url 'resources:resource_upload' %}" class="card dashboard-card" style="text-decoration: none; color: inherit;">
                             <div class="card-body text-center">
                                 <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
@@ -107,7 +107,7 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-md-6">
                         <a href="{% url 'resources:moderation_list' %}" class="card dashboard-card" style="text-decoration: none; color: inherit;">
                             <div class="card-body text-center">
                                 <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
@@ -119,22 +119,6 @@
                                     <span class="badge bg-warning text-dark mt-2">{{ total_pending }} pending</span>
                                 {% else %}
                                     <span class="badge bg-success mt-2">All caught up</span>
-                                {% endif %}
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <a href="{% url 'quizzes:quiz_create' %}" class="card dashboard-card" style="text-decoration: none; color: inherit;">
-                            <div class="card-body text-center">
-                                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
-                                    <i class="fas fa-file-alt"></i>
-                                </div>
-                                <h5 class="card-title">Create Quiz</h5>
-                                <p class="text-muted">Build quizzes to test student knowledge</p>
-                                {% if quizzes %}
-                                    <span class="badge bg-info text-dark mt-2">{{ quizzes.count }} quizzes</span>
-                                {% else %}
-                                    <p class="text-muted mb-3">You have not created a quiz yet</p>
                                 {% endif %}
                             </div>
                         </a>

@@ -150,7 +150,7 @@
                 <div class="quick-stats-grid">
                     <div class="quick-stat-card">
                         <div class="quick-stat-icon time">📚</div>
-                        <div class="quick-stat-value">{% if study_hours == 0 %}0h{% else %}{{ study_hours|floatformat:1 }}h{% endif %}</div>
+                        <div class="quick-stat-value">{{ study_hours|default:0|floatformat:1 }}h</div>
                         <div class="quick-stat-label">Time Studied</div>
                         <div class="quick-stat-sublabel">Total</div>
                     </div>
