@@ -1138,6 +1138,12 @@ body {
     padding: 1rem;
     max-height: 450px;
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.continue-studying-card .card-body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .continue-list {
@@ -1337,6 +1343,12 @@ body {
     padding: 1rem;
     max-height: 450px;
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.recommended-card .card-body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .recommended-item {

@@ -47,10 +47,10 @@ Usage:
       {% if is_owner %}
         {# Owner actions: Edit #}
         {% if edit_url %}
-          <a href="{{ edit_url }}" class="action-btn action-btn-edit">
+          <button type="button" class="action-btn action-btn-edit" data-bs-toggle="modal" data-bs-target="#editResourceModal">
             <i class="fas fa-edit"></i>
             <span>Edit</span>
-          </a>
+          </button>
         {% endif %}
       {% else %}
         {# Other users' actions: Rate and Like #}

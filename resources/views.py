@@ -6,6 +6,7 @@ from django.db import OperationalError, transaction
 from django.utils import timezone
 from django.db.models import Q
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 from .models import Resource, Tag, Bookmark, Rating, Comment, Like
 from .forms import ResourceUploadForm, RatingForm, CommentForm
 from .supabase_storage import supabase_storage
@@ -584,6 +585,11 @@ def resource_edit(request, pk):
             # Refresh instance for template usage/redirect
             resource = resource_obj
             messages.success(request, 'Resource updated successfully!')
+            
+            # Check if user came from my-resources page
+            referer = request.META.get('HTTP_REFERER', '')
+            if 'my-resources' in referer or resource.uploader == request.user:
+                return redirect('resources:my_resources')
             return redirect('resources:resource_detail', pk=pk)
     else:
         form = ResourceUploadForm(instance=resource)
@@ -593,6 +599,74 @@ def resource_edit(request, pk):
         'resource': resource,
     }
     return render(request, 'resources/resource_edit.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_resource(request, pk):
+    """Update resource via AJAX"""
+    resource = get_object_or_404(Resource, pk=pk)
+    
+    # Only uploader can update
+    if resource.uploader != request.user:
+        return JsonResponse({'success': False, 'message': 'Permission denied.'}, status=403)
+    
+    # Check if AJAX request
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'message': 'Invalid request.'}, status=400)
+    
+    try:
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        is_public = request.POST.get('is_public') == 'on'
+        tags_text = request.POST.get('tags_text', '').strip()
+        
+        if not title:
+            return JsonResponse({'success': False, 'message': 'Title cannot be empty.'})
+        
+        original_public = resource.is_public
+        
+        resource.title = title
+        resource.description = description
+        resource.is_public = is_public
+        
+        # Handle verification logic
+        if not getattr(request.user, 'is_professor', False):
+            if (not original_public) and is_public:
+                # Making public: set to pending
+                resource.verification_status = 'pending'
+                resource.approved = False
+                resource.verification_by = None
+                resource.verified_at = None
+            elif original_public and (not is_public):
+                # Making private: auto-verify
+                if resource.verification_status != 'verified':
+                    resource.verification_status = 'verified'
+                    resource.approved = True
+                    resource.verification_by = request.user
+                    resource.verified_at = timezone.now()
+        else:
+            # Professor uploads are auto-verified
+            resource.verification_status = 'verified'
+            resource.verification_by = request.user
+            resource.verified_at = timezone.now()
+        
+        resource.save()
+        
+        # Handle tags
+        if tags_text:
+            tag_names = [t.strip() for t in tags_text.split(',') if t.strip()]
+            tag_objs = []
+            for name in tag_names:
+                tag, _ = Tag.objects.get_or_create(name=name)
+                tag_objs.append(tag)
+            resource.tags.set(tag_objs)
+        else:
+            resource.tags.clear()
+        
+        return JsonResponse({'success': True, 'message': 'Resource updated successfully!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 
 @login_required
@@ -617,6 +691,11 @@ def resource_delete(request, pk):
         
         resource.delete()
         messages.success(request, 'Resource deleted successfully.')
+        
+        # Check if user came from my-resources page
+        referer = request.META.get('HTTP_REFERER', '')
+        if 'my-resources' in referer or resource.uploader == request.user:
+            return redirect('resources:my_resources')
         return redirect('resources:resource_list')
     
     return render(request, 'resources/resource_delete.html', {'resource': resource})
