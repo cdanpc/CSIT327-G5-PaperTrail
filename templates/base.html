@@ -216,31 +216,31 @@
                     <div class="col-md-4">
                         <div class="stat-card">
                             <div class="stat-icon stat-icon-red">
-                                <i class="fas fa-book"></i>
+                                <i class="fas fa-upload"></i>
                             </div>
-                            <h3 class="stat-number">50K+</h3>
-                            <p class="stat-label">Resources Shared</p>
-                            <p class="stat-sublabel">Growing every day</p>
+                            <h3 class="stat-number">{{ total_uploads|default:"0" }}+</h3>
+                            <p class="stat-label">Total Uploads</p>
+                            <p class="stat-sublabel">Resources, Quizzes & Flashcards</p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="stat-card">
                             <div class="stat-icon stat-icon-green">
-                                <i class="fas fa-brain"></i>
+                                <i class="fas fa-users"></i>
                             </div>
-                            <h3 class="stat-number">1M+</h3>
-                            <p class="stat-label">Quizzes Taken</p>
-                            <p class="stat-sublabel">Test your knowledge</p>
+                            <h3 class="stat-number">{{ total_quiz_takers|default:"0" }}+</h3>
+                            <p class="stat-label">Active Learners</p>
+                            <p class="stat-sublabel">Students taking quizzes</p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="stat-card">
                             <div class="stat-icon stat-icon-sage">
-                                <i class="fas fa-smile"></i>
+                                <i class="fas fa-user-graduate"></i>
                             </div>
-                            <h3 class="stat-number">95%</h3>
-                            <p class="stat-label">Student Satisfaction</p>
-                            <p class="stat-sublabel">Independently verified</p>
+                            <h3 class="stat-number">{{ total_users|default:"0" }}+</h3>
+                            <p class="stat-label">Registered Users</p>
+                            <p class="stat-sublabel">Join our community</p>
                         </div>
                     </div>
                 </div>
@@ -262,12 +262,12 @@
                             <div class="feature-icon feature-icon-red">
                                 <i class="fas fa-book-open"></i>
                             </div>
-                            <h4 class="feature-title">Find Any Study Material</h4>
+                            <h4 class="feature-title">Upload & Share Resources</h4>
                             <p class="feature-description">
-                                Access thousands of PDFs, notes, and study materials shared by students and educators worldwide.
+                                Upload PDFs, presentations, and documents. Share with your classmates or keep them private with full control.
                             </p>
-                            <a href="#" class="feature-link" data-feature-in-progress="resources">
-                                Explore resources <i class="fas fa-arrow-right ms-2"></i>
+                            <a href="{% url 'accounts:register' %}" class="feature-link">
+                                Start sharing <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
@@ -278,11 +278,11 @@
                             <div class="feature-icon feature-icon-green">
                                 <i class="fas fa-question-circle"></i>
                             </div>
-                            <h4 class="feature-title">Test Your Knowledge</h4>
+                            <h4 class="feature-title">Create & Take Quizzes</h4>
                             <p class="feature-description">
-                                Create and take quizzes with instant feedback. Track your progress and identify areas for improvement.
+                                Build quizzes with multiple choice and fill-in-the-blank questions. Track your scores and review your attempts anytime.
                             </p>
-                            <a href="#" class="feature-link" data-feature-in-progress="quizzes">
+                            <a href="{% url 'accounts:register' %}" class="feature-link">
                                 Start practicing <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
@@ -294,28 +294,28 @@
                             <div class="feature-icon feature-icon-sage">
                                 <i class="fas fa-layer-group"></i>
                             </div>
-                            <h4 class="feature-title">Remember Everything</h4>
+                            <h4 class="feature-title">Study with Flashcards</h4>
                             <p class="feature-description">
-                                Build custom flashcard decks with spaced repetition algorithms to enhance memory retention.
+                                Create custom flashcard decks organized by category. Study, practice, and boost your memory retention effectively.
                             </p>
-                            <a href="#" class="feature-link" data-feature-in-progress="flashcards">
-                                Try flashcards <i class="fas fa-arrow-right ms-2"></i>
+                            <a href="{% url 'accounts:register' %}" class="feature-link">
+                                Create decks <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
                     
-                    <!-- Feature 4: Peer Collaboration -->
+                    <!-- Feature 4: Community Engagement -->
                     <div class="col-md-6 col-lg-4">
                         <div class="feature-card">
                             <div class="feature-icon feature-icon-red">
                                 <i class="fas fa-users"></i>
                             </div>
-                            <h4 class="feature-title">Study Together</h4>
+                            <h4 class="feature-title">Rate, Comment & Bookmark</h4>
                             <p class="feature-description">
-                                Review and discuss resources with classmates. Share insights and learn together in a community.
+                                Rate resources and quizzes, leave comments, and bookmark your favorites for quick access later.
                             </p>
-                            <a href="#" class="feature-link" data-feature-in-progress="collaboration">
-                                Join the community <i class="fas fa-arrow-right ms-2"></i>
+                            <a href="{% url 'accounts:register' %}" class="feature-link">
+                                Join community <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
@@ -326,12 +326,12 @@
                             <div class="feature-icon feature-icon-green">
                                 <i class="fas fa-chart-line"></i>
                             </div>
-                            <h4 class="feature-title">Watch Yourself Improve</h4>
+                            <h4 class="feature-title">Track Your Progress</h4>
                             <p class="feature-description">
-                                Monitor your learning journey with detailed analytics and personalized recommendations.
+                                View your quiz scores, study history, and activity feed. Set study reminders to stay on track with your goals.
                             </p>
-                            <a href="#" class="feature-link" data-feature-in-progress="tracking">
-                                See your stats <i class="fas fa-arrow-right ms-2"></i>
+                            <a href="{% url 'accounts:register' %}" class="feature-link">
+                                See dashboard <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
@@ -342,12 +342,12 @@
                             <div class="feature-icon feature-icon-sage">
                                 <i class="fas fa-shield-alt"></i>
                             </div>
-                            <h4 class="feature-title">Your Content, Your Rules</h4>
+                            <h4 class="feature-title">Public or Private Content</h4>
                             <p class="feature-description">
-                                Keep your resources private, share with specific people, or make them public—you're in control.
+                                Choose to keep your uploads private or make them public. Verified content gets highlighted in the community.
                             </p>
-                            <a href="#" class="feature-link" data-feature-in-progress="privacy">
-                                Learn about privacy <i class="fas fa-arrow-right ms-2"></i>
+                            <a href="{% url 'accounts:register' %}" class="feature-link">
+                                Control privacy <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>

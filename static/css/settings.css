@@ -906,6 +906,140 @@ form .setting-item {
     outline-offset: 2px;
 }
 
+/* ===== MODAL STYLES ===== */
+.modal-content {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    background: var(--color-background-secondary);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-xl);
+}
+
+.modal-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-dark);
+}
+
+.modal-title i {
+    color: var(--color-primary);
+}
+
+.modal-body {
+    padding: var(--spacing-xl);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--color-border);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background: var(--color-bg-light);
+}
+
+.modal-body .form-label {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-dark);
+    margin-bottom: var(--spacing-sm);
+}
+
+.modal-body .form-control,
+.modal-body .form-select {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    font-size: var(--font-size-base);
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.modal-body .form-control:focus,
+.modal-body .form-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(31, 41, 55, 0.15);
+    outline: none;
+}
+
+.modal-body .alert {
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    font-size: var(--font-size-sm);
+}
+
+.modal-body .alert-info {
+    background-color: rgba(34, 211, 238, 0.1);
+    border-color: var(--color-info);
+    color: var(--color-text-dark);
+}
+
+.modal-body .alert ul {
+    margin-bottom: 0;
+    padding-left: var(--spacing-xl);
+}
+
+.modal-body .text-muted {
+    color: var(--color-text-medium) !important;
+    font-size: var(--font-size-sm);
+}
+
+/* Password Requirements Check in Modal */
+.password-requirements-check {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-medium);
+}
+
+.password-requirements-check .requirement {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.password-requirements-check .requirement i {
+    font-size: 0.5rem;
+}
+
+.password-requirements-check .requirement i.text-success {
+    color: var(--color-success) !important;
+}
+
+.password-requirements-check .requirement i.text-muted {
+    color: var(--color-text-muted) !important;
+}
+
+/* Modal Buttons */
+.modal-footer .btn {
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+}
+
+.modal-footer .btn-primary {
+    background: var(--color-primary);
+    border: none;
+    color: white;
+}
+
+.modal-footer .btn-primary:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.modal-footer .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-medium);
+}
+
+.modal-footer .btn-secondary:hover {
+    background: var(--color-bg-light);
+    border-color: var(--color-text-medium);
+    color: var(--color-text-dark);
+}
+
 /* ===== PRINT STYLES ===== */
 @media print {
     .sidebar,

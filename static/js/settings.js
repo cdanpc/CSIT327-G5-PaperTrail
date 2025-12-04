@@ -22,6 +22,9 @@ function initializeSettingsHandlers() {
     
     // Initialize button click handlers
     initializeButtonHandlers();
+    
+    // Initialize modal form handlers
+    initializeModalForms();
 }
 
 // ===== NOTIFICATION TOGGLES =====
@@ -933,6 +936,108 @@ document.addEventListener('keydown', function(e) {
         });
     }
 });
+
+// ===== MODAL FORM HANDLERS =====
+function initializeModalForms() {
+    // Password Change Modal
+    const passwordChangeForm = document.getElementById('passwordChangeForm');
+    const newPassword1 = document.getElementById('new_password1');
+    
+    if (newPassword1) {
+        const passwordRequirements = document.getElementById('passwordRequirements');
+        
+        newPassword1.addEventListener('input', function() {
+            if (passwordRequirements) {
+                passwordRequirements.style.display = 'block';
+                validatePasswordRequirements(this.value);
+            }
+        });
+    }
+    
+    if (passwordChangeForm) {
+        passwordChangeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const oldPassword = document.getElementById('old_password').value;
+            const newPassword1 = document.getElementById('new_password1').value;
+            const newPassword2 = document.getElementById('new_password2').value;
+            
+            // Validate passwords match
+            if (newPassword1 !== newPassword2) {
+                showToast('error', 'Passwords do not match');
+                return;
+            }
+            
+            // Validate password requirements
+            if (!validatePasswordFormat(newPassword1)) {
+                showToast('error', 'Password does not meet requirements');
+                return;
+            }
+            
+            // Submit form
+            this.submit();
+        });
+    }
+    
+    // University Email Change Modal
+    const changeUnivEmailForm = document.getElementById('changeUnivEmailForm');
+    if (changeUnivEmailForm) {
+        changeUnivEmailForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newEmail = document.getElementById('new_univ_email').value;
+            const reason = document.getElementById('reason').value;
+            const password = document.getElementById('password_univ').value;
+            
+            // Basic validation
+            if (!newEmail || !reason || !password) {
+                showToast('error', 'Please fill in all fields');
+                return;
+            }
+            
+            if (!validateEmail(newEmail)) {
+                showToast('error', 'Please enter a valid email address');
+                return;
+            }
+            
+            // Submit form
+            this.submit();
+        });
+    }
+}
+
+function validatePasswordRequirements(password) {
+    const requirements = {
+        length: password.length >= 8,
+        letter: /[a-zA-Z]/.test(password),
+        number: /\d/.test(password)
+    };
+    
+    // Update requirement indicators
+    updateRequirementIndicator('req-length', requirements.length);
+    updateRequirementIndicator('req-letter', requirements.letter);
+    updateRequirementIndicator('req-number', requirements.number);
+    
+    return Object.values(requirements).every(req => req);
+}
+
+function updateRequirementIndicator(elementId, met) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        const icon = element.querySelector('i');
+        if (met) {
+            icon.className = 'fas fa-check-circle text-success';
+        } else {
+            icon.className = 'fas fa-circle text-muted';
+        }
+    }
+}
+
+function validatePasswordFormat(password) {
+    return password.length >= 8 && 
+           /[a-zA-Z]/.test(password) && 
+           /\d/.test(password);
+}
 
 // Export functions for use in other scripts if needed
 window.SettingsModule = {

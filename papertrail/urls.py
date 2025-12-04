@@ -31,7 +31,33 @@ def home_view(request):
     """
     if request.user.is_authenticated:
         return redirect('accounts:dashboard')
-    return render(request, 'base.html')
+    
+    # Import models for statistics
+    from resources.models import Resource
+    from quizzes.models import Quiz, QuizAttempt
+    from flashcards.models import Deck
+    from accounts.models import User
+    from django.db.models import Count
+    
+    # Calculate real statistics
+    total_resources = Resource.objects.count()
+    total_quizzes = Quiz.objects.count()
+    total_decks = Deck.objects.count()
+    total_uploads = total_resources + total_quizzes + total_decks
+    
+    # Count unique users who have taken quizzes
+    total_quiz_takers = QuizAttempt.objects.values('student').distinct().count()
+    
+    # Count total registered users
+    total_users = User.objects.filter(is_active=True).count()
+    
+    context = {
+        'total_uploads': total_uploads,
+        'total_quiz_takers': total_quiz_takers,
+        'total_users': total_users,
+    }
+    
+    return render(request, 'base.html', context)
 
 
 urlpatterns = [

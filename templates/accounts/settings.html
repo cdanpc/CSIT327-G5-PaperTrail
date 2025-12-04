@@ -71,24 +71,10 @@
                                 <p class="setting-description">Change your password to keep your account secure</p>
                             </div>
                             <div class="setting-action">
-                                <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-primary">
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
                                     <i class="fas fa-key me-2"></i>
                                     Change Password
-                                </a>
-                            </div>
-                        </div>
-                        
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4 class="setting-title">Personal Email</h4>
-                                <p class="setting-description">Update your personal email address</p>
-                                <small class="setting-meta">Current: {{ user.personal_email }}</small>
-                            </div>
-                            <div class="setting-action">
-                                <a href="{% url 'accounts:change_personal_email' %}" class="btn btn-outline-primary">
-                                    <i class="fas fa-envelope me-2"></i>
-                                    Change Email
-                                </a>
+                                </button>
                             </div>
                         </div>
                         
@@ -100,15 +86,15 @@
                             </div>
                             <div class="setting-action">
                                 {% if pending_email_change %}
-                                    <button class="btn btn-outline-primary" disabled onclick="alert('You have an ongoing request to change your university email. Cannot change university email'); return false;">
-                                        <i class="fas fa-university"></i>
+                                    <button class="btn btn-outline-primary" disabled title="You have an ongoing request to change your university email">
+                                        <i class="fas fa-university me-2"></i>
                                         Change Email
                                     </button>
                                 {% else %}
-                                    <a href="{% url 'accounts:change_university_email' %}" class="btn btn-outline-primary">
-                                        <i class="fas fa-university"></i>
+                                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changeUnivEmailModal">
+                                        <i class="fas fa-university me-2"></i>
                                         Change Email
-                                    </a>
+                                    </button>
                                 {% endif %}
                             </div>
                         </div>
@@ -344,6 +330,130 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswordModalLabel">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" id="passwordChangeForm" action="{% url 'accounts:password_change' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Password Requirements:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>At least 8 characters long</li>
+                                <li>Must contain at least one letter</li>
+                                <li>Must contain at least one number</li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="old_password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Current Password
+                            </label>
+                            <input type="password" class="form-control" id="old_password" name="old_password" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="new_password1" class="form-label">
+                                <i class="fas fa-key me-2"></i>New Password
+                            </label>
+                            <input type="password" class="form-control" id="new_password1" name="new_password1" required>
+                            <div class="password-requirements-check mt-2" style="display: none;" id="passwordRequirements">
+                                <small class="requirement" id="req-length">
+                                    <i class="fas fa-circle text-muted"></i>
+                                    <span>At least 8 characters</span>
+                                </small><br>
+                                <small class="requirement" id="req-letter">
+                                    <i class="fas fa-circle text-muted"></i>
+                                    <span>Contains a letter</span>
+                                </small><br>
+                                <small class="requirement" id="req-number">
+                                    <i class="fas fa-circle text-muted"></i>
+                                    <span>Contains a number</span>
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="new_password2" class="form-label">
+                                <i class="fas fa-check-double me-2"></i>Confirm New Password
+                            </label>
+                            <input type="password" class="form-control" id="new_password2" name="new_password2" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>Change Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change University Email Modal -->
+    <div class="modal fade" id="changeUnivEmailModal" tabindex="-1" aria-labelledby="changeUnivEmailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeUnivEmailModalLabel">
+                        <i class="fas fa-university me-2"></i>Change University Email
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" id="changeUnivEmailForm" action="{% url 'accounts:change_university_email' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Current Email:</strong> {{ user.univ_email }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="new_univ_email" class="form-label">
+                                <i class="fas fa-university me-2"></i>New University Email
+                            </label>
+                            <input type="email" class="form-control" id="new_univ_email" name="new_univ_email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">
+                                <i class="fas fa-comment-alt me-2"></i>Reason for Change
+                            </label>
+                            <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password_univ" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Current Password
+                            </label>
+                            <input type="password" class="form-control" id="password_univ" name="password" required>
+                            <small class="text-muted">Please enter your password to confirm these changes.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Submit for Verification
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
