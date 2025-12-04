@@ -81,6 +81,21 @@
           <span class="stat-label">Created</span>
           <span class="stat-value">{{ quiz.created_at|date:"M d, Y" }}</span>
         </div>
+        
+        <!-- Best Score Badge (if attempted) -->
+        {% if has_attempted %}
+        <div class="mt-3 pt-3" style="border-top: 1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <div style="font-size: 1.5rem; color: var(--color-secondary);">
+              <i class="fas fa-medal"></i>
+            </div>
+            <div>
+              <div style="font-size: 0.9rem; font-weight: 600; color: var(--color-primary);">Best Score: {{ best_attempt.score }}/{{ best_attempt.total_questions }}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">{{ best_attempt.percentage }}% - Already attempted</div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
 
@@ -157,21 +172,6 @@
     </div>
     
   </div>
-
-  <!-- Best Score Badge (if attempted) -->
-  {% if has_attempted %}
-  <div class="mt-3 p-3 border rounded" style="background-color: #f8f9fa;">
-    <div class="d-flex align-items-center gap-3">
-      <div style="font-size: 2rem; color: var(--color-secondary);">
-        <i class="fas fa-medal"></i>
-      </div>
-      <div>
-        <strong style="font-size: 1.1rem;">Best Score: {{ best_attempt.score }}/{{ best_attempt.total_questions }} ({{ best_attempt.percentage }}%)</strong>
-        <p class="mb-0 text-muted" style="font-size: 0.875rem;">You've already attempted this quiz</p>
-      </div>
-    </div>
-  </div>
-  {% endif %}
 
   <!-- Comment Section: Show only if quiz is public OR user is not the creator -->
   {% if quiz.is_public or user != quiz.creator %}
