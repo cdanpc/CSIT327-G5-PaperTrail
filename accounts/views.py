@@ -1070,8 +1070,12 @@ def public_profile(request, username):
             pass
     # 'public' visibility allows everyone to see
     
-    # Get public profile data
-    profile_resources = Resource.objects.filter(uploader=profile_user, is_public=True).order_by('-created_at')[:10]
+    # Get public profile data - only verified uploads
+    profile_resources = Resource.objects.filter(
+        uploader=profile_user, 
+        is_public=True,
+        verification_status='verified'
+    ).order_by('-created_at')[:10]
     profile_bookmarks = Bookmark.objects.filter(user=profile_user).order_by('-created_at')[:10]
     profile_achievements = profile_user.achievements.filter(is_displayed=True).select_related('badge')
     
@@ -1079,20 +1083,33 @@ def public_profile(request, username):
     stats, _ = UserStats.objects.get_or_create(user=profile_user)
     preferences, _ = UserPreferences.objects.get_or_create(user=profile_user)
     
-    # Impact Card Data
+    # Impact Card Data - only verified content
     from quizzes.models import Quiz, QuizAttempt
     from resources.models import Rating
-    actual_quizzes_count = Quiz.objects.filter(creator=profile_user, is_public=True).count()
+    actual_quizzes_count = Quiz.objects.filter(
+        creator=profile_user, 
+        is_public=True,
+        verification_status='verified'
+    ).count()
     helpful_votes = Rating.objects.filter(
         resource__uploader=profile_user,
         resource__is_public=True,
+        resource__verification_status='verified',
         stars__gte=4
     ).count()
     
     impact_data = {
-        'resources_uploaded': Resource.objects.filter(uploader=profile_user, is_public=True).count(),
+        'resources_uploaded': Resource.objects.filter(
+            uploader=profile_user, 
+            is_public=True,
+            verification_status='verified'
+        ).count(),
         'quizzes_created': actual_quizzes_count,
-        'flashcards_created': Deck.objects.filter(owner=profile_user, visibility='public').count(),
+        'flashcards_created': Deck.objects.filter(
+            owner=profile_user, 
+            visibility='public',
+            verification_status='verified'
+        ).count(),
         'students_helped': helpful_votes,
     }
     
@@ -1100,10 +1117,10 @@ def public_profile(request, username):
     quiz_attempts_count = QuizAttempt.objects.filter(student=profile_user).count()
     study_progress_percent = min((quiz_attempts_count / 50) * 100, 100)
     
-    # Build combined activity feed from public resources, quizzes, and flashcards
+    # Build combined activity feed from public verified resources, quizzes, and flashcards
     activities = []
     
-    # Add public resources
+    # Add public verified resources
     for resource in profile_resources:
         activities.append({
             'type': 'resource',
@@ -1114,8 +1131,12 @@ def public_profile(request, username):
             'action': 'Uploaded'
         })
     
-    # Add public quizzes
-    user_quizzes = Quiz.objects.filter(creator=profile_user, is_public=True).order_by('-created_at')[:10]
+    # Add public verified quizzes
+    user_quizzes = Quiz.objects.filter(
+        creator=profile_user, 
+        is_public=True,
+        verification_status='verified'
+    ).order_by('-created_at')[:10]
     for quiz in user_quizzes:
         activities.append({
             'type': 'quiz',
@@ -1126,8 +1147,12 @@ def public_profile(request, username):
             'action': 'Created Quiz'
         })
     
-    # Add public flashcard decks
-    user_decks = Deck.objects.filter(owner=profile_user, visibility='public').order_by('-created_at')[:10]
+    # Add public verified flashcard decks
+    user_decks = Deck.objects.filter(
+        owner=profile_user, 
+        visibility='public',
+        verification_status='verified'
+    ).order_by('-created_at')[:10]
     for deck in user_decks:
         activities.append({
             'type': 'deck',
