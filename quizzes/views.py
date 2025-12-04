@@ -319,7 +319,7 @@ def quiz_detail(request, pk):
         return redirect('quizzes:quiz_list')
     
     # Check if user has already attempted this quiz
-    user_attempts = QuizAttempt.objects.filter(quiz=quiz, student=request.user)
+    user_attempts = QuizAttempt.objects.filter(quiz=quiz, student=request.user, completed_at__isnull=False).order_by('-completed_at')
     has_attempted = user_attempts.exists()
     best_attempt = user_attempts.order_by('-score').first() if has_attempted else None
     
@@ -347,6 +347,7 @@ def quiz_detail(request, pk):
         'quiz': quiz,
         'has_attempted': has_attempted,
         'best_attempt': best_attempt,
+        'user_attempts': user_attempts,
         'is_bookmarked': is_bookmarked,
         'user_rating': user_rating,
         'user_has_liked': user_has_liked,
@@ -380,28 +381,40 @@ def quiz_attempt(request, pk):
     if created:
         quiz.increment_attempts_count()
     
-    # Get unanswered questions
-    answered_question_ids = attempt.answers.values_list('question_id', flat=True)
-    all_questions = quiz.questions.all()
-    unanswered_questions = all_questions.exclude(id__in=answered_question_ids)
+    # Get all questions ordered
+    all_questions = list(quiz.questions.all())
     
-    # Get current question (first unanswered or first question)
-    if unanswered_questions.exists():
-        current_question = unanswered_questions.first()
-    elif all_questions.exists():
-        # All questions answered, go to results
-        attempt.completed_at = timezone.now()
-        attempt.save()
-        return redirect('quizzes:quiz_results', attempt_pk=attempt.pk)
-    else:
+    if not all_questions:
         messages.error(request, 'This quiz has no questions.')
         return redirect('quizzes:quiz_detail', pk=quiz.pk)
     
-    # Get question number (using order field)
-    question_number = current_question.order + 1 if current_question.order else 1
+    # Get answered questions
+    answered_question_ids = set(attempt.answers.values_list('question_id', flat=True))
+    
+    # Determine current question index from query param or find first unanswered
+    question_index = int(request.GET.get('q', 0))
+    
+    # Validate question index
+    if question_index < 0 or question_index >= len(all_questions):
+        # If all answered, go to results
+        if len(answered_question_ids) == len(all_questions):
+            attempt.completed_at = timezone.now()
+            attempt.save()
+            return redirect('quizzes:quiz_results', attempt_pk=attempt.pk)
+        # Otherwise find first unanswered
+        for idx, q in enumerate(all_questions):
+            if q.id not in answered_question_ids:
+                question_index = idx
+                break
+    
+    current_question = all_questions[question_index]
+    question_number = question_index + 1
+    
+    # Check if this question was already answered
+    is_answered = current_question.id in answered_question_ids
     
     # Calculate progress percentage
-    progress_percentage = int((question_number / quiz.total_questions) * 100) if quiz.total_questions > 0 else 0
+    progress_percentage = int((len(answered_question_ids) / len(all_questions)) * 100) if all_questions else 0
     
     if request.method == 'POST':
         form = QuizAttemptForm(current_question, request.POST)
@@ -437,32 +450,46 @@ def quiz_attempt(request, pk):
                 }
             )
             
-            # Update score if correct
-            if is_correct:
+            # Update score if correct (only if not previously answered)
+            if is_correct and not is_answered:
                 attempt.score += 1
                 attempt.save(update_fields=['score'])
             
-            # Check if this was the last question
-            remaining = unanswered_questions.exclude(id=current_question.id)
-            if not remaining.exists():
-                # Quiz completed
+            # Determine next question index
+            next_index = question_index + 1
+            
+            # Check if quiz is completed
+            if next_index >= len(all_questions):
+                # All questions have been navigated through
                 attempt.completed_at = timezone.now()
                 attempt.save()
                 return redirect('quizzes:quiz_results', attempt_pk=attempt.pk)
             
             # Redirect to next question
-            return redirect('quizzes:quiz_attempt', pk=quiz.pk)
+            return redirect(f'{reverse("quizzes:quiz_attempt", kwargs={"pk": quiz.pk})}?q={next_index}')
     else:
         form = QuizAttemptForm(current_question)
+    
+    # Determine if there are previous/next questions
+    has_previous = question_index > 0
+    has_next = question_index < len(all_questions) - 1
+    previous_index = question_index - 1 if has_previous else 0
+    next_index = question_index + 1 if has_next else question_index
     
     context = {
         'quiz': quiz,
         'question': current_question,
         'question_number': question_number,
+        'question_index': question_index,
         'total_questions': quiz.total_questions,
         'progress_percentage': progress_percentage,
         'form': form,
         'attempt': attempt,
+        'has_previous': has_previous,
+        'has_next': has_next,
+        'previous_index': previous_index,
+        'next_index': next_index,
+        'is_last_question': question_index == len(all_questions) - 1,
     }
     return render(request, 'quizzes/quiz_attempt.html', context)
 

@@ -8,18 +8,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (quizForm) {
     quizForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      // Get the selected answer
-      const selectedAnswer = document.querySelector('input[name="answer"]:checked');
-      
-      if (!selectedAnswer) {
-        console.log('No answer selected');
-        return;
+      // For multiple choice, check if answer is selected
+      const radioInputs = document.querySelectorAll('input[type="radio"][name="answer"]');
+      if (radioInputs.length > 0) {
+        const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+        if (!selectedAnswer) {
+          e.preventDefault();
+          alert('Please select an answer before proceeding.');
+          return false;
+        }
       }
-
-      // Submit the form
-      this.submit();
+      
+      // For fill-in-the-blank, check if text is entered
+      const textInput = document.querySelector('input[type="text"][name="answer"]');
+      if (textInput && textInput.value.trim() === '') {
+        e.preventDefault();
+        alert('Please enter an answer before proceeding.');
+        return false;
+      }
+      
+      // Allow form submission
+      return true;
     });
   }
 

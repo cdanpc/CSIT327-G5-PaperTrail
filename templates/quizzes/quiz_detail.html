@@ -124,6 +124,14 @@
             <span>Preview Questions</span>
           </button>
 
+          <!-- My Attempts Button (show only if user has attempted) -->
+          {% if has_attempted %}
+            <button type="button" class="action-btn action-btn-secondary" data-bs-toggle="modal" data-bs-target="#attemptsModal">
+              <i class="fas fa-history"></i>
+              <span>My Attempts</span>
+            </button>
+          {% endif %}
+
           {% if user.is_authenticated %}
             {% if user == quiz.creator %}
               {# Owner actions: Edit #}
@@ -282,5 +290,71 @@
   </div>
 </div>
 {% endif %}
+
+<!-- My Attempts Modal -->
+<div class="modal fade" id="attemptsModal" tabindex="-1" aria-labelledby="attemptsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="attemptsModalLabel">
+          <i class="fas fa-history"></i> My Attempts ({{ user_attempts.count }})
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+        {% if user_attempts %}
+          <div class="row g-3">
+            {% for attempt in user_attempts %}
+              <div class="col-12">
+                <div class="card" style="border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                  <div class="card-body">
+                    <div class="row align-items-center">
+                      <!-- Score Info -->
+                      <div class="col-md-4">
+                        <div class="text-center">
+                          <div style="font-size: 2rem; font-weight: 700; color: {% if attempt.percentage >= 80 %}#10b981{% elif attempt.percentage >= 60 %}#f59e0b{% else %}#ef4444{% endif %};">
+                            {{ attempt.percentage }}%
+                          </div>
+                          <div class="text-muted" style="font-size: 0.875rem;">
+                            {{ attempt.score }} / {{ attempt.total_questions }} correct
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Progress Bar -->
+                      <div class="col-md-4">
+                        <div class="mb-2">
+                          <div class="progress" style="height: 12px; border-radius: 6px;">
+                            <div class="progress-bar {% if attempt.percentage >= 80 %}bg-success{% elif attempt.percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
+                                 style="width: {{ attempt.percentage }}%;"></div>
+                          </div>
+                        </div>
+                        <div class="text-center text-muted" style="font-size: 0.75rem;">
+                          <i class="fas fa-calendar"></i> {{ attempt.completed_at|date:"M d, Y" }} at {{ attempt.completed_at|date:"g:i A" }}
+                        </div>
+                      </div>
+                      
+                      <!-- Action Button -->
+                      <div class="col-md-4 text-center">
+                        <a href="{% url 'quizzes:quiz_results' attempt.pk %}" class="btn btn-sm btn-gradient-primary w-100">
+                          <i class="fas fa-eye"></i> View Details
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="fas fa-history" style="font-size: 3rem; color: #d1d5db;"></i>
+            <p class="text-muted mt-3">No attempts yet</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}
