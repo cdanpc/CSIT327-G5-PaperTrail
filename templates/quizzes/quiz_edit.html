@@ -32,7 +32,7 @@
           <!-- Privacy Settings -->
           <div class="mb-4">
             <h6 class="form-section-header">
-              <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
+              <i class="fas fa-lock" style="color: var(--color-secondary);"></i> Privacy Settings
             </h6>
             {% include 'components/visibility_toggle.html' with toggle_id='quizEditPrivacyToggle' hidden_id='id_is_public' field_name='is_public' is_public=quiz.is_public label='Make this quiz public' public_description='Public quizzes require verification if you are a student.' private_description='Private quizzes are only visible to you and auto-verified.' %}
           </div>

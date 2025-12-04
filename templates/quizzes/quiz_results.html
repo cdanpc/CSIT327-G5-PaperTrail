@@ -20,7 +20,7 @@
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <!-- Score Card -->
-        <div class="card dashboard-card mb-4" style="border: 2px solid #667eea; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);">
+        <div class="card dashboard-card mb-4" style="border: 2px solid var(--color-secondary); background: var(--color-secondary-light);">
             <div class="card-body text-center py-5">
                 <div style="font-size: 4rem; margin-bottom: 1rem;">
                     {% if percentage >= 80 %}
@@ -32,7 +32,7 @@
                     {% endif %}
                 </div>
                 <h2 class="mb-2">Your Score</h2>
-                <div style="font-size: 3rem; font-weight: 700; color: #667eea; margin-bottom: 1rem;">
+                <div style="font-size: 3rem; font-weight: 700; color: var(--color-secondary); margin-bottom: 1rem;">
                     {{ attempt.score }} / {{ attempt.total_questions }}
                 </div>
                 <div style="font-size: 1.5rem; font-weight: 600; color: #4b5563; margin-bottom: 2rem;">

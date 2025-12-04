@@ -177,6 +177,56 @@ def deck_edit(request: HttpRequest, pk: int) -> HttpResponse:
     """Edit deck title/description/category."""
     deck = get_object_or_404(Deck, pk=pk, owner=request.user)
     if request.method == "POST":
+        # Handle AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                title = request.POST.get('title', '').strip()
+                description = request.POST.get('description', '').strip()
+                category = request.POST.get('category', '').strip()
+                visibility = request.POST.get('visibility', 'private')
+                
+                if not title:
+                    return JsonResponse({'success': False, 'message': 'Title cannot be empty.'})
+                
+                original_visibility = deck.visibility
+                visibility_changed = original_visibility != visibility
+                
+                deck.title = title
+                deck.description = description
+                deck.category = category
+                deck.visibility = visibility
+                
+                # Handle verification logic
+                if visibility == 'public':
+                    if getattr(request.user, 'is_professor', False) or request.user.is_staff:
+                        deck.verification_status = 'verified'
+                        deck.verification_by = request.user
+                        deck.verified_at = timezone.now()
+                    else:
+                        if deck.verification_status != 'verified':
+                            deck.verification_status = 'pending'
+                            deck.verification_by = None
+                            deck.verified_at = None
+                else:  # private
+                    if deck.verification_status != 'verified':
+                        deck.verification_status = 'verified'
+                    if deck.verification_by is None:
+                        deck.verification_by = request.user
+                    if deck.verified_at is None:
+                        deck.verified_at = timezone.now()
+                
+                deck.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'title': deck.title,
+                    'description': deck.description,
+                    'visibility_changed': visibility_changed
+                })
+            except Exception as e:
+                return JsonResponse({'success': False, 'message': str(e)})
+        
+        # Handle regular form submission
         form = DeckForm(request.POST, instance=deck)
         if form.is_valid():
             deck = form.save(commit=False)

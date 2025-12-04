@@ -121,10 +121,10 @@
           {% if user.is_authenticated %}
             {% if user == deck.owner %}
               {# Owner actions: Edit #}
-              <a href="{% url 'flashcards:deck_edit' deck.pk %}" class="action-btn action-btn-edit">
+              <button type="button" class="action-btn action-btn-edit" data-bs-toggle="modal" data-bs-target="#editDeckModal">
                 <i class="fas fa-edit"></i>
                 <span>Edit</span>
-              </a>
+              </button>
             {% else %}
               {# Non-owner actions: Rate & Like #}
               <button type="button" class="action-btn action-btn-rating" data-bs-toggle="modal" data-bs-target="#ratingModal">
@@ -295,5 +295,65 @@
 
 <!-- Rating Modal -->
 {% include 'components/rating_modal.html' with rate_url=rate_url modal_id='ratingModal' item_type='Deck' %}
+
+<!-- Edit Deck Modal -->
+{% if user == deck.owner %}
+<div class="modal fade" id="editDeckModal" tabindex="-1" aria-labelledby="editDeckModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editDeckModalLabel">Edit Deck</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editDeckForm" data-deck-id="{{ deck.pk }}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="editDeckTitle" class="form-label">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="editDeckTitle" name="title" value="{{ deck.title }}" required>
+          </div>
+          <div class="mb-3">
+            <label for="editDeckDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editDeckDescription" name="description" rows="3">{{ deck.description }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label for="editDeckCategory" class="form-label">Category <span class="text-danger">*</span></label>
+            <select class="form-select" id="editDeckCategory" name="category" required>
+              <option value="">Select a category</option>
+              <option value="mathematics" {% if deck.category == 'mathematics' %}selected{% endif %}>Mathematics</option>
+              <option value="science" {% if deck.category == 'science' %}selected{% endif %}>Science</option>
+              <option value="history" {% if deck.category == 'history' %}selected{% endif %}>History</option>
+              <option value="language" {% if deck.category == 'language' %}selected{% endif %}>Language</option>
+              <option value="technology" {% if deck.category == 'technology' %}selected{% endif %}>Technology</option>
+              <option value="arts" {% if deck.category == 'arts' %}selected{% endif %}>Arts</option>
+              <option value="business" {% if deck.category == 'business' %}selected{% endif %}>Business</option>
+              <option value="other" {% if deck.category == 'other' %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="editDeckVisibility" name="visibility" {% if deck.visibility == 'public' %}checked{% endif %}>
+              <label class="form-check-label" for="editDeckVisibility">
+                Make this deck public
+              </label>
+            </div>
+            <small class="text-muted">
+              {% if user.is_professor %}
+                Public decks are automatically verified for professors.
+              {% else %}
+                Public decks require verification. Private decks are only visible to you.
+              {% endif %}
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 {% endblock %}

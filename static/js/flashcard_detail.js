@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize rating modal
     initRatingModal();
     
+    // Handle Edit Deck form submission
+    initEditDeckForm();
+    
     // Handle Add Card form submission
     const addCardForm = document.getElementById('addCardForm');
     if (addCardForm) {
@@ -317,4 +320,73 @@ function initRatingModal() {
             }
         });
     }
+}
+
+// Initialize edit deck form
+function initEditDeckForm() {
+    const editForm = document.getElementById('editDeckForm');
+    if (!editForm) return;
+    
+    editForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const deckId = this.dataset.deckId;
+        const csrfToken = this.querySelector('[name=csrfmiddlewaretoken]').value;
+        const submitBtn = this.querySelector('button[type="submit"]');
+        
+        const formData = new FormData();
+        formData.append('title', document.getElementById('editDeckTitle').value);
+        formData.append('description', document.getElementById('editDeckDescription').value);
+        formData.append('category', document.getElementById('editDeckCategory').value);
+        formData.append('visibility', document.getElementById('editDeckVisibility').checked ? 'public' : 'private');
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        fetch(`/flashcards/deck/${deckId}/edit/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update page content
+                document.querySelector('.resource-title').textContent = data.title;
+                const descElement = document.querySelector('.resource-description');
+                if (data.description) {
+                    descElement.textContent = data.description;
+                    descElement.classList.remove('text-muted', 'fst-italic');
+                } else {
+                    descElement.textContent = 'No description provided.';
+                    descElement.classList.add('text-muted', 'fst-italic');
+                }
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editDeckModal'));
+                modal.hide();
+                
+                // Show success message
+                alert('Deck updated successfully!');
+                
+                // Reload page if visibility changed
+                if (data.visibility_changed) {
+                    location.reload();
+                }
+            } else {
+                alert(data.message || 'Error updating deck');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Save Changes';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating deck');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Save Changes';
+        });
+    });
 }

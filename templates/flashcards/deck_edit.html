@@ -28,7 +28,7 @@
           <!-- Privacy Settings -->
           <div class="mb-4">
             <h6 class="form-section-header">
-              <i class="fas fa-lock" style="color: #667eea;"></i> Privacy Settings
+              <i class="fas fa-lock" style="color: var(--color-secondary);"></i> Privacy Settings
             </h6>
             <div class="soft-panel">
               {% include 'components/visibility_toggle.html' with toggle_id='deckVisibilityToggleEdit' hidden_id='deckVisibilityValueEdit' field_name='visibility' is_public=deck.visibility label='Make this deck public (visible to all students)' public_description='Appears in "All Decks" after verification (professor uploads verify immediately).' private_description='Only visible to you under "My Decks".' %}
