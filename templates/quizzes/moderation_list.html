@@ -21,15 +21,18 @@
                 <!-- Dashboard Header -->
                 <div class="dashboard-header">
                     <div class="dashboard-title-section">
-                        <h1 class="dashboard-title">Quizzes Moderation</h1>
-                        <p class="dashboard-date">Review and approve pending quizzes</p>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <a href="{% url 'quizzes:quiz_list' %}" class="back-link" aria-label="Go back">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                            <div>
+                                <h1 class="dashboard-title">Quizzes Moderation</h1>
+                                <p class="dashboard-date">Review and approve pending quizzes</p>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="dashboard-actions d-flex align-items-center gap-2">
-                        <!-- Back Button -->
-                        <a href="{% url 'quizzes:quiz_list' %}" class="btn" style="background: var(--color-secondary-light); color: var(--color-secondary); border: 1px solid rgba(79, 70, 229, 0.2); padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </a>
                     </div>
                 </div>
 

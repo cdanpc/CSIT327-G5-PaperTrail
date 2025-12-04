@@ -9,13 +9,15 @@
 {% block header %}
 <div class="dashboard-header">
     <div class="dashboard-title-section">
-        <h1 class="dashboard-title">Pending Verifications</h1>
-        <p class="dashboard-date">Approve or reject resources, quizzes, and flashcards from students</p>
-    </div>
-    <div class="dashboard-actions">
-        <a href="{% url 'accounts:professor_dashboard' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="{% url 'accounts:professor_dashboard' %}" class="back-link" aria-label="Go back">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <div>
+                <h1 class="dashboard-title">Pending Verifications</h1>
+                <p class="dashboard-date">Approve or reject resources, quizzes, and flashcards from students</p>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

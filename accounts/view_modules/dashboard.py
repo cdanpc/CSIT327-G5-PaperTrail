@@ -376,8 +376,8 @@ def student_dashboard(request):
 
 @login_required
 def professor_dashboard(request):
-    """Professor dashboard - only for professors"""
-    if not request.user.is_professor:
+    """Professor dashboard - only for professors and admins"""
+    if not request.user.is_professor and not request.user.is_staff:
         messages.error(request, 'Access denied. Professor privileges required.')
         return redirect(request.user.get_dashboard_url())
 

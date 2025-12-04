@@ -1863,14 +1863,14 @@ def notifications_unread_count_api(request):
     Filters notifications based on user role:
     - Students: new_upload, verification_approved, verification_rejected, new_rating, new_comment
     - Professors: content_review, student_question, new_enrollment + personal notifications
-    - Admins: new_user_registration, reported_content, system_alert + personal notifications
+    - Admins: new_user_registration, reported_content, system_alert, password_reset_request + personal notifications
     """
     notifications = request.user.notifications.filter(is_read=False)
     
     # Role-based filtering
     if request.user.is_staff:
         # Admins see admin notifications + personal notifications
-        admin_types = ['new_user_registration', 'reported_content', 'system_alert']
+        admin_types = ['new_user_registration', 'reported_content', 'system_alert', 'password_reset_request']
         personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
         notifications = notifications.filter(type__in=admin_types + personal_types)
     elif request.user.is_professor:
@@ -1902,7 +1902,7 @@ def notifications_list_api(request):
     # Role-based filtering
     if request.user.is_staff:
         # Admins see admin notifications + personal notifications
-        admin_types = ['new_user_registration', 'reported_content', 'system_alert']
+        admin_types = ['new_user_registration', 'reported_content', 'system_alert', 'password_reset_request']
         personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
         notifications = notifications.filter(type__in=admin_types + personal_types)
     elif request.user.is_professor:
@@ -1984,7 +1984,7 @@ def notifications_page(request):
     # Role-based filtering
     if request.user.is_staff:
         # Admins see admin notifications + personal notifications
-        admin_types = ['new_user_registration', 'reported_content', 'system_alert']
+        admin_types = ['new_user_registration', 'reported_content', 'system_alert', 'password_reset_request']
         personal_types = ['verification_approved', 'verification_rejected', 'new_rating', 'new_comment']
         notifications = notifications.filter(type__in=admin_types + personal_types)
     elif request.user.is_professor:
