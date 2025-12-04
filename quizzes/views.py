@@ -6,7 +6,8 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
-from .models import Quiz, Question, Option, QuizAttempt, QuizAttemptAnswer, QuizBookmark
+from django.urls import reverse
+from .models import Quiz, Question, Option, QuizAttempt, QuizAttemptAnswer, QuizBookmark, QuizRating, QuizComment, QuizLike
 from .forms import QuizForm, QuestionForm, QuizAttemptForm
 from django.core.mail import send_mail
 import json
@@ -151,7 +152,58 @@ def quiz_edit(request, pk):
     if quiz.creator != request.user:
         messages.error(request, 'You can only edit your own quizzes.')
         return redirect('quizzes:quiz_detail', pk=pk)
+    
     if request.method == 'POST':
+        # Handle AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                title = request.POST.get('title', '').strip()
+                description = request.POST.get('description', '').strip()
+                is_public = request.POST.get('is_public') == 'true'
+                
+                if not title:
+                    return JsonResponse({'success': False, 'message': 'Title cannot be empty.'})
+                
+                original_public = quiz.is_public
+                visibility_changed = original_public != is_public
+                
+                quiz.title = title
+                quiz.description = description
+                quiz.is_public = is_public
+                
+                # Handle verification logic
+                if getattr(request.user, 'is_professor', False):
+                    if is_public:
+                        quiz.verification_status = 'verified'
+                        quiz.verification_by = request.user
+                        quiz.verified_at = timezone.now()
+                    else:
+                        quiz.verification_status = 'verified'
+                        quiz.verification_by = request.user
+                        quiz.verified_at = timezone.now()
+                else:
+                    if (not original_public) and is_public:
+                        quiz.verification_status = 'pending'
+                        quiz.verification_by = None
+                        quiz.verified_at = None
+                    elif original_public and (not is_public):
+                        if quiz.verification_status != 'verified':
+                            quiz.verification_status = 'verified'
+                            quiz.verification_by = request.user
+                            quiz.verified_at = timezone.now()
+                
+                quiz.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'title': quiz.title,
+                    'description': quiz.description,
+                    'visibility_changed': visibility_changed
+                })
+            except Exception as e:
+                return JsonResponse({'success': False, 'message': str(e)})
+        
+        # Handle regular form submission
         quiz_form = QuizForm(request.POST, instance=quiz)
         if quiz_form.is_valid():
             original_public = quiz.is_public
@@ -186,6 +238,10 @@ def quiz_edit(request, pk):
             messages.error(request, 'Please correct the errors below.')
     else:
         quiz_form = QuizForm(instance=quiz)
+    
+    return render(request, 'quizzes/quiz_edit.html', {'quiz_form': quiz_form, 'quiz': quiz})
+
+
 @login_required
 @require_http_methods(["POST"])
 def update_quiz_details(request, pk):
@@ -268,14 +324,35 @@ def quiz_detail(request, pk):
     best_attempt = user_attempts.order_by('-score').first() if has_attempted else None
     
     is_bookmarked = False
+    user_rating = None
+    user_has_liked = False
+    comments = []
+    
     if request.user.is_authenticated:
         is_bookmarked = QuizBookmark.objects.filter(user=request.user, quiz=quiz).exists()
+        user_rating = QuizRating.objects.filter(user=request.user, quiz=quiz).first()
+        user_has_liked = QuizLike.objects.filter(user=request.user, quiz=quiz).exists()
+        
+        # Load comments for public verified quizzes
+        if quiz.is_public and quiz.verification_status == 'verified':
+            comments = quiz.comments.select_related('user').filter(parent_comment__isnull=True).all()
+        else:
+            comments = []
+    
+    from django.urls import reverse
+    comment_url = reverse('quizzes:add_quiz_comment', args=[quiz.pk])
+    rate_url = reverse('quizzes:rate_quiz', args=[quiz.pk])
 
     context = {
         'quiz': quiz,
         'has_attempted': has_attempted,
         'best_attempt': best_attempt,
         'is_bookmarked': is_bookmarked,
+        'user_rating': user_rating,
+        'user_has_liked': user_has_liked,
+        'comments': comments,
+        'comment_url': comment_url,
+        'rate_url': rate_url,
     }
     return render(request, 'quizzes/quiz_detail.html', context)
 
@@ -520,4 +597,201 @@ def quiz_delete(request, pk):
     quiz.delete()
     messages.success(request, f'Quiz "{title}" deleted.')
     return redirect('quizzes:quiz_list')
+
+
+@login_required
+def add_quiz_comment(request, pk):
+    """Add a comment to a quiz (supports AJAX)"""
+    quiz = get_object_or_404(Quiz, pk=pk)
+    
+    # Check if AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    # Restrict access to private quizzes to creator only
+    if not quiz.is_public and quiz.creator != request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'This quiz is private.'}, status=403)
+        messages.error(request, 'This quiz is private.')
+        return redirect('quizzes:quiz_list')
+    
+    if request.method == 'POST':
+        # Check if this is a reply or a top-level comment
+        parent_id = request.POST.get('parent_comment_id')
+        
+        # Prevent creator from adding TOP-LEVEL comments only (replies are allowed)
+        if quiz.creator == request.user and not parent_id:
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'You cannot add top-level comments on your own quiz.'}, status=403)
+            messages.error(request, 'You cannot add top-level comments on your own quiz.')
+            return redirect('quizzes:quiz_detail', pk=pk)
+        
+        text = request.POST.get('text', '').strip()
+        if not text:
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'Comment cannot be empty.'}, status=400)
+            messages.error(request, 'Comment cannot be empty.')
+            return redirect('quizzes:quiz_detail', pk=pk)
+        
+        comment = QuizComment(user=request.user, quiz=quiz, text=text)
+        
+        # Handle parent comment for threading
+        if parent_id:
+            try:
+                parent_comment = QuizComment.objects.get(pk=parent_id, quiz=quiz)
+                comment.parent_comment = parent_comment
+            except QuizComment.DoesNotExist:
+                pass
+        
+        comment.save()
+        
+        # AJAX response with comment data
+        if is_ajax:
+            from django.utils.timesince import timesince
+            return JsonResponse({
+                'success': True,
+                'message': 'Comment added successfully!',
+                'comment': {
+                    'id': comment.id,
+                    'text': comment.text,
+                    'user_name': comment.user.get_display_name(),
+                    'user_initial': comment.user.get_display_name()[0].upper() if comment.user.get_display_name() else 'U',
+                    'is_professor': getattr(comment.user, 'is_professor', False),
+                    'created_at': comment.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                    'created_since': timesince(comment.created_at) + ' ago',
+                    'can_delete': comment.user == request.user,
+                    'delete_url': f'/quizzes/comment/{comment.id}/delete/',
+                }
+            })
+        
+        messages.success(request, 'Comment added successfully!')
+    
+    return redirect('quizzes:quiz_detail', pk=pk)
+
+
+@login_required
+def edit_quiz_comment(request, pk):
+    """Edit a comment (AJAX only)"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
+    
+    comment = get_object_or_404(QuizComment, pk=pk)
+    
+    # Only the comment author can edit
+    if comment.user != request.user:
+        return JsonResponse({'success': False, 'error': 'You can only edit your own comments.'}, status=403)
+    
+    text = request.POST.get('text', '').strip()
+    if not text:
+        return JsonResponse({'success': False, 'error': 'Comment cannot be empty.'}, status=400)
+    
+    comment.text = text
+    comment.save()
+    
+    return JsonResponse({'success': True, 'message': 'Comment updated successfully.'})
+
+
+@login_required
+def delete_quiz_comment(request, pk):
+    """Delete a comment"""
+    comment = get_object_or_404(QuizComment, pk=pk)
+    quiz_pk = comment.quiz.pk
+    
+    # Only the comment author can delete
+    if comment.user == request.user:
+        comment.delete()
+        messages.success(request, 'Comment deleted successfully.')
+    else:
+        messages.error(request, 'You can only delete your own comments.')
+    
+    return redirect('quizzes:quiz_detail', pk=quiz_pk)
+
+
+@login_required
+def rate_quiz(request, pk):
+    """Rate a quiz (supports AJAX)"""
+    quiz = get_object_or_404(Quiz, pk=pk)
+    
+    # Check if AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    if quiz.creator == request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': 'You cannot rate your own quiz.'}, status=403)
+        messages.error(request, 'You cannot rate your own quiz.')
+        return redirect('quizzes:quiz_detail', pk=pk)
+    
+    if not quiz.is_public or quiz.verification_status != 'verified':
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': 'You can only rate public verified quizzes.'}, status=403)
+        messages.error(request, 'You can only rate public verified quizzes.')
+        return redirect('quizzes:quiz_detail', pk=pk)
+    
+    if request.method == 'POST':
+        stars = request.POST.get('stars')
+        if not stars:
+            if is_ajax:
+                return JsonResponse({'success': False, 'message': 'Please select a rating.'}, status=400)
+            messages.error(request, 'Please select a rating.')
+            return redirect('quizzes:quiz_detail', pk=pk)
+        
+        try:
+            stars_int = int(stars)
+            if stars_int < 1 or stars_int > 5:
+                raise ValueError()
+        except ValueError:
+            if is_ajax:
+                return JsonResponse({'success': False, 'message': 'Invalid rating value.'}, status=400)
+            messages.error(request, 'Invalid rating value.')
+            return redirect('quizzes:quiz_detail', pk=pk)
+        
+        rating, created = QuizRating.objects.get_or_create(user=request.user, quiz=quiz, defaults={'stars': stars_int})
+        if not created:
+            rating.stars = stars_int
+            rating.save()
+        
+        action = 'rated' if created else 'updated your rating for'
+        message = f'You {action} "{quiz.title}" with {stars_int} star' + ('s' if stars_int != 1 else '') + '!'
+        
+        if is_ajax:
+            return JsonResponse({
+                'success': True,
+                'message': message,
+                'new_average': quiz.get_average_rating(),
+                'rating_count': quiz.get_rating_count()
+            })
+        
+        messages.success(request, message)
+    
+    return redirect('quizzes:quiz_detail', pk=pk)
+
+
+@login_required
+def toggle_like(request, pk):
+    """Toggle like on a quiz (AJAX only)"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
+    
+    quiz = get_object_or_404(Quiz, pk=pk)
+    
+    # Restrict access to private quizzes
+    if not quiz.is_public and quiz.creator != request.user:
+        return JsonResponse({'success': False, 'error': 'This quiz is private.'}, status=403)
+    
+    # Toggle like
+    like, created = QuizLike.objects.get_or_create(user=request.user, quiz=quiz)
+    
+    if not created:
+        # Unlike
+        like.delete()
+        liked = False
+    else:
+        # Like
+        liked = True
+    
+    return JsonResponse({
+        'success': True,
+        'liked': liked,
+        'like_count': quiz.likes.count()
+    })
+
 
