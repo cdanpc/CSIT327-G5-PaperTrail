@@ -174,13 +174,19 @@ function displayNotifications(notifications) {
 // Get notification icon based on type
 function getNotificationIcon(type) {
     const icons = {
+        // Student notifications
         'new_upload': 'upload',
         'new_comment': 'comment',
         'new_rating': 'star',
         'verification_approved': 'check-circle',
         'verification_rejected': 'times-circle',
         'new_bookmark': 'bookmark',
-        'quiz_attempt': 'clipboard-check'
+        'quiz_attempt': 'clipboard-check',
+        // Admin notifications
+        'new_user_registration': 'user-plus',
+        'reported_content': 'flag',
+        'system_alert': 'exclamation-triangle',
+        'password_reset_request': 'key'
     };
     return icons[type] || 'bell';
 }

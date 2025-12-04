@@ -6,13 +6,15 @@
 {% block header %}
 <div class="dashboard-header">
     <div class="dashboard-title-section">
-        <h1 class="dashboard-title">Manage Users</h1>
-        <p class="dashboard-date">View all users and manage their roles</p>
-    </div>
-    <div class="dashboard-actions">
-        <a href="{% url 'accounts:admin_dashboard' %}" class="btn" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.2); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none;">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="{% url 'accounts:admin_dashboard' %}" class="back-link" aria-label="Go back">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <div>
+                <h1 class="dashboard-title">Manage Users</h1>
+                <p class="dashboard-date">View all users and manage their roles</p>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -134,7 +136,7 @@
                                     {% endif %}
                                     <div>
                                         <div style="font-weight: 600; color: #1a1a1a;">{{ user.get_display_name }}</div>
-                                        <small class="text-muted">ID: {{ user.id }}</small>
+                                        <small class="text-muted">ID: {{ user.stud_id }}</small>
                                     </div>
                                 </div>
                             </td>

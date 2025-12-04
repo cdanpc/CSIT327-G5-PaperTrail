@@ -37,7 +37,7 @@ def notify_admins_new_user_registration(sender, instance, created, **kwargs):
                     user=admin,
                     type='new_user_registration',
                     message=f"New user registered: {instance.get_display_name()} (Role: {role})",
-                    url=reverse('accounts:profile') if admin == instance else f"/admin/accounts/user/{instance.id}/change/",
+                    url=reverse('accounts:manage_users') if admin != instance else reverse('accounts:profile'),
                     related_object_type='user',
                     related_object_id=instance.id
                 )
